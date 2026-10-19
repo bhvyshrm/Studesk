@@ -39,6 +39,7 @@ dependencies:
   shared_preferences: ^2.5.6
   url_launcher: ^6.3.3
   uuid: ^4.6.0
+  crypto: ^3.0.7
   supabase_flutter: ^2.18.3
 
 dev_dependencies:

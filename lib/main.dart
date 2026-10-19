@@ -6,6 +6,7 @@ import 'core/config/app_bootstrap.dart';
 import 'core/data/studesk_repository.dart';
 import 'core/theme/theme_controller.dart';
 import 'features/auth/data/auth_service.dart';
+import 'features/backup/data/backup_service.dart';
 
 void main() async {
   AppBootstrap.configureErrorHandling();
@@ -16,6 +17,7 @@ void main() async {
     await ThemeController.instance.init();
     await StuDeskRepository.instance.init();
     await AuthService.instance.init();
+    await BackupService.instance.init();
     runApp(const StuDeskApp());
   }, (error, stackTrace) {
     debugPrint('StuDesk Uncaught Zone Error: $error');

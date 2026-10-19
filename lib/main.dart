@@ -1,14 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'app.dart';
+import 'core/config/app_bootstrap.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-    ),
-  );
-  runApp(const StuDeskApp());
+void main() async {
+  AppBootstrap.configureErrorHandling();
+
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    AppBootstrap.configureSystemUI();
+    runApp(const StuDeskApp());
+  }, (error, stackTrace) {
+    debugPrint('StuDesk Uncaught Zone Error: $error');
+  });
 }

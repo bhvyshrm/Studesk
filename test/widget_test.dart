@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:studesk/app.dart';
+import 'package:studesk/core/config/app_bootstrap.dart';
 import 'package:studesk/core/theme/theme_controller.dart';
 import 'package:studesk/features/journal/presentation/journal_editor_screen.dart';
 import 'package:studesk/features/subjects/presentation/subject_details_screen.dart';
@@ -8,6 +9,7 @@ import 'package:studesk/features/subjects/presentation/subject_details_screen.da
 void main() {
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+    AppBootstrap.configureErrorHandling();
   });
 
   void configurePhoneDimensions(WidgetTester tester) {
@@ -149,4 +151,21 @@ void main() {
 
     expect(ThemeController.instance.isDarkMode, initialBrightness);
   });
+
+  testWidgets('Startup error fallback renders recovery UI instead of black screen', (WidgetTester tester) async {
+    final details = FlutterErrorDetails(
+      exception: Exception('Simulated widget failure'),
+      stack: StackTrace.current,
+    );
+
+    final errorWidget = ErrorWidget.builder(details);
+
+    await tester.pumpWidget(errorWidget);
+    await tester.pumpAndSettle();
+
+    expect(find.text('StuDesk Interface Error'), findsOneWidget);
+    expect(find.text('Reload StuDesk'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+  });
 }
+

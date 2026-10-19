@@ -73,6 +73,11 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                         child: Image.asset(
                           'assets/images/studesk_logo.png',
                           fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.school_rounded,
+                            color: stuTheme.accent,
+                            size: 28,
+                          ),
                         ),
                       ),
                     ),
@@ -258,6 +263,11 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                       child: Image.asset(
                         'assets/images/studesk_logo.png',
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.school_rounded,
+                          color: stuTheme.accent,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),

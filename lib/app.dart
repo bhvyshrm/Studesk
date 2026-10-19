@@ -40,6 +40,14 @@ class _StuDeskAppState extends State<StuDeskApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeController.instance.themeMode,
+      builder: (context, child) {
+        return child ??
+            const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+      },
       home: const MainNavigationShell(),
     );
   }

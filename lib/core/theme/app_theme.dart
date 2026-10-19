@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 @immutable
@@ -151,11 +152,12 @@ extension BuildContextThemeExt on BuildContext {
 
 class AppTheme {
   static ThemeData get lightTheme {
+    final baseText = ThemeData.light().textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightCanvas,
-      fontFamily: 'Inter',
+      textTheme: GoogleFonts.interTextTheme(baseText),
       colorScheme: const ColorScheme.light(
         primary: AppColors.goldLight,
         onPrimary: AppColors.lightTextPrimary,
@@ -191,11 +193,12 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    final baseText = ThemeData.dark().textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkCanvas,
-      fontFamily: 'Inter',
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(baseText),
       colorScheme: const ColorScheme.dark(
         primary: AppColors.goldDark,
         onPrimary: Color(0xFF000000),

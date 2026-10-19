@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/data/studesk_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
+import '../../features/auth/presentation/auth_screen.dart';
+import '../../features/backup/presentation/backup_restore_screen.dart';
 import 'pill_badge.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -31,9 +34,11 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   void _showProfileSheet(BuildContext context) {
     final stuTheme = context.stuTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final profile = StuDeskRepository.instance.profile;
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: stuTheme.surfaceTier1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -42,158 +47,298 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: stuTheme.border,
-                      borderRadius: BorderRadius.circular(2),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: stuTheme.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: stuTheme.surfaceTier2,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: stuTheme.border),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          'assets/images/studesk_logo.png',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            Icons.school_rounded,
-                            color: stuTheme.accent,
-                            size: 28,
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: stuTheme.surfaceTier2,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: stuTheme.border),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            'assets/images/studesk_logo.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.school_rounded,
+                              color: stuTheme.accent,
+                              size: 28,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Alex Chen',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: stuTheme.textPrimary,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile.name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: stuTheme.textPrimary,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'CS Year 2 • Roll #22CS1049',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: stuTheme.textSecondary,
+                            const SizedBox(height: 2),
+                            Text(
+                              '${profile.course} • Roll #${profile.rollNo}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: stuTheme.textSecondary,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                      PillBadge(
+                        label: profile.semester,
+                        backgroundColor: stuTheme.accent.withValues(alpha: 0.15),
+                        textColor: stuTheme.accent,
+                        borderColor: stuTheme.accent.withValues(alpha: 0.3),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Divider(color: stuTheme.border, height: 1),
+                  const SizedBox(height: 14),
+
+                  // Theme Toggle
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: stuTheme.surfaceTier2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                        color: stuTheme.accent,
+                        size: 20,
                       ),
                     ),
-                    PillBadge(
-                      label: 'Sem 5',
-                      backgroundColor: stuTheme.accent.withValues(alpha: 0.15),
-                      textColor: stuTheme.accent,
-                      borderColor: stuTheme.accent.withValues(alpha: 0.3),
+                    title: Text(
+                      isDark ? 'AMOLED Dark Mode' : 'Light Mode',
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Divider(color: stuTheme.border, height: 1),
-                const SizedBox(height: 16),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: stuTheme.surfaceTier2,
-                      borderRadius: BorderRadius.circular(10),
+                    subtitle: Text(
+                      isDark ? 'Pure #000000 deep obsidian' : 'Modern Academic Elegance',
+                      style: TextStyle(
+                        color: stuTheme.textSecondary,
+                        fontSize: 12,
+                      ),
                     ),
-                    child: Icon(
-                      isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                      color: stuTheme.accent,
-                      size: 20,
+                    trailing: Switch.adaptive(
+                      value: isDark,
+                      activeTrackColor: stuTheme.accent,
+                      onChanged: (val) {
+                        ThemeController.instance.toggleTheme();
+                        Navigator.pop(ctx);
+                      },
                     ),
                   ),
-                  title: Text(
-                    isDark ? 'AMOLED Dark Mode' : 'Light Mode',
-                    style: TextStyle(
-                      color: stuTheme.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+
+                  // Cloud Account & Sync
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: stuTheme.surfaceTier2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.cloud_sync_rounded,
+                        color: stuTheme.accent,
+                        size: 20,
+                      ),
                     ),
-                  ),
-                  subtitle: Text(
-                    isDark ? 'Pure #000000 deep obsidian' : 'Modern Academic Elegance',
-                    style: TextStyle(
+                    title: Text(
+                      'Account & Cloud Sync',
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Google OAuth & Supabase isolation',
+                      style: TextStyle(
+                        color: stuTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
                       color: stuTheme.textSecondary,
-                      fontSize: 12,
                     ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AuthScreen()),
+                      );
+                    },
                   ),
-                  trailing: Switch.adaptive(
-                    value: isDark,
-                    activeTrackColor: stuTheme.accent,
-                    onChanged: (val) {
-                      ThemeController.instance.toggleTheme();
+
+                  // Backup & Restore
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: stuTheme.surfaceTier2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.backup_rounded,
+                        color: stuTheme.accent,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      'Backup & Restore',
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'JSON exports & SHA-256 snapshots',
+                      style: TextStyle(
+                        color: stuTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: stuTheme.textSecondary,
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const BackupRestoreScreen()),
+                      );
+                    },
+                  ),
+
+                  // Academic Standing
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: stuTheme.surfaceTier2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.school_rounded,
+                        color: stuTheme.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      'Academic Standing',
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Attendance Target: ${profile.targetAttendancePercent.toStringAsFixed(0)}% • Good Standing',
+                      style: TextStyle(
+                        color: stuTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: stuTheme.textSecondary,
+                    ),
+                    onTap: () {
                       Navigator.pop(ctx);
                     },
                   ),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: stuTheme.surfaceTier2,
-                      borderRadius: BorderRadius.circular(10),
+
+                  // Reset Demo Data
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: stuTheme.surfaceTier2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.restart_alt_rounded,
+                        color: stuTheme.textSecondary,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.school_rounded,
-                      color: stuTheme.textSecondary,
-                      size: 20,
+                    title: Text(
+                      'Reset to Sample Data',
+                      style: TextStyle(
+                        color: stuTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  title: Text(
-                    'Academic Standing',
-                    style: TextStyle(
-                      color: stuTheme.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+                    subtitle: Text(
+                      'Restore initial Stitch demo curriculum',
+                      style: TextStyle(
+                        color: stuTheme.textMuted,
+                        fontSize: 11.5,
+                      ),
                     ),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      await StuDeskRepository.instance.resetToSampleData();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: stuTheme.surfaceTier3,
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('Sample data restored', style: TextStyle(color: stuTheme.textPrimary)),
+                          ),
+                        );
+                      }
+                    },
                   ),
-                  subtitle: Text(
-                    'Overall GPA: 3.82 • Top 10% in CSE',
-                    style: TextStyle(
-                      color: stuTheme.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                  trailing: Icon(
-                    Icons.chevron_right_rounded,
-                    color: stuTheme.textSecondary,
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

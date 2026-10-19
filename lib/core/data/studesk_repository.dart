@@ -23,14 +23,65 @@ class StuDeskRepository extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
 
   UserProfile _profile = UserProfile.defaultProfile();
-  List<Course> _courses = [];
-  List<TaskItem> _tasks = [];
-  List<LibraryResource> _resources = [];
+  List<Course> _courses = List.from(SampleData.courses);
+  List<TaskItem> _tasks = SampleData.getInitialTasks();
+  List<LibraryResource> _resources = List.from(SampleData.libraryResources);
   List<JournalEntry> _journals = [];
   List<SubjectAttendanceRecord> _subjectAttendance = [];
   List<CollegeAttendanceRecord> _collegeAttendance = [];
-  List<TimetableEntry> _timetable = [];
-  List<ExamItem> _exams = [];
+  List<TimetableEntry> _timetable = const [
+    TimetableEntry(
+      id: 'tt-1',
+      dayOfWeek: 1, // Mon
+      startTime: '10:15',
+      endTime: '11:45',
+      courseCode: 'CS201',
+      title: 'Data Structures & Algorithms',
+      room: 'Hall B-204',
+      professor: 'Dr. Vance',
+    ),
+    TimetableEntry(
+      id: 'tt-2',
+      dayOfWeek: 2, // Tue
+      startTime: '11:15',
+      endTime: '12:30',
+      courseCode: 'CS204',
+      title: 'Operating Systems',
+      room: 'CS Lab 2',
+      professor: 'Prof. Helen',
+    ),
+    TimetableEntry(
+      id: 'tt-3',
+      dayOfWeek: 3, // Wed
+      startTime: '10:15',
+      endTime: '11:45',
+      courseCode: 'CS201',
+      title: 'Data Structures & Algorithms',
+      room: 'Hall B-204',
+      professor: 'Dr. Vance',
+    ),
+    TimetableEntry(
+      id: 'tt-4',
+      dayOfWeek: 4, // Thu
+      startTime: '11:15',
+      endTime: '12:30',
+      courseCode: 'CS204',
+      title: 'Operating Systems',
+      room: 'CS Lab 2',
+      professor: 'Prof. Helen',
+    ),
+  ];
+  List<ExamItem> _exams = [
+    ExamItem(
+      id: 'exam-1',
+      courseCode: 'CS201',
+      title: 'Midterm Exam: Trees & Graphs',
+      examDate: DateTime.now().add(const Duration(days: 12)),
+      room: 'Auditorium A',
+      syllabusCutoff: 'Units 1 - 3',
+      weightagePercent: 30,
+    ),
+  ];
 
   // Getters
   UserProfile get profile => _profile;
@@ -42,6 +93,67 @@ class StuDeskRepository extends ChangeNotifier {
   List<CollegeAttendanceRecord> get collegeAttendance => List.unmodifiable(_collegeAttendance);
   List<TimetableEntry> get timetable => List.unmodifiable(_timetable);
   List<ExamItem> get exams => List.unmodifiable(_exams);
+
+  // --- Attendance Analytics ---
+  int get totalAttendedLectures => _courses.fold(0, (acc, c) => acc + c.attendedLectures);
+  int get totalLectures => _courses.fold(0, (acc, c) => acc + c.totalLectures);
+
+  double get overallAttendancePercentage {
+    final total = totalLectures;
+    if (total == 0) return 100.0;
+    return (totalAttendedLectures / total) * 100.0;
+  }
+
+  /// Calculates how many classes can be safely missed while staying >= 75% target,
+  /// or how many consecutive classes must be attended if currently below 75%.
+  int get safeMissableClasses {
+    final attended = totalAttendedLectures;
+    final total = totalLectures;
+    if (total == 0) return 0;
+    final diff = attended - (0.75 * total);
+    if (diff <= 0) return 0;
+    return (diff / 0.75).floor();
+  }
+
+  int get classesNeededFor75 {
+    final attended = totalAttendedLectures;
+    final total = totalLectures;
+    if (total == 0) return 0;
+    if (overallAttendancePercentage >= 75.0) return 0;
+    final needed = (0.75 * total - attended) / 0.25;
+    return needed.ceil();
+  }
+
+  // --- Task Analytics ---
+  int get completedTasksCount => _tasks.where((t) => t.isCompleted).length;
+  int get totalTasksCount => _tasks.length;
+
+  // --- Exam Analytics ---
+  ExamItem? get nextUpcomingExam {
+    if (_exams.isEmpty) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final upcoming = _exams.where((e) {
+      final examDay = DateTime(e.examDate.year, e.examDate.month, e.examDate.day);
+      return !examDay.isBefore(today);
+    }).toList();
+    if (upcoming.isEmpty) return null;
+    upcoming.sort((a, b) => a.examDate.compareTo(b.examDate));
+    return upcoming.first;
+  }
+
+  // --- Timetable & Lecture Helpers ---
+  List<TimetableEntry> getTimetableForDay(int dayOfWeek) {
+    return _timetable.where((t) => t.dayOfWeek == dayOfWeek).toList();
+  }
+
+  TimetableEntry? get nextOrCurrentTimetableEntry {
+    final weekday = DateTime.now().weekday;
+    final todayEntries = getTimetableForDay(weekday);
+    if (todayEntries.isNotEmpty) return todayEntries.first;
+    if (_timetable.isNotEmpty) return _timetable.first;
+    return null;
+  }
 
   Future<void> init() async {
     if (_isInitialized) return;
@@ -571,6 +683,56 @@ class StuDeskRepository extends ChangeNotifier {
       }
     }
 
+    notifyListeners();
+    await _saveAll();
+  }
+
+  Future<void> resetToSampleData() async {
+    _profile = UserProfile.defaultProfile();
+    _courses = List.from(SampleData.courses);
+    _tasks = SampleData.getInitialTasks();
+    _resources = List.from(SampleData.libraryResources);
+    _subjectAttendance.clear();
+    final today = DateTime.now();
+    _collegeAttendance = [
+      CollegeAttendanceRecord(
+        id: 'col-init-1',
+        date: today.subtract(const Duration(days: 2)),
+        isPresent: true,
+        remarks: 'Present all lectures',
+      ),
+      CollegeAttendanceRecord(
+        id: 'col-init-2',
+        date: today.subtract(const Duration(days: 1)),
+        isPresent: true,
+        remarks: 'Present all lectures',
+      ),
+      CollegeAttendanceRecord(
+        id: 'col-init-3',
+        date: today,
+        isPresent: true,
+        remarks: 'On campus',
+      ),
+    ];
+    _journals = [
+      JournalEntry(
+        id: 'jrn-init',
+        date: DateTime.now(),
+        mood: 'Deep Focus',
+        streak: '14 Days',
+        tasksCompleted: 4,
+        totalTasks: 5,
+        linkedCourses: const ['CS201', 'CS204'],
+        learnedText:
+            'Solid grasp on binary search tree rebalancing and Red-Black tree rotations in CS201. Reviewed kernel synchronization in CS204.',
+        accomplishments: const [
+          'Finished OS Lab 4 kernel sync schema draft.',
+          '30-min LeetCode practice completed.',
+        ],
+        tags: const ['Algorithms', 'Systems', 'Daily'],
+        wordCount: 142,
+      ),
+    ];
     notifyListeners();
     await _saveAll();
   }

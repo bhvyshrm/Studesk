@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/models/models.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/pill_badge.dart';
 
@@ -11,6 +14,7 @@ class JournalEditorScreen extends StatefulWidget {
 }
 
 class _JournalEditorScreenState extends State<JournalEditorScreen> {
+  final StuDeskRepository _repo = StuDeskRepository.instance;
   int _selectedMoodIndex = 0; // 0: Deep Focus
   final List<Map<String, String>> _moods = [
     {'emoji': '🎯', 'label': 'Deep Focus'},
@@ -25,10 +29,23 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
   @override
   void initState() {
     super.initState();
+    // Check if there's an existing journal entry for today
+    final now = DateTime.now();
+    final todayEntry = _repo.journals.cast<JournalEntry?>().firstWhere(
+      (j) => j != null && j.date.year == now.year && j.date.month == now.month && j.date.day == now.day,
+      orElse: () => null,
+    );
+
     _reflectionController = TextEditingController(
-      text:
+      text: todayEntry?.learnedText ??
           'Solid grasp on binary search tree rebalancing and Red-Black tree rotations in CS201. Spent 45 minutes walking through edge cases on node color flipping. Need to review double-black deletion cases tomorrow before office hours.',
     );
+
+    if (todayEntry != null) {
+      final moodIndex = _moods.indexWhere((m) => m['label'] == todayEntry.mood);
+      if (moodIndex != -1) _selectedMoodIndex = moodIndex;
+    }
+
     _accomplishments = [
       {
         'text': 'Finished OS Lab 4 kernel sync schema draft and submitted PR to group repo.',
@@ -47,18 +64,43 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
     super.dispose();
   }
 
-  void _saveAndClose() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: context.stuTheme.surfaceTier3,
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          'Daily journal entry saved successfully!',
-          style: TextStyle(color: context.stuTheme.textPrimary),
-        ),
-      ),
+  Future<void> _saveAndClose() async {
+    final text = _reflectionController.text.trim();
+    final words = text.isEmpty ? 0 : text.split(RegExp(r'\s+')).length;
+    final now = DateTime.now();
+
+    final entry = JournalEntry(
+      id: 'jrn_${now.microsecondsSinceEpoch}',
+      date: now,
+      mood: _moods[_selectedMoodIndex]['label']!,
+      streak: '${_repo.calculateStreak() + 1} Days',
+      tasksCompleted: _accomplishments.where((a) => a['done'] == true).length,
+      totalTasks: _accomplishments.length,
+      linkedCourses: _repo.courses.take(2).map((c) => c.code).toList(),
+      learnedText: text,
+      accomplishments: _accomplishments
+          .where((a) => a['done'] == true)
+          .map((a) => a['text'] as String)
+          .toList(),
+      tags: const ['Daily', 'Reflection', 'Academics'],
+      wordCount: words,
     );
-    Navigator.pop(context);
+
+    await _repo.saveJournalEntry(entry);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: context.stuTheme.surfaceTier3,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            'Daily journal entry saved! Active streak: ${_repo.calculateStreak()} Days 🔥',
+            style: TextStyle(color: context.stuTheme.textPrimary),
+          ),
+        ),
+      );
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -94,7 +136,7 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Oct 24, 2024',
+                  DateFormat('MMM d, yyyy').format(DateTime.now()),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,

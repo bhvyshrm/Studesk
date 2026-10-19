@@ -1,6 +1,120 @@
 import '../models/models.dart';
 
 class SampleData {
+  static const List<CourseUnit> cs201Units = [
+    CourseUnit(
+      unitNumber: 1,
+      title: 'Linear Data Structures',
+      status: UnitStatus.completed,
+      completedTopics: 4,
+      totalTopics: 4,
+      topics: [
+        UnitTopic(
+          title: 'Arrays & Dynamic List Implementations',
+          date: 'Sep 24',
+          subtitle: 'Amortized time complexities',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'Singly & Doubly Linked Lists',
+          date: 'Oct 02',
+          subtitle: 'Pointer arithmetic & reverse logic',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'Stack & Queue Applications',
+          date: 'Oct 08',
+          subtitle: 'Expression parsing & monotonic stacks',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'Hash Maps & Collision Resolution',
+          date: 'Oct 14',
+          subtitle: 'Chaining vs open addressing',
+          isCompleted: true,
+        ),
+      ],
+    ),
+    CourseUnit(
+      unitNumber: 2,
+      title: 'Trees & Hierarchical Structures',
+      status: UnitStatus.current,
+      completedTopics: 4,
+      totalTopics: 6,
+      topics: [
+        UnitTopic(
+          title: 'Binary Search Trees & Traversal',
+          date: 'Oct 18',
+          subtitle: 'Pre/In/Post-order algorithms',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'AVL Tree Self-Balancing & Rotations',
+          date: 'Oct 21',
+          subtitle: 'LL, RR, LR, RL rotation logic',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'B-Trees & Multiway Search Indexing',
+          date: 'Oct 23',
+          subtitle: 'Disk page access optimization',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'Binary Heaps & Priority Queues',
+          date: 'Oct 24',
+          subtitle: 'Heapify and percolate operations',
+          isCompleted: true,
+        ),
+        UnitTopic(
+          title: 'Red-Black Trees Insertion Cases',
+          date: 'Oct 26',
+          subtitle: 'Color flip & rotation invariants',
+          isCompleted: false,
+        ),
+        UnitTopic(
+          title: 'Treaps & Segment Trees',
+          date: 'Oct 29',
+          subtitle: 'Range query intervals',
+          isCompleted: false,
+        ),
+      ],
+    ),
+    CourseUnit(
+      unitNumber: 3,
+      title: 'Graph Algorithms & Shortest Paths',
+      status: UnitStatus.upcoming,
+      completedTopics: 0,
+      totalTopics: 5,
+      topics: [
+        UnitTopic(
+          title: 'Graph Representations & Adjacency Lists',
+          date: 'Nov 02',
+          subtitle: 'Matrix vs list density trade-offs',
+          isCompleted: false,
+        ),
+        UnitTopic(
+          title: 'BFS & DFS Cycle Detection',
+          date: 'Nov 05',
+          subtitle: 'Topological sort & connected components',
+          isCompleted: false,
+        ),
+        UnitTopic(
+          title: "Dijkstra's & Bellman-Ford Shortest Paths",
+          date: 'Nov 08',
+          subtitle: 'Greedy relaxation & negative weight cycles',
+          isCompleted: false,
+        ),
+        UnitTopic(
+          title: 'Minimum Spanning Trees (Kruskal & Prim)',
+          date: 'Nov 12',
+          subtitle: 'Disjoint-set union operations',
+          isCompleted: false,
+        ),
+      ],
+    ),
+  ];
+
   static final List<Course> courses = [
     const Course(
       code: 'CS201',
@@ -19,6 +133,7 @@ class SampleData {
       grade: 'A',
       standing: 'Top 10%',
       lastTopic: 'Binary Search Trees',
+      units: cs201Units,
     ),
     const Course(
       code: 'CS204',
@@ -136,119 +251,7 @@ class SampleData {
     ),
   ];
 
-  static const List<CourseUnit> cs201Units = [
-    CourseUnit(
-      unitNumber: 1,
-      title: 'Linear Data Structures',
-      status: UnitStatus.completed,
-      completedTopics: 4,
-      totalTopics: 4,
-      topics: [
-        UnitTopic(
-          title: 'Arrays & Dynamic List Implementations',
-          date: 'Sep 24',
-          subtitle: 'Amortized time complexities',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'Singly & Doubly Linked Lists',
-          date: 'Oct 02',
-          subtitle: 'Pointer arithmetic & reverse logic',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'Stack & Queue Applications',
-          date: 'Oct 08',
-          subtitle: 'Expression parsing & monotonic stacks',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'Hash Maps & Collision Resolution',
-          date: 'Oct 14',
-          subtitle: 'Chaining vs open addressing',
-          isCompleted: true,
-        ),
-      ],
-    ),
-    CourseUnit(
-      unitNumber: 2,
-      title: 'Trees & Hierarchical Structures',
-      status: UnitStatus.current,
-      completedTopics: 4,
-      totalTopics: 6,
-      topics: [
-        UnitTopic(
-          title: 'Binary Search Trees & Traversal',
-          date: 'Oct 18',
-          subtitle: 'Pre/In/Post-order algorithms',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'AVL Tree Self-Balancing & Rotations',
-          date: 'Oct 21',
-          subtitle: 'LL, RR, LR, RL rotation logic',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'B-Trees & Multiway Search Indexing',
-          date: 'Oct 23',
-          subtitle: 'Disk page access optimization',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'Binary Heaps & Priority Queues',
-          date: 'Oct 24',
-          subtitle: 'Heapify and percolate operations',
-          isCompleted: true,
-        ),
-        UnitTopic(
-          title: 'Red-Black Trees Insertion Cases',
-          date: 'Oct 26',
-          subtitle: 'Color flip & rotation invariants',
-          isCompleted: false,
-        ),
-        UnitTopic(
-          title: 'Treaps & Segment Trees',
-          date: 'Oct 29',
-          subtitle: 'Range query intervals',
-          isCompleted: false,
-        ),
-      ],
-    ),
-    CourseUnit(
-      unitNumber: 3,
-      title: 'Graph Algorithms & Shortest Paths',
-      status: UnitStatus.upcoming,
-      completedTopics: 0,
-      totalTopics: 5,
-      topics: [
-        UnitTopic(
-          title: 'Graph Representations & Adjacency Lists',
-          date: 'Nov 02',
-          subtitle: 'Matrix vs list density trade-offs',
-          isCompleted: false,
-        ),
-        UnitTopic(
-          title: 'BFS & DFS Cycle Detection',
-          date: 'Nov 05',
-          subtitle: 'Topological sort & connected components',
-          isCompleted: false,
-        ),
-        UnitTopic(
-          title: "Dijkstra's & Bellman-Ford Shortest Paths",
-          date: 'Nov 08',
-          subtitle: 'Greedy relaxation & negative weight cycles',
-          isCompleted: false,
-        ),
-        UnitTopic(
-          title: 'Minimum Spanning Trees (Kruskal & Prim)',
-          date: 'Nov 12',
-          subtitle: 'Disjoint-set union operations',
-          isCompleted: false,
-        ),
-      ],
-    ),
-  ];
+
 
   static const List<LibraryResource> libraryResources = [
     LibraryResource(

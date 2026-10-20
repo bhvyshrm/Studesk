@@ -25,11 +25,11 @@ class AppBootstrap {
   }
 
   static Widget buildErrorWidget(FlutterErrorDetails details) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: const Color(0xFF000000),
-        body: SafeArea(
+    return Material(
+      color: const Color(0xFF0A0A0C),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),

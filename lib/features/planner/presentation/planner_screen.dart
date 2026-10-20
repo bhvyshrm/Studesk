@@ -214,9 +214,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
           body: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 // View Switcher Segmented Control
                 _buildViewSwitcher(context),
 
@@ -244,9 +247,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  },
+);
   }
 
   Widget _buildViewSwitcher(BuildContext context) {

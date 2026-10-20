@@ -329,9 +329,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 parent: BouncingScrollPhysics(),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 960),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   // 1. Performance Ribbon: 3 Bento Cards
                   _buildPerformanceRibbon(context),
 
@@ -360,9 +363,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  },
+);
   }
 
   Widget _buildPerformanceRibbon(BuildContext context) {

@@ -566,9 +566,12 @@ class _AcademicsScreenState extends State<AcademicsScreen> {
           body: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 // Segmented Tab Controls
                 _buildSegmentedTabs(context),
 
@@ -607,9 +610,11 @@ class _AcademicsScreenState extends State<AcademicsScreen> {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  },
+);
   }
 
   Widget _buildSegmentedTabs(BuildContext context) {

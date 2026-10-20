@@ -415,9 +415,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
           body: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 // Search Field
                 Container(
                   height: 46,
@@ -660,9 +663,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  },
+);
   }
 
   Widget _buildResourceCard(BuildContext context, LibraryResource res) {

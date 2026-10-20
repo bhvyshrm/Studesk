@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:studesk/app.dart';
 import 'package:studesk/core/config/app_bootstrap.dart';
 import 'package:studesk/core/theme/theme_controller.dart';
+import 'package:studesk/features/home/presentation/home_screen.dart';
 import 'package:studesk/features/journal/presentation/journal_editor_screen.dart';
 import 'package:studesk/features/subjects/presentation/subject_details_screen.dart';
+import 'package:studesk/shared/widgets/app_bottom_nav_bar.dart';
 
 void main() {
   setUp(() {
@@ -166,6 +168,28 @@ void main() {
     expect(find.text('StuDesk Interface Error'), findsOneWidget);
     expect(find.text('Reload StuDesk'), findsOneWidget);
     expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+  });
+
+  testWidgets('AppBottomNavBar maintains constrained height leaving space for body', (WidgetTester tester) async {
+    configurePhoneDimensions(tester);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const StuDeskApp());
+    await tester.pumpAndSettle();
+
+    // Verify the bottom nav bar is bounded and does not consume the whole screen
+    final navFinder = find.byType(AppBottomNavBar);
+    expect(navFinder, findsOneWidget);
+    final navSize = tester.getSize(navFinder);
+    expect(navSize.height, lessThan(120.0));
+    expect(navSize.height, greaterThan(50.0));
+
+    // Verify Home dashboard body has substantial height (> 500)
+    final homeFinder = find.byType(HomeScreen);
+    expect(homeFinder, findsOneWidget);
+    final homeSize = tester.getSize(homeFinder);
+    expect(homeSize.height, greaterThan(600.0));
   });
 }
 

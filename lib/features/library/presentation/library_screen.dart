@@ -325,8 +325,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   onPressed: () async {
                     final messenger = ScaffoldMessenger.of(context);
                     final targetUrl = res.url ?? 'https://www.youtube.com';
-                    final uri = Uri.parse(targetUrl);
-                    if (await canLaunchUrl(uri)) {
+                    final uri = Uri.tryParse(targetUrl);
+                    if (uri != null && await canLaunchUrl(uri)) {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
                     } else {
                       if (!mounted) return;

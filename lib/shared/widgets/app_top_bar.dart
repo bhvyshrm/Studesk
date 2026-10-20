@@ -409,27 +409,104 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   void _showNotificationNotice(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: context.stuTheme.surfaceTier3,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: Row(
-          children: [
-            Icon(Icons.notifications_active_rounded,
-                color: context.stuTheme.accent, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Next: Data Structures starts in 20m in Hall B-204',
-                style: TextStyle(
-                  color: context.stuTheme.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+    final stuTheme = context.stuTheme;
+    final activeEntry = StuDeskRepository.instance.nextOrCurrentTimetableEntry;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: stuTheme.surfaceTier1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: stuTheme.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: stuTheme.accent.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.notifications_active_rounded,
+                      color: stuTheme.accent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Academic Notifications',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: stuTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: stuTheme.surfaceTier2,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: stuTheme.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Next Scheduled Lecture',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: stuTheme.accent,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      activeEntry != null
+                          ? '${activeEntry.courseCode}: ${activeEntry.title} starts at ${activeEntry.startTime} in ${activeEntry.room}'
+                          : 'No lectures scheduled for the remainder of the day.',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: stuTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Local lecture reminders are active. Background system push notifications require release platform FCM/APNS credentials.',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: stuTheme.textMuted,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

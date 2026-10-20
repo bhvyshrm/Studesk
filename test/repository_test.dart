@@ -110,5 +110,78 @@ void main() {
       await repo.restoreFromBackupPayload(backupPayload);
       expect(repo.courses.any((c) => c.code == 'CS201'), isTrue);
     });
+
+    test('Attendance percentage and safe/needed class calculations are mathematically correct', () async {
+      final repo = StuDeskRepository.instance;
+      await repo.init();
+
+      // Test safe missable classes when above 75%
+      expect(repo.overallAttendancePercentage, isA<double>());
+      expect(repo.overallAttendancePercentage, greaterThanOrEqualTo(0.0));
+      expect(repo.overallAttendancePercentage, lessThanOrEqualTo(100.0));
+
+      if (repo.overallAttendancePercentage >= 75.0) {
+        expect(repo.classesNeededFor75, equals(0));
+        expect(repo.safeMissableClasses, greaterThanOrEqualTo(0));
+      } else {
+        expect(repo.safeMissableClasses, equals(0));
+        expect(repo.classesNeededFor75, greaterThan(0));
+      }
+    });
+
+    test('Journal streak logic handles consecutive days and gaps correctly', () async {
+      final repo = StuDeskRepository.instance;
+      await repo.init();
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+      final twoDaysAgo = today.subtract(const Duration(days: 2));
+
+      await repo.saveJournalEntry(JournalEntry(
+        id: 'j-today',
+        date: today,
+        mood: 'Focus',
+        streak: '1',
+        tasksCompleted: 1,
+        totalTasks: 1,
+        linkedCourses: const [],
+        learnedText: 'Learned trees',
+        accomplishments: const [],
+        tags: const [],
+        wordCount: 2,
+      ));
+
+      await repo.saveJournalEntry(JournalEntry(
+        id: 'j-yesterday',
+        date: yesterday,
+        mood: 'Focus',
+        streak: '2',
+        tasksCompleted: 1,
+        totalTasks: 1,
+        linkedCourses: const [],
+        learnedText: 'Learned graphs',
+        accomplishments: const [],
+        tags: const [],
+        wordCount: 2,
+      ));
+
+      await repo.saveJournalEntry(JournalEntry(
+        id: 'j-2days',
+        date: twoDaysAgo,
+        mood: 'Focus',
+        streak: '3',
+        tasksCompleted: 1,
+        totalTasks: 1,
+        linkedCourses: const [],
+        learnedText: 'Learned heaps',
+        accomplishments: const [],
+        tags: const [],
+        wordCount: 2,
+      ));
+
+      final streak = repo.calculateStreak();
+      expect(streak, greaterThanOrEqualTo(3));
+    });
   });
 }

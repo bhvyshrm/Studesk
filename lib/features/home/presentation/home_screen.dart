@@ -384,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Daily Streak Card
         Expanded(
           child: CustomCard(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 11),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -392,52 +392,57 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 26,
-                      height: 26,
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: stuTheme.accent.withValues(alpha: 0.18),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.local_fire_department_rounded,
-                        size: 15,
+                        size: 14,
                         color: stuTheme.accent,
                       ),
                     ),
                     Flexible(
-                      child: Text(
-                        'STREAK',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: stuTheme.accent,
-                          letterSpacing: 0.4,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'STREAK',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: stuTheme.accent,
+                            letterSpacing: 0.4,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                RichText(
-                  text: TextSpan(
-                    text: '$streak ',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold,
-                      color: stuTheme.textPrimary,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: 'days',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.normal,
-                          color: stuTheme.textSecondary,
-                        ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: RichText(
+                    text: TextSpan(
+                      text: '$streak ',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: stuTheme.textPrimary,
                       ),
-                    ],
+                      children: [
+                        TextSpan(
+                          text: 'days',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.normal,
+                            color: stuTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -446,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 10.5,
                     color: stuTheme.textSecondary,
                   ),
                 ),
@@ -459,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Attendance Status Card
         Expanded(
           child: CustomCard(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 11),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             onTap: widget.onNavigateToAcademics,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,49 +473,54 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 26,
-                      height: 26,
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: (isSafe ? stuTheme.success : stuTheme.warning).withValues(alpha: 0.18),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isSafe ? Icons.check_circle_rounded : Icons.warning_rounded,
-                        size: 15,
+                        size: 14,
                         color: isSafe ? stuTheme.success : stuTheme.warning,
                       ),
                     ),
                     Flexible(
-                      child: Text(
-                        'ATTEND',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: isSafe ? stuTheme.success : stuTheme.warning,
-                          letterSpacing: 0.4,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'ATTEND',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: isSafe ? stuTheme.success : stuTheme.warning,
+                            letterSpacing: 0.4,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  '${attendPct.toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    color: stuTheme.textPrimary,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${attendPct.toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                      color: stuTheme.textPrimary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  isSafe ? 'Safe status' : 'Below target',
+                  isSafe ? 'Safe standing' : 'Below target',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w500,
                     color: isSafe ? stuTheme.success : stuTheme.warning,
                   ),
@@ -524,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Study Goals Card
         Expanded(
           child: CustomCard(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 11),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             onTap: widget.onNavigateToPlanner,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,8 +543,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 26,
-                      height: 26,
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: stuTheme.surfaceTier2,
                         shape: BoxShape.circle,
@@ -542,44 +552,49 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Icon(
                         Icons.task_alt_rounded,
-                        size: 15,
+                        size: 14,
                         color: stuTheme.accent,
                       ),
                     ),
                     Flexible(
-                      child: Text(
-                        'GOALS',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: stuTheme.textSecondary,
-                          letterSpacing: 0.4,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'GOALS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: stuTheme.textSecondary,
+                            letterSpacing: 0.4,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                RichText(
-                  text: TextSpan(
-                    text: '$completedTasks ',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold,
-                      color: stuTheme.textPrimary,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '/ $totalTasks',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.normal,
-                          color: stuTheme.textSecondary,
-                        ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: RichText(
+                    text: TextSpan(
+                      text: '$completedTasks ',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: stuTheme.textPrimary,
                       ),
-                    ],
+                      children: [
+                        TextSpan(
+                          text: '/ $totalTasks',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                            color: stuTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -588,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 10.5,
                     color: stuTheme.textSecondary,
                   ),
                 ),
@@ -821,6 +836,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final stuTheme = context.stuTheme;
     final tasks = _repo.tasks;
     final pendingCount = tasks.where((t) => !t.isCompleted).length;
+    final displayedTasks = tasks.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -898,139 +914,176 @@ class _HomeScreenState extends State<HomeScreen> {
         else
           CustomCard(
             padding: EdgeInsets.zero,
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: tasks.length,
-              separatorBuilder: (_, _) => Divider(
-                color: stuTheme.border,
-                height: 1,
-                indent: 16,
-                endIndent: 16,
-              ),
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                return InkWell(
-                  onTap: () => _repo.toggleTask(task.id),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Interactive Checkbox
-                        Container(
-                          width: 20,
-                          height: 20,
-                          margin: const EdgeInsets.only(top: 2),
-                          decoration: BoxDecoration(
-                            color: task.isCompleted ? stuTheme.accent : Colors.transparent,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: task.isCompleted ? stuTheme.accent : stuTheme.border,
-                              width: 1.5,
+            child: Column(
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: displayedTasks.length,
+                  separatorBuilder: (_, _) => Divider(
+                    color: stuTheme.border,
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                  ),
+                  itemBuilder: (context, index) {
+                    final task = displayedTasks[index];
+                    return InkWell(
+                      onTap: () => _repo.toggleTask(task.id),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Interactive Checkbox
+                            Container(
+                              width: 20,
+                              height: 20,
+                              margin: const EdgeInsets.only(top: 2),
+                              decoration: BoxDecoration(
+                                color: task.isCompleted ? stuTheme.accent : Colors.transparent,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: task.isCompleted ? stuTheme.accent : stuTheme.border,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: task.isCompleted
+                                  ? Icon(
+                                      Icons.check_rounded,
+                                      size: 14,
+                                      color: stuTheme.onAccent,
+                                    )
+                                  : null,
                             ),
-                          ),
-                          child: task.isCompleted
-                              ? Icon(
-                                  Icons.check_rounded,
-                                  size: 14,
-                                  color: stuTheme.onAccent,
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      task.title,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: task.isCompleted
-                                            ? stuTheme.textSecondary
-                                            : stuTheme.textPrimary,
-                                        decoration: task.isCompleted
-                                            ? TextDecoration.lineThrough
-                                            : null,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          task.title,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: task.isCompleted
+                                                ? stuTheme.textSecondary
+                                                : stuTheme.textPrimary,
+                                            decoration: task.isCompleted
+                                                ? TextDecoration.lineThrough
+                                                : null,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 8),
+                                      _buildPriorityBadge(task.priority, stuTheme),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
-                                  _buildPriorityBadge(task.priority, stuTheme),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 4,
+                                    runSpacing: 2,
+                                    children: [
+                                      if (task.dueTime != null) ...[
+                                        Icon(
+                                          Icons.schedule_rounded,
+                                          size: 13,
+                                          color: stuTheme.error,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          task.dueTime!,
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            color: stuTheme.error,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '•',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: stuTheme.textMuted,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                      ],
+                                      Text(
+                                        task.categoryTag,
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          color: stuTheme.textSecondary,
+                                        ),
+                                      ),
+                                      if (task.detail != null) ...[
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '•',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: stuTheme.textMuted,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          task.detail!,
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            color: stuTheme.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 4,
-                                runSpacing: 2,
-                                children: [
-                                  if (task.dueTime != null) ...[
-                                    Icon(
-                                      Icons.schedule_rounded,
-                                      size: 13,
-                                      color: stuTheme.error,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      task.dueTime!,
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: stuTheme.error,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '•',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: stuTheme.textMuted,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                  ],
-                                  Text(
-                                    task.categoryTag,
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      color: stuTheme.textSecondary,
-                                    ),
-                                  ),
-                                  if (task.detail != null) ...[
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '•',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: stuTheme.textMuted,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      task.detail!,
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: stuTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    );
+                  },
+                ),
+                if (tasks.length > 3) ...[
+                  Divider(color: stuTheme.border, height: 1),
+                  InkWell(
+                    onTap: widget.onNavigateToPlanner,
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'View all ${tasks.length} tasks in Planner',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: stuTheme.accent,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 14,
+                              color: stuTheme.accent,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                );
-              },
+                ],
+              ],
             ),
           ),
       ],
@@ -1149,7 +1202,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isHighlight ? stuTheme.accent : stuTheme.surfaceTier1,
           borderRadius: BorderRadius.circular(14),

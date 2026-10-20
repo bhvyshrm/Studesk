@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../core/data/studesk_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
+import '../../features/auth/data/auth_service.dart';
 import '../../features/auth/presentation/auth_screen.dart';
 import '../../features/backup/presentation/backup_restore_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import 'pill_badge.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -73,19 +75,26 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: stuTheme.border),
                         ),
-                        padding: const EdgeInsets.all(4),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            'assets/images/studesk_logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.school_rounded,
-                              color: stuTheme.accent,
-                              size: 28,
-                            ),
-                          ),
-                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: (profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty)
+                            ? Image.network(
+                                profile.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                  'assets/images/studesk_logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                            : Image.asset(
+                                'assets/images/studesk_logo.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => Icon(
+                                  Icons.school_rounded,
+                                  color: stuTheme.accent,
+                                  size: 28,
+                                ),
+                              ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -164,6 +173,50 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
 
+                  // Edit Profile
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: stuTheme.surfaceTier2,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.person_outline_rounded,
+                        color: stuTheme.accent,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      'Edit Student Profile',
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Manage name, institution, degree & semester',
+                      style: TextStyle(
+                        color: stuTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right_rounded,
+                      color: stuTheme.textSecondary,
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
+                    },
+                  ),
+
                   // Cloud Account & Sync
                   ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -189,7 +242,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     ),
                     subtitle: Text(
-                      'Google OAuth & Supabase isolation',
+                      AuthService.instance.isAuthenticated
+                          ? 'Signed in via Google OAuth'
+                          : 'Local Student Mode (tap to sign in)',
                       style: TextStyle(
                         color: stuTheme.textSecondary,
                         fontSize: 12,
@@ -201,10 +256,17 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     onTap: () {
                       Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AuthScreen()),
-                      );
+                      if (AuthService.instance.isAuthenticated) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AuthScreen()),
+                        );
+                      }
                     },
                   ),
 
@@ -405,19 +467,27 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: stuTheme.border),
                         ),
-                        padding: const EdgeInsets.all(4),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            'assets/images/studesk_logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.school_rounded,
-                              color: stuTheme.accent,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: (StuDeskRepository.instance.profile.avatarUrl != null &&
+                                StuDeskRepository.instance.profile.avatarUrl!.isNotEmpty)
+                            ? Image.network(
+                                StuDeskRepository.instance.profile.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                  'assets/images/studesk_logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                            : Image.asset(
+                                'assets/images/studesk_logo.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => Icon(
+                                  Icons.school_rounded,
+                                  color: stuTheme.accent,
+                                  size: 20,
+                                ),
+                              ),
                       ),
                       Positioned(
                         bottom: -1,

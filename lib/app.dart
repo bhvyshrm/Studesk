@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'features/academics/presentation/academics_screen.dart';
+import 'features/auth/data/auth_service.dart';
+import 'features/auth/presentation/auth_screen.dart';
+import 'features/auth/presentation/auth_splash_screen.dart';
+import 'features/auth/presentation/unconfigured_screen.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/journal/presentation/journal_editor_screen.dart';
 import 'features/library/presentation/library_screen.dart';
@@ -48,7 +52,39 @@ class _StuDeskAppState extends State<StuDeskApp> {
               ),
             );
       },
-      home: const MainNavigationShell(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AuthService.instance,
+      builder: (context, _) {
+        final auth = AuthService.instance;
+
+        // 1. Splash screen while checking session or initialization
+        if (auth.status == AuthStatus.uninitialized) {
+          return const AuthSplashScreen();
+        }
+
+        // 2. Unconfigured credentials state
+        if (auth.status == AuthStatus.unconfigured) {
+          return const UnconfiguredConfigScreen();
+        }
+
+        // 3. Authenticated session or Demo / Guest mode
+        if (auth.isAuthenticated || auth.isDemoMode) {
+          return const MainNavigationShell();
+        }
+
+        // 4. Unauthenticated login view
+        return const AuthScreen();
+      },
     );
   }
 }

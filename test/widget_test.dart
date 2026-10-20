@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:studesk/app.dart';
 import 'package:studesk/core/config/app_bootstrap.dart';
 import 'package:studesk/core/theme/theme_controller.dart';
+import 'package:studesk/features/auth/data/auth_service.dart';
 import 'package:studesk/features/home/presentation/home_screen.dart';
 import 'package:studesk/features/journal/presentation/journal_editor_screen.dart';
 import 'package:studesk/features/subjects/presentation/subject_details_screen.dart';
@@ -12,6 +13,7 @@ void main() {
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     AppBootstrap.configureErrorHandling();
+    AuthService.instance.enterDemoMode();
   });
 
   void configurePhoneDimensions(WidgetTester tester) {

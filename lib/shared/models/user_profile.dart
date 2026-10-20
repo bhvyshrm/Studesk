@@ -7,6 +7,7 @@ class UserProfile {
   final String semester;
   final String rollNo;
   final String academicYear;
+  final String? avatarUrl;
   final int streakDays;
   final DateTime lastActiveDate;
   final double targetAttendancePercent;
@@ -23,6 +24,7 @@ class UserProfile {
     required this.semester,
     required this.rollNo,
     required this.academicYear,
+    this.avatarUrl,
     this.streakDays = 14,
     required this.lastActiveDate,
     this.targetAttendancePercent = 85.0,
@@ -30,6 +32,9 @@ class UserProfile {
     this.isDarkMode = true,
     this.notificationsEnabled = true,
   });
+
+  String get institution => college;
+  String get fullName => name;
 
   UserProfile copyWith({
     String? id,
@@ -40,6 +45,7 @@ class UserProfile {
     String? semester,
     String? rollNo,
     String? academicYear,
+    String? avatarUrl,
     int? streakDays,
     DateTime? lastActiveDate,
     double? targetAttendancePercent,
@@ -56,6 +62,7 @@ class UserProfile {
       semester: semester ?? this.semester,
       rollNo: rollNo ?? this.rollNo,
       academicYear: academicYear ?? this.academicYear,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       streakDays: streakDays ?? this.streakDays,
       lastActiveDate: lastActiveDate ?? this.lastActiveDate,
       targetAttendancePercent: targetAttendancePercent ?? this.targetAttendancePercent,
@@ -75,6 +82,7 @@ class UserProfile {
       'semester': semester,
       'roll_no': rollNo,
       'academic_year': academicYear,
+      'avatar_url': avatarUrl,
       'streak_days': streakDays,
       'last_active_date': lastActiveDate.toIso8601String(),
       'target_attendance_percent': targetAttendancePercent,
@@ -84,16 +92,71 @@ class UserProfile {
     };
   }
 
+  Map<String, dynamic> toSupabaseMap() {
+    return {
+      'id': id,
+      'full_name': name,
+      'avatar_url': avatarUrl ?? '',
+      'institution': college,
+      'course': course,
+      'academic_year': academicYear,
+      'semester': semester,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+  }
+
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: json['id'] as String? ?? 'user-default',
-      name: json['name'] as String? ?? 'Alex Chen',
+      name: (json['full_name'] ?? json['name']) as String? ?? 'Alex Chen',
       email: json['email'] as String? ?? 'alex.chen@university.edu',
-      college: json['college'] as String? ?? 'Dept of Computer Science',
+      college: (json['institution'] ?? json['college']) as String? ?? 'Dept of Computer Science',
       course: json['course'] as String? ?? 'B.Tech Computer Science',
       semester: json['semester'] as String? ?? 'Semester 4',
       rollNo: json['roll_no'] as String? ?? '22CS1049',
       academicYear: json['academic_year'] as String? ?? 'Year 2',
+      avatarUrl: json['avatar_url'] as String?,
+      streakDays: (json['streak_days'] as num?)?.toInt() ?? 14,
+      lastActiveDate: json['last_active_date'] != null
+          ? DateTime.tryParse(json['last_active_date'] as String) ?? DateTime.now()
+          : DateTime.now(),
+      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 85.0,
+      weeklyStudyGoalHours: (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
+      isDarkMode: json['is_dark_mode'] as bool? ?? true,
+      notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
+    );
+  }
+
+  factory UserProfile.fromSupabase(
+    Map<String, dynamic> json, {
+    required String fallbackEmail,
+    String? fallbackName,
+    String? fallbackAvatar,
+  }) {
+    return UserProfile(
+      id: json['id'] as String? ?? '',
+      name: (json['full_name'] as String?)?.isNotEmpty == true
+          ? json['full_name'] as String
+          : (fallbackName ?? 'StuDesk Student'),
+      email: fallbackEmail,
+      college: (json['institution'] as String?)?.isNotEmpty == true
+          ? json['institution'] as String
+          : 'Dept of Computer Science',
+      course: (json['course'] as String?)?.isNotEmpty == true
+          ? json['course'] as String
+          : 'B.Tech Computer Science',
+      semester: (json['semester'] as String?)?.isNotEmpty == true
+          ? json['semester'] as String
+          : 'Semester 4',
+      rollNo: (json['roll_no'] as String?)?.isNotEmpty == true
+          ? json['roll_no'] as String
+          : '22CS1049',
+      academicYear: (json['academic_year'] as String?)?.isNotEmpty == true
+          ? json['academic_year'] as String
+          : 'Year 2',
+      avatarUrl: (json['avatar_url'] as String?)?.isNotEmpty == true
+          ? json['avatar_url'] as String
+          : fallbackAvatar,
       streakDays: (json['streak_days'] as num?)?.toInt() ?? 14,
       lastActiveDate: json['last_active_date'] != null
           ? DateTime.tryParse(json['last_active_date'] as String) ?? DateTime.now()
@@ -115,6 +178,7 @@ class UserProfile {
       semester: 'Semester 4',
       rollNo: '22CS1049',
       academicYear: 'Year 2',
+      avatarUrl: null,
       streakDays: 14,
       lastActiveDate: DateTime.now(),
       targetAttendancePercent: 85.0,

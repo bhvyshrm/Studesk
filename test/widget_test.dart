@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:studesk/app.dart';
 import 'package:studesk/core/config/app_bootstrap.dart';
+import 'package:studesk/core/data/studesk_repository.dart';
 import 'package:studesk/core/theme/theme_controller.dart';
 import 'package:studesk/features/auth/data/auth_service.dart';
 import 'package:studesk/features/home/presentation/home_screen.dart';
-import 'package:studesk/features/journal/presentation/journal_editor_screen.dart';
-import 'package:studesk/features/subjects/presentation/subject_details_screen.dart';
 import 'package:studesk/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:studesk/shared/widgets/studesk_wordmark.dart';
 
 void main() {
-  setUp(() {
+  setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     AppBootstrap.configureErrorHandling();
+    SharedPreferences.setMockInitialValues({});
+    await StuDeskRepository.instance.init();
+    await StuDeskRepository.instance.updateProfile(
+      StuDeskRepository.instance.profile.copyWith(
+        name: 'Jordan Lee',
+        preferredName: 'Jordan',
+        college: 'Apex University',
+        course: 'Computer Science',
+        onboardingCompleted: true,
+      ),
+    );
     AuthService.instance.enterDemoMode();
   });
 
   void configurePhoneDimensions(WidgetTester tester) {
-    tester.view.physicalSize = const Size(1170, 2532); // iPhone 14/15 Pro standard resolution
+    tester.view.physicalSize = const Size(1170, 2532); // iPhone standard resolution
     tester.view.devicePixelRatio = 3.0;
   }
 
-  testWidgets('StuDesk App smoke and navigation test', (WidgetTester tester) async {
+  testWidgets('StuDesk App smoke and navigation test across 4 destinations',
+      (WidgetTester tester) async {
     configurePhoneDimensions(tester);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -29,85 +42,41 @@ void main() {
     await tester.pumpWidget(const StuDeskApp());
     await tester.pumpAndSettle();
 
-    // Verify Home screen loads
-    expect(find.textContaining('Alex'), findsWidgets);
-    expect(find.text('STREAK'), findsOneWidget);
-    expect(find.text("Today's Schedule"), findsOneWidget);
+    // Verify Home screen loads with StuDesk editorial wordmark & plan sections
+    expect(find.byType(StuDeskWordmark), findsWidgets);
+    expect(find.text("Today's Plan"), findsOneWidget);
+    expect(find.text('Coming Up'), findsOneWidget);
 
-    // Verify bottom navigation items exist
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Academics'), findsOneWidget);
-    expect(find.text('Library'), findsOneWidget);
-    expect(find.text('Planner'), findsOneWidget);
+    // Verify bottom navigation destinations by accessible tooltips
+    expect(find.byTooltip('Home Dashboard'), findsOneWidget);
+    expect(find.byTooltip('Syllabus, Notes & Timetable'), findsOneWidget);
+    expect(find.byTooltip('Personal Learning Collections & Resources'), findsOneWidget);
+    expect(find.byTooltip('Profile, Attendance & Settings'), findsOneWidget);
 
-    // Tap Academics tab
-    await tester.tap(find.text('Academics'));
+    // Navigate to Academics tab
+    await tester.tap(find.byTooltip('Syllabus, Notes & Timetable'));
     await tester.pumpAndSettle();
-    expect(find.text('Overview & Subjects'), findsOneWidget);
-    expect(find.text('Registered Courses'), findsOneWidget);
-    expect(find.text('CS201'), findsWidgets);
+    expect(find.text('Syllabus'), findsOneWidget);
+    expect(find.text('Notes'), findsOneWidget);
+    expect(find.text('Timetable'), findsOneWidget);
 
-    // Tap Library tab
-    await tester.tap(find.text('Library'));
+    // Navigate to Library tab
+    await tester.tap(find.byTooltip('Personal Learning Collections & Resources'));
     await tester.pumpAndSettle();
-    expect(find.text('Saved Study Videos'), findsOneWidget);
-    expect(find.text('All'), findsOneWidget);
+    expect(find.text('Your library is empty'), findsOneWidget);
+    expect(find.text('Create Collection'), findsWidgets);
 
-    // Tap Planner tab
-    await tester.tap(find.text('Planner'));
+    // Navigate to Profile tab
+    await tester.tap(find.byTooltip('Profile, Attendance & Settings'));
     await tester.pumpAndSettle();
-    expect(find.text('Calendar & Tasks'), findsOneWidget);
-    expect(find.text('Week 43'), findsOneWidget);
+    expect(find.text('My College Life'), findsOneWidget);
+    expect(find.text('My Schedule'), findsOneWidget);
+    expect(find.text('My App'), findsOneWidget);
 
     // Return to Home tab
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.byTooltip('Home Dashboard'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Alex'), findsWidgets);
-  });
-
-  testWidgets('Directly open and test Subject Details CS201', (WidgetTester tester) async {
-    configurePhoneDimensions(tester);
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: SubjectDetailsScreen(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Data Structures & Algorithms'), findsOneWidget);
-    expect(find.text('Dr. Vance'), findsOneWidget);
-    expect(find.text('CS201 • 4 Credits • Core'), findsOneWidget);
-    expect(find.text('Syllabus & Units'), findsOneWidget);
-    expect(find.text('Trees & Hierarchical Structures'), findsOneWidget);
-    expect(find.text('Current Focus'), findsOneWidget);
-  });
-
-  testWidgets('Directly open and test Daily Journal Editor', (WidgetTester tester) async {
-    configurePhoneDimensions(tester);
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: JournalEditorScreen(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Learning Flow State'), findsOneWidget);
-    expect(find.text('What I Learned Today'), findsOneWidget);
-    expect(find.text('Accomplishments & Blockers'), findsOneWidget);
-    expect(find.text('Done'), findsOneWidget);
-
-    // Select different mood
-    await tester.tap(find.text('High Energy'));
-    await tester.pumpAndSettle();
-
-    // Verify selected
-    expect(find.text('High Energy'), findsOneWidget);
+    expect(find.text("Today's Plan"), findsOneWidget);
   });
 
   testWidgets('Quick action sheet (+) opens from main shell', (WidgetTester tester) async {
@@ -118,19 +87,18 @@ void main() {
     await tester.pumpWidget(const StuDeskApp());
     await tester.pumpAndSettle();
 
-    // Center (+) button has size 24
-    final plusButton = find.byWidgetPredicate(
-      (widget) => widget is Icon && widget.icon == Icons.add_rounded && widget.size == 24,
-    );
+    // Contextual Floating Action Button
+    final plusButton = find.byTooltip('Quick Add (+)');
     expect(plusButton, findsOneWidget);
     await tester.tap(plusButton);
     await tester.pumpAndSettle();
 
-    // Verify modal options
-    expect(find.text('Quick Actions'), findsOneWidget);
-    expect(find.text('New Daily Journal Entry'), findsOneWidget);
-    expect(find.text('Create Academic Task'), findsOneWidget);
-    expect(find.text("Log Today's Attendance"), findsOneWidget);
+    // Verify action sheet options
+    expect(find.textContaining('Quick Actions'), findsOneWidget);
+    expect(find.text('New Task'), findsOneWidget);
+    expect(find.text('New Event'), findsOneWidget);
+    expect(find.text('Upcoming Exam'), findsOneWidget);
+    expect(find.text('Quick Reminder'), findsOneWidget);
   });
 
   testWidgets('Theme toggle switches mode cleanly', (WidgetTester tester) async {
@@ -156,7 +124,8 @@ void main() {
     expect(ThemeController.instance.isDarkMode, initialBrightness);
   });
 
-  testWidgets('Startup error fallback renders recovery UI instead of black screen', (WidgetTester tester) async {
+  testWidgets('Startup error fallback renders recovery UI instead of black screen',
+      (WidgetTester tester) async {
     final details = FlutterErrorDetails(
       exception: Exception('Simulated widget failure'),
       stack: StackTrace.current,
@@ -172,7 +141,8 @@ void main() {
     expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
   });
 
-  testWidgets('AppBottomNavBar maintains constrained height leaving space for body', (WidgetTester tester) async {
+  testWidgets('AppBottomNavBar maintains constrained height leaving space for body',
+      (WidgetTester tester) async {
     configurePhoneDimensions(tester);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -194,4 +164,3 @@ void main() {
     expect(homeSize.height, greaterThan(600.0));
   });
 }
-

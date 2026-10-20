@@ -21,6 +21,7 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
   final Color warningContainer;
   final Color error;
   final Color errorContainer;
+  final bool isAmoled;
 
   const StuDeskThemeExtension({
     required this.canvas,
@@ -39,6 +40,7 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
     required this.warningContainer,
     required this.error,
     required this.errorContainer,
+    this.isAmoled = false,
   });
 
   @override
@@ -59,6 +61,7 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
     Color? warningContainer,
     Color? error,
     Color? errorContainer,
+    bool? isAmoled,
   }) {
     return StuDeskThemeExtension(
       canvas: canvas ?? this.canvas,
@@ -77,6 +80,7 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
       warningContainer: warningContainer ?? this.warningContainer,
       error: error ?? this.error,
       errorContainer: errorContainer ?? this.errorContainer,
+      isAmoled: isAmoled ?? this.isAmoled,
     );
   }
 
@@ -100,6 +104,7 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
       warningContainer: Color.lerp(warningContainer, other.warningContainer, t)!,
       error: Color.lerp(error, other.error, t)!,
       errorContainer: Color.lerp(errorContainer, other.errorContainer, t)!,
+      isAmoled: t < 0.5 ? isAmoled : other.isAmoled,
     );
   }
 
@@ -120,6 +125,7 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
     warningContainer: AppColors.lightWarningContainer,
     error: AppColors.lightError,
     errorContainer: AppColors.lightErrorContainer,
+    isAmoled: false,
   );
 
   static const dark = StuDeskThemeExtension(
@@ -139,6 +145,27 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
     warningContainer: AppColors.darkWarningContainer,
     error: AppColors.darkError,
     errorContainer: AppColors.darkErrorContainer,
+    isAmoled: false,
+  );
+
+  static const amoled = StuDeskThemeExtension(
+    canvas: AppColors.amoledCanvas,
+    surfaceTier1: AppColors.amoledSurfaceTier1,
+    surfaceTier2: AppColors.amoledSurfaceTier2,
+    surfaceTier3: AppColors.amoledSurfaceTier3,
+    border: AppColors.amoledBorder,
+    textPrimary: AppColors.amoledTextPrimary,
+    textSecondary: AppColors.amoledTextSecondary,
+    textMuted: AppColors.amoledTextMuted,
+    accent: AppColors.goldDark,
+    onAccent: Color(0xFF000000),
+    success: AppColors.darkSuccess,
+    successContainer: AppColors.darkSuccessContainer,
+    warning: AppColors.darkWarning,
+    warningContainer: AppColors.darkWarningContainer,
+    error: AppColors.darkError,
+    errorContainer: AppColors.darkErrorContainer,
+    isAmoled: true,
   );
 }
 
@@ -230,6 +257,47 @@ class AppTheme {
         ),
       ),
       extensions: const [StuDeskThemeExtension.dark],
+    );
+  }
+
+  static ThemeData get amoledDarkTheme {
+    final baseText = ThemeData.dark().textTheme;
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.amoledCanvas,
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(baseText),
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.goldDark,
+        onPrimary: Color(0xFF000000),
+        secondary: AppColors.goldDark,
+        surface: AppColors.amoledSurfaceTier1,
+        onSurface: AppColors.amoledTextPrimary,
+        error: AppColors.darkError,
+        onError: Colors.white,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.amoledCanvas,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        titleTextStyle: TextStyle(
+          color: AppColors.amoledTextPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.3,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.amoledSurfaceTier1,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.amoledBorder, width: 1),
+        ),
+      ),
+      extensions: const [StuDeskThemeExtension.amoled],
     );
   }
 }

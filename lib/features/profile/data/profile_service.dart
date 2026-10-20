@@ -24,7 +24,7 @@ class ProfileService {
     final fallbackEmail = user.email ?? '';
     final fallbackName = (user.userMetadata?['full_name'] as String?) ??
         (user.userMetadata?['name'] as String?) ??
-        (fallbackEmail.isNotEmpty ? fallbackEmail.split('@').first : 'StuDesk Student');
+        (fallbackEmail.isNotEmpty ? fallbackEmail.split('@').first : 'Student');
     final fallbackAvatar = (user.userMetadata?['avatar_url'] as String?) ??
         (user.userMetadata?['picture'] as String?);
 
@@ -41,18 +41,25 @@ class ProfileService {
           .maybeSingle();
 
       if (response == null) {
-        // Safe profile creation on first login
+        // Safe profile creation on first login with zero fake seed data
         final initialMap = {
           'id': user.id,
           'full_name': fallbackName,
+          'preferred_name': fallbackName.isNotEmpty ? fallbackName.split(' ').first : '',
           'avatar_url': fallbackAvatar ?? '',
-          'institution': 'Dept of Computer Science',
-          'course': 'B.Tech Computer Science',
-          'academic_year': 'Year 2',
-          'semester': 'Semester 4',
+          'institution': '',
+          'course': '',
+          'academic_year': '',
+          'semester': '',
+          'bio': '',
+          'onboarding_completed': false,
         };
 
-        await Supabase.instance.client.from('profiles').upsert(initialMap);
+        try {
+          await Supabase.instance.client.from('profiles').upsert(initialMap);
+        } catch (err) {
+          debugPrint('Error inserting initial profile row: $err');
+        }
 
         final newProfile = UserProfile.fromSupabase(
           initialMap,
@@ -79,7 +86,6 @@ class ProfileService {
       debugPrint('ProfileService fetchAndSyncProfile error: $e');
       _lastError = e.toString();
       _isLoading = false;
-      // Fallback to locally cached profile
       return StuDeskRepository.instance.profile;
     }
   }

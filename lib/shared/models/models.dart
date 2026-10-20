@@ -1,7 +1,12 @@
+export 'academic_note.dart';
 export 'attendance.dart';
 export 'backup.dart';
 export 'course.dart';
+export 'event.dart';
+export 'in_app_notification.dart';
 export 'journal.dart';
+export 'library_collection.dart';
+export 'reminder.dart';
 export 'resource.dart';
 export 'task.dart';
 export 'timetable.dart';

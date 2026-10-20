@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 
+/// Clean 4-destination bottom navigation bar with icons only (no visible text labels),
+/// complete screen-reader accessibility semantics, tooltips, and responsive layout.
 class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
-  final VoidCallback? onQuickCreate;
 
   const AppBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onDestinationSelected,
-    this.onQuickCreate,
   });
 
   @override
@@ -18,12 +18,12 @@ class AppBottomNavBar extends StatelessWidget {
     final stuTheme = context.stuTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final navBarHeight = 64.0 + (bottomInset > 0 ? bottomInset : 8.0);
+    final navBarHeight = 60.0 + (bottomInset > 0 ? bottomInset : 6.0);
 
     return Container(
       height: navBarHeight,
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkTheme.scaffoldBackgroundColor : stuTheme.surfaceTier1,
+        color: isDark ? stuTheme.canvas : stuTheme.surfaceTier1,
         border: Border(
           top: BorderSide(color: stuTheme.border, width: 1),
         ),
@@ -36,77 +36,48 @@ class AppBottomNavBar extends StatelessWidget {
         ],
       ),
       padding: EdgeInsets.only(
-        left: 8,
-        right: 8,
+        left: 16,
+        right: 16,
         top: 6,
-        bottom: bottomInset > 0 ? bottomInset : 8,
+        bottom: bottomInset > 0 ? bottomInset : 6,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: const BoxConstraints(maxWidth: 580),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Expanded(
-                child: _buildNavItem(
-                  context,
-                  index: 0,
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                ),
+              _buildNavIcon(
+                context: context,
+                index: 0,
+                icon: Icons.home_rounded,
+                selectedIcon: Icons.home_rounded,
+                semanticLabel: 'Home',
+                tooltip: 'Home Dashboard',
               ),
-              Expanded(
-                child: _buildNavItem(
-                  context,
-                  index: 1,
-                  icon: Icons.school_rounded,
-                  label: 'Academics',
-                ),
+              _buildNavIcon(
+                context: context,
+                index: 1,
+                icon: Icons.school_outlined,
+                selectedIcon: Icons.school_rounded,
+                semanticLabel: 'Academics',
+                tooltip: 'Syllabus, Notes & Timetable',
               ),
-              // Central Quick Create Trigger (+)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: GestureDetector(
-                  onTap: onQuickCreate,
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFFF5F5F7) : stuTheme.textPrimary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : Colors.black.withValues(alpha: 0.18),
-                          offset: const Offset(0, 3),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.add_rounded,
-                      color: isDark ? Colors.black : Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
+              _buildNavIcon(
+                context: context,
+                index: 2,
+                icon: Icons.menu_book_outlined,
+                selectedIcon: Icons.menu_book_rounded,
+                semanticLabel: 'Library',
+                tooltip: 'Personal Learning Collections & Resources',
               ),
-              Expanded(
-                child: _buildNavItem(
-                  context,
-                  index: 2,
-                  icon: Icons.menu_book_rounded,
-                  label: 'Library',
-                ),
-              ),
-              Expanded(
-                child: _buildNavItem(
-                  context,
-                  index: 3,
-                  icon: Icons.event_note_rounded,
-                  label: 'Planner',
-                ),
+              _buildNavIcon(
+                context: context,
+                index: 3,
+                icon: Icons.person_outline_rounded,
+                selectedIcon: Icons.person_rounded,
+                semanticLabel: 'Profile',
+                tooltip: 'Profile, Attendance & Settings',
               ),
             ],
           ),
@@ -115,86 +86,43 @@ class AppBottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(
-    BuildContext context, {
+  Widget _buildNavIcon({
+    required BuildContext context,
     required int index,
     required IconData icon,
-    required String label,
+    required IconData selectedIcon,
+    required String semanticLabel,
+    required String tooltip,
   }) {
     final isSelected = currentIndex == index;
     final stuTheme = context.stuTheme;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onDestinationSelected(index),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: double.infinity,
-          alignment: Alignment.center,
-          child: isSelected
-              ? AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: stuTheme.accent,
-                    borderRadius: BorderRadius.circular(9999),
-                    boxShadow: [
-                      BoxShadow(
-                        color: stuTheme.accent.withValues(alpha: 0.28),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        icon,
-                        size: 18,
-                        color: stuTheme.onAccent,
-                      ),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: stuTheme.onAccent,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        icon,
-                        size: 20,
-                        color: stuTheme.textSecondary,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: stuTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return Semantics(
+      label: semanticLabel,
+      selected: isSelected,
+      button: true,
+      child: Tooltip(
+        message: tooltip,
+        child: InkResponse(
+          onTap: () => onDestinationSelected(index),
+          radius: 28,
+          containedInkWell: false,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? stuTheme.accent.withValues(alpha: 0.16)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              isSelected ? selectedIcon : icon,
+              size: 24,
+              color: isSelected ? stuTheme.accent : stuTheme.textSecondary,
+            ),
+          ),
         ),
       ),
     );

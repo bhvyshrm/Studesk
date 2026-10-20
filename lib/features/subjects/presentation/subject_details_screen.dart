@@ -351,15 +351,15 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${course.attendancePercent.toStringAsFixed(0)}%',
+                        '${course.attendedLectures} Attended',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           color: course.isWarning ? stuTheme.warning : stuTheme.success,
                         ),
                       ),
                       Text(
-                        '${course.attendedLectures}/${course.totalLectures} classes',
+                        '${course.totalLectures} lectures held',
                         style: TextStyle(fontSize: 10, color: stuTheme.textSecondary),
                       ),
                     ],
@@ -391,7 +391,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                             ),
                           ),
                           Icon(
-                            Icons.pie_chart_rounded,
+                            Icons.menu_book_rounded,
                             size: 13,
                             color: stuTheme.accent,
                           ),
@@ -399,15 +399,17 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${course.syllabusPercent.toStringAsFixed(0)}%',
+                        '${course.completedTopics} Done',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           color: stuTheme.textPrimary,
                         ),
                       ),
                       Text(
-                        '${course.completedTopics}/${course.totalTopics} topics',
+                        course.totalTopics > course.completedTopics
+                            ? '${course.totalTopics - course.completedTopics} topics left'
+                            : 'All caught up',
                         style: TextStyle(fontSize: 10, color: stuTheme.textSecondary),
                       ),
                     ],

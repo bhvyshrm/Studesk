@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'core/data/studesk_repository.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'features/academics/presentation/academics_screen.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/auth/presentation/auth_screen.dart';
 import 'features/auth/presentation/auth_splash_screen.dart';
+import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/unconfigured_screen.dart';
 import 'features/home/presentation/home_screen.dart';
-import 'features/journal/presentation/journal_editor_screen.dart';
 import 'features/library/presentation/library_screen.dart';
-import 'features/planner/presentation/planner_screen.dart';
+import 'features/profile/presentation/profile_screen.dart';
 import 'shared/widgets/app_bottom_nav_bar.dart';
 
 class StuDeskApp extends StatefulWidget {
@@ -38,12 +39,14 @@ class _StuDeskAppState extends State<StuDeskApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeCtrl = ThemeController.instance;
+
     return MaterialApp(
       title: 'StuDesk',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeController.instance.themeMode,
+      darkTheme: themeCtrl.isAmoled ? AppTheme.amoledDarkTheme : AppTheme.darkTheme,
+      themeMode: themeCtrl.themeMode,
       builder: (context, child) {
         return child ??
             const Scaffold(
@@ -79,7 +82,28 @@ class AuthGate extends StatelessWidget {
 
         // 3. Authenticated session or Demo / Guest mode
         if (auth.isAuthenticated || auth.isDemoMode) {
-          return const MainNavigationShell();
+          return ListenableBuilder(
+            listenable: StuDeskRepository.instance,
+            builder: (context, _) {
+              final repo = StuDeskRepository.instance;
+              if (!repo.isInitialized) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              // First-time student onboarding check
+              if (!repo.profile.onboardingCompleted) {
+                return OnboardingScreen(
+                  onCompleted: () {
+                    // Navigate into MainNavigationShell
+                  },
+                );
+              }
+
+              return const MainNavigationShell();
+            },
+          );
         }
 
         // 4. Unauthenticated login view
@@ -105,7 +129,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     });
   }
 
-  void _openQuickActionSheet() {
+  void _openContextualActionSheet() {
     final stuTheme = context.stuTheme;
 
     showModalBottomSheet(
@@ -131,75 +155,139 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               Text(
-                'Quick Actions',
+                _getActionSheetTitle(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: stuTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildActionTile(
-                icon: Icons.edit_note_rounded,
-                iconColor: stuTheme.accent,
-                title: 'New Daily Journal Entry',
-                subtitle: 'Record study momentum and flow state',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const JournalEditorScreen(),
-                    ),
-                  );
-                },
-              ),
-              _buildActionTile(
-                icon: Icons.add_task_rounded,
-                iconColor: stuTheme.accent,
-                title: 'Create Academic Task',
-                subtitle: 'Set assignment due date & priority',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _navigateToTab(3); // Go to Planner
-                },
-              ),
-              _buildActionTile(
-                icon: Icons.how_to_reg_rounded,
-                iconColor: stuTheme.success,
-                title: 'Log Today\'s Attendance',
-                subtitle: 'Check in to current scheduled lecture',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _navigateToTab(1); // Go to Academics
-                },
-              ),
-              _buildActionTile(
-                icon: Icons.timer_rounded,
-                iconColor: stuTheme.accent,
-                title: 'Start 25m Focus Block',
-                subtitle: 'Pomodoro timer for distraction-free study',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: stuTheme.surfaceTier3,
-                      behavior: SnackBarBehavior.floating,
-                      content: Text(
-                        'Pomodoro focus session active: 25 minutes',
-                        style: TextStyle(color: stuTheme.textPrimary),
-                      ),
-                    ),
-                  );
-                },
-              ),
+              const SizedBox(height: 14),
+              ..._buildContextualActionTiles(ctx, stuTheme),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _getActionSheetTitle() {
+    switch (_currentIndex) {
+      case 0:
+        return 'Quick Actions (Home)';
+      case 1:
+        return 'Quick Actions (Academics)';
+      case 2:
+        return 'Quick Actions (Library)';
+      default:
+        return 'Quick Actions';
+    }
+  }
+
+  List<Widget> _buildContextualActionTiles(BuildContext ctx, StuDeskThemeExtension stuTheme) {
+    switch (_currentIndex) {
+      case 0: // Home
+        return [
+          _buildActionTile(
+            icon: Icons.check_circle_outline_rounded,
+            iconColor: stuTheme.accent,
+            title: 'New Task',
+            subtitle: 'Academic task or homework with due date',
+            onTap: () {
+              Navigator.pop(ctx);
+              _navigateToTab(0);
+            },
+          ),
+          _buildActionTile(
+            icon: Icons.calendar_month_rounded,
+            iconColor: stuTheme.accent,
+            title: 'New Event',
+            subtitle: 'Campus meeting, workshop, or event',
+            onTap: () {
+              Navigator.pop(ctx);
+              _navigateToTab(0);
+            },
+          ),
+          _buildActionTile(
+            icon: Icons.event_available_rounded,
+            iconColor: stuTheme.error,
+            title: 'Upcoming Exam',
+            subtitle: 'Scheduled quiz, midterm, or final exam',
+            onTap: () {
+              Navigator.pop(ctx);
+              _navigateToTab(0);
+            },
+          ),
+          _buildActionTile(
+            icon: Icons.alarm_rounded,
+            iconColor: stuTheme.warning,
+            title: 'Quick Reminder',
+            subtitle: 'Timely alert for revision or submission',
+            onTap: () {
+              Navigator.pop(ctx);
+              _navigateToTab(0);
+            },
+          ),
+        ];
+
+      case 1: // Academics
+        return [
+          _buildActionTile(
+            icon: Icons.school_rounded,
+            iconColor: stuTheme.accent,
+            title: 'Add Syllabus / Subject',
+            subtitle: 'Register course code, title, and topic list',
+            onTap: () {
+              Navigator.pop(ctx);
+            },
+          ),
+          _buildActionTile(
+            icon: Icons.description_outlined,
+            iconColor: stuTheme.warning,
+            title: 'Create Academic Note',
+            subtitle: 'Coursework notes, formulas, and revision text',
+            onTap: () {
+              Navigator.pop(ctx);
+            },
+          ),
+          _buildActionTile(
+            icon: Icons.schedule_rounded,
+            iconColor: stuTheme.success,
+            title: 'Add Timetable Class',
+            subtitle: 'Schedule weekly lecture, lab, or seminar slot',
+            onTap: () {
+              Navigator.pop(ctx);
+            },
+          ),
+        ];
+
+      case 2: // Library
+        return [
+          _buildActionTile(
+            icon: Icons.create_new_folder_outlined,
+            iconColor: stuTheme.accent,
+            title: 'Create Collection',
+            subtitle: 'Organize resources by topic (e.g. DSA Prep)',
+            onTap: () {
+              Navigator.pop(ctx);
+            },
+          ),
+          _buildActionTile(
+            icon: Icons.add_link_rounded,
+            iconColor: Colors.red.shade400,
+            title: 'Save YouTube / Web Resource',
+            subtitle: 'Bookmark study playlists, articles, and documentation',
+            onTap: () {
+              Navigator.pop(ctx);
+            },
+          ),
+        ];
+
+      default:
+        return [];
+    }
   }
 
   Widget _buildActionTile({
@@ -248,27 +336,38 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final stuTheme = context.stuTheme;
+    final showFAB = _currentIndex < 3; // Section 3: On profile, hide irrelevant create button
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: [
           HomeScreen(
             onNavigateToAcademics: () => _navigateToTab(1),
-            onNavigateToPlanner: () => _navigateToTab(3),
+            onNavigateToLibrary: () => _navigateToTab(2),
+            onNavigateToProfile: () => _navigateToTab(3),
           ),
-          AcademicsScreen(
-            onNavigateToPlanner: () => _navigateToTab(3),
-          ),
-          LibraryScreen(
-            onNavigateToPlanner: () => _navigateToTab(3),
-          ),
-          const PlannerScreen(),
+          const AcademicsScreen(),
+          const LibraryScreen(),
+          const ProfileScreen(),
         ],
       ),
+      floatingActionButton: showFAB
+          ? FloatingActionButton(
+              onPressed: _openContextualActionSheet,
+              backgroundColor: stuTheme.accent,
+              foregroundColor: stuTheme.onAccent,
+              elevation: 3,
+              shape: const CircleBorder(),
+              tooltip: 'Quick Add (+)',
+              child: const Icon(Icons.add_rounded, size: 28),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: _currentIndex,
         onDestinationSelected: _navigateToTab,
-        onQuickCreate: _openQuickActionSheet,
       ),
     );
   }

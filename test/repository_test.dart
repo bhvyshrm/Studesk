@@ -9,14 +9,18 @@ void main() {
   });
 
   group('StuDeskRepository Tests', () {
-    test('Repository initializes with seed courses and tasks', () async {
+    test('Repository initializes clean and empty without hardcoded demo items', () async {
       final repo = StuDeskRepository.instance;
       await repo.init();
 
       expect(repo.isInitialized, isTrue);
-      expect(repo.courses.isNotEmpty, isTrue);
-      expect(repo.tasks.isNotEmpty, isTrue);
-      expect(repo.profile.name, 'Alex Chen');
+      expect(repo.courses.isEmpty, isTrue);
+      expect(repo.tasks.isEmpty, isTrue);
+      expect(repo.exams.isEmpty, isTrue);
+      expect(repo.notes.isEmpty, isTrue);
+      expect(repo.collections.isEmpty, isTrue);
+      expect(repo.profile.name, isEmpty);
+      expect(repo.profile.onboardingCompleted, isFalse);
     });
 
     test('Adding and deleting a course updates repository state', () async {
@@ -46,9 +50,21 @@ void main() {
       final repo = StuDeskRepository.instance;
       await repo.init();
 
-      final initialCourse = repo.courses.firstWhere((c) => c.code == 'CS201');
-      final initialAttended = initialCourse.attendedLectures;
-      final initialTotal = initialCourse.totalLectures;
+      const course = Course(
+        code: 'CS201',
+        title: 'Data Structures',
+        professor: 'Dr. Vance',
+        department: 'CS',
+        schedule: 'MWF',
+        location: 'Hall 1',
+        credits: 4,
+        attendedLectures: 5,
+        totalLectures: 6,
+      );
+      await repo.addCourse(course);
+
+      final initialAttended = course.attendedLectures;
+      final initialTotal = course.totalLectures;
 
       await repo.logSubjectAttendance('CS201', isPresent: true, slot: 'Morning');
 
@@ -98,6 +114,19 @@ void main() {
       final repo = StuDeskRepository.instance;
       await repo.init();
 
+      const course = Course(
+        code: 'CS201',
+        title: 'Data Structures',
+        professor: 'Dr. Vance',
+        department: 'CS',
+        schedule: 'MWF',
+        location: 'Hall 1',
+        credits: 4,
+        attendedLectures: 5,
+        totalLectures: 6,
+      );
+      await repo.addCourse(course);
+
       final backupPayload = await repo.createBackupPayload();
       expect(backupPayload.metadata.dataChecksum.isNotEmpty, isTrue);
       expect(backupPayload.courses.isNotEmpty, isTrue);
@@ -114,6 +143,19 @@ void main() {
     test('Attendance percentage and safe/needed class calculations are mathematically correct', () async {
       final repo = StuDeskRepository.instance;
       await repo.init();
+
+      const courseHigh = Course(
+        code: 'CS201',
+        title: 'Data Structures',
+        professor: 'Dr. Vance',
+        department: 'CS',
+        schedule: 'MWF',
+        location: 'Hall 1',
+        credits: 4,
+        attendedLectures: 18,
+        totalLectures: 20,
+      );
+      await repo.addCourse(courseHigh);
 
       // Test safe missable classes when above 75%
       expect(repo.overallAttendancePercentage, isA<double>());

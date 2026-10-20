@@ -1,6 +1,7 @@
 class UserProfile {
   final String id;
   final String name;
+  final String preferredName;
   final String email;
   final String college;
   final String course;
@@ -8,16 +9,19 @@ class UserProfile {
   final String rollNo;
   final String academicYear;
   final String? avatarUrl;
+  final String bio;
   final int streakDays;
   final DateTime lastActiveDate;
   final double targetAttendancePercent;
   final int weeklyStudyGoalHours;
   final bool isDarkMode;
   final bool notificationsEnabled;
+  final bool onboardingCompleted;
 
   const UserProfile({
     required this.id,
     required this.name,
+    this.preferredName = '',
     required this.email,
     required this.college,
     required this.course,
@@ -25,20 +29,29 @@ class UserProfile {
     required this.rollNo,
     required this.academicYear,
     this.avatarUrl,
-    this.streakDays = 14,
+    this.bio = '',
+    this.streakDays = 0,
     required this.lastActiveDate,
-    this.targetAttendancePercent = 85.0,
+    this.targetAttendancePercent = 75.0,
     this.weeklyStudyGoalHours = 20,
     this.isDarkMode = true,
     this.notificationsEnabled = true,
+    this.onboardingCompleted = false,
   });
 
   String get institution => college;
   String get fullName => name;
 
+  String get effectiveDisplayName {
+    if (preferredName.trim().isNotEmpty) return preferredName.trim();
+    if (name.trim().isNotEmpty) return name.trim().split(' ').first;
+    return 'Student';
+  }
+
   UserProfile copyWith({
     String? id,
     String? name,
+    String? preferredName,
     String? email,
     String? college,
     String? course,
@@ -46,16 +59,19 @@ class UserProfile {
     String? rollNo,
     String? academicYear,
     String? avatarUrl,
+    String? bio,
     int? streakDays,
     DateTime? lastActiveDate,
     double? targetAttendancePercent,
     int? weeklyStudyGoalHours,
     bool? isDarkMode,
     bool? notificationsEnabled,
+    bool? onboardingCompleted,
   }) {
     return UserProfile(
       id: id ?? this.id,
       name: name ?? this.name,
+      preferredName: preferredName ?? this.preferredName,
       email: email ?? this.email,
       college: college ?? this.college,
       course: course ?? this.course,
@@ -63,12 +79,14 @@ class UserProfile {
       rollNo: rollNo ?? this.rollNo,
       academicYear: academicYear ?? this.academicYear,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      bio: bio ?? this.bio,
       streakDays: streakDays ?? this.streakDays,
       lastActiveDate: lastActiveDate ?? this.lastActiveDate,
       targetAttendancePercent: targetAttendancePercent ?? this.targetAttendancePercent,
       weeklyStudyGoalHours: weeklyStudyGoalHours ?? this.weeklyStudyGoalHours,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 
@@ -76,6 +94,7 @@ class UserProfile {
     return {
       'id': id,
       'name': name,
+      'preferred_name': preferredName,
       'email': email,
       'college': college,
       'course': course,
@@ -83,12 +102,14 @@ class UserProfile {
       'roll_no': rollNo,
       'academic_year': academicYear,
       'avatar_url': avatarUrl,
+      'bio': bio,
       'streak_days': streakDays,
       'last_active_date': lastActiveDate.toIso8601String(),
       'target_attendance_percent': targetAttendancePercent,
       'weekly_study_goal_hours': weeklyStudyGoalHours,
       'is_dark_mode': isDarkMode,
       'notifications_enabled': notificationsEnabled,
+      'onboarding_completed': onboardingCompleted,
     };
   }
 
@@ -96,11 +117,14 @@ class UserProfile {
     return {
       'id': id,
       'full_name': name,
+      'preferred_name': preferredName,
       'avatar_url': avatarUrl ?? '',
+      'bio': bio,
       'institution': college,
       'course': course,
       'academic_year': academicYear,
       'semester': semester,
+      'onboarding_completed': onboardingCompleted,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
   }
@@ -108,22 +132,25 @@ class UserProfile {
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: json['id'] as String? ?? 'user-default',
-      name: (json['full_name'] ?? json['name']) as String? ?? 'Alex Chen',
-      email: json['email'] as String? ?? 'alex.chen@university.edu',
-      college: (json['institution'] ?? json['college']) as String? ?? 'Dept of Computer Science',
-      course: json['course'] as String? ?? 'B.Tech Computer Science',
-      semester: json['semester'] as String? ?? 'Semester 4',
-      rollNo: json['roll_no'] as String? ?? '22CS1049',
-      academicYear: json['academic_year'] as String? ?? 'Year 2',
+      name: (json['full_name'] ?? json['name']) as String? ?? '',
+      preferredName: json['preferred_name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      college: (json['institution'] ?? json['college']) as String? ?? '',
+      course: json['course'] as String? ?? '',
+      semester: json['semester'] as String? ?? '',
+      rollNo: json['roll_no'] as String? ?? '',
+      academicYear: json['academic_year'] as String? ?? '',
       avatarUrl: json['avatar_url'] as String?,
-      streakDays: (json['streak_days'] as num?)?.toInt() ?? 14,
+      bio: json['bio'] as String? ?? '',
+      streakDays: (json['streak_days'] as num?)?.toInt() ?? 0,
       lastActiveDate: json['last_active_date'] != null
           ? DateTime.tryParse(json['last_active_date'] as String) ?? DateTime.now()
           : DateTime.now(),
-      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 85.0,
+      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 75.0,
       weeklyStudyGoalHours: (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
       isDarkMode: json['is_dark_mode'] as bool? ?? true,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
+      onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
     );
   }
 
@@ -133,58 +160,65 @@ class UserProfile {
     String? fallbackName,
     String? fallbackAvatar,
   }) {
+    final rawName = (json['full_name'] as String?)?.trim();
+    final name = (rawName != null && rawName.isNotEmpty) ? rawName : (fallbackName ?? '');
     return UserProfile(
       id: json['id'] as String? ?? '',
-      name: (json['full_name'] as String?)?.isNotEmpty == true
-          ? json['full_name'] as String
-          : (fallbackName ?? 'StuDesk Student'),
+      name: name,
+      preferredName: json['preferred_name'] as String? ?? '',
       email: fallbackEmail,
-      college: (json['institution'] as String?)?.isNotEmpty == true
-          ? json['institution'] as String
-          : 'Dept of Computer Science',
-      course: (json['course'] as String?)?.isNotEmpty == true
-          ? json['course'] as String
-          : 'B.Tech Computer Science',
-      semester: (json['semester'] as String?)?.isNotEmpty == true
-          ? json['semester'] as String
-          : 'Semester 4',
-      rollNo: (json['roll_no'] as String?)?.isNotEmpty == true
-          ? json['roll_no'] as String
-          : '22CS1049',
-      academicYear: (json['academic_year'] as String?)?.isNotEmpty == true
-          ? json['academic_year'] as String
-          : 'Year 2',
+      college: json['institution'] as String? ?? '',
+      course: json['course'] as String? ?? '',
+      semester: json['semester'] as String? ?? '',
+      rollNo: json['roll_no'] as String? ?? '',
+      academicYear: json['academic_year'] as String? ?? '',
       avatarUrl: (json['avatar_url'] as String?)?.isNotEmpty == true
           ? json['avatar_url'] as String
           : fallbackAvatar,
-      streakDays: (json['streak_days'] as num?)?.toInt() ?? 14,
+      bio: json['bio'] as String? ?? '',
+      streakDays: (json['streak_days'] as num?)?.toInt() ?? 0,
       lastActiveDate: json['last_active_date'] != null
           ? DateTime.tryParse(json['last_active_date'] as String) ?? DateTime.now()
           : DateTime.now(),
-      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 85.0,
+      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 75.0,
       weeklyStudyGoalHours: (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
       isDarkMode: json['is_dark_mode'] as bool? ?? true,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
+      onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
     );
   }
 
-  static UserProfile defaultProfile() {
+  static UserProfile emptyProfile({
+    String id = '',
+    String email = '',
+    String name = '',
+    String? avatarUrl,
+  }) {
     return UserProfile(
-      id: 'demo-user-1',
-      name: 'Alex Chen',
-      email: 'alex.chen@university.edu',
-      college: 'Dept of Computer Science',
-      course: 'B.Tech Computer Science & Engineering',
-      semester: 'Semester 4',
-      rollNo: '22CS1049',
-      academicYear: 'Year 2',
-      avatarUrl: null,
-      streakDays: 14,
+      id: id,
+      name: name,
+      preferredName: name.isNotEmpty ? name.split(' ').first : '',
+      email: email,
+      college: '',
+      course: '',
+      semester: '',
+      rollNo: '',
+      academicYear: '',
+      avatarUrl: avatarUrl,
+      bio: '',
+      streakDays: 0,
       lastActiveDate: DateTime.now(),
-      targetAttendancePercent: 85.0,
+      targetAttendancePercent: 75.0,
       weeklyStudyGoalHours: 20,
       isDarkMode: true,
       notificationsEnabled: true,
+      onboardingCompleted: false,
     );
   }
+
+  static UserProfile defaultProfile() => emptyProfile(
+        id: 'user_current',
+        name: 'Student',
+        email: 'student@university.edu',
+      );
 }

@@ -182,6 +182,9 @@ class Course {
           ? units.fold(0, (acc, unit) => acc + unit.totalTopics)
           : (_totalTopics ?? 0);
 
+  int get remainingTopics =>
+      (totalTopics - completedTopics).clamp(0, 9999);
+
   double get syllabusPercent =>
       units.isNotEmpty
           ? (totalTopics == 0 ? 0.0 : ((completedTopics / totalTopics) * 100.0))

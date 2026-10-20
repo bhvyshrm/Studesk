@@ -142,14 +142,24 @@ void main() {
 
     test('UserProfile defaults and serialization behave properly', () {
       final profile = UserProfile.defaultProfile();
-      expect(profile.name, 'Alex Chen');
-      expect(profile.streakDays, 14);
+      expect(profile.name, 'Student');
+      expect(profile.streakDays, 0);
+      expect(profile.onboardingCompleted, isFalse);
 
-      final json = profile.toJson();
+      final customProfile = profile.copyWith(
+        name: 'Jane Doe',
+        rollNo: 'CS2026-001',
+        college: 'Apex University',
+        onboardingCompleted: true,
+      );
+
+      final json = customProfile.toJson();
       final restored = UserProfile.fromJson(json);
-      expect(restored.name, 'Alex Chen');
-      expect(restored.rollNo, '22CS1049');
-      expect(restored.targetAttendancePercent, 85.0);
+      expect(restored.name, 'Jane Doe');
+      expect(restored.rollNo, 'CS2026-001');
+      expect(restored.college, 'Apex University');
+      expect(restored.targetAttendancePercent, 75.0);
+      expect(restored.onboardingCompleted, isTrue);
     });
   });
 }

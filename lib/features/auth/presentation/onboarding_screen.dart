@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/studesk_wordmark.dart';
@@ -52,7 +53,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _nameController = TextEditingController(text: profile.effectiveDisplayName);
     _institutionController = TextEditingController(text: profile.institution);
     _courseController = TextEditingController(text: profile.course);
-    if (profile.academicYear.isNotEmpty && _academicYears.contains(profile.academicYear)) {
+    if (profile.academicYear.isNotEmpty &&
+        _academicYears.contains(profile.academicYear)) {
       _selectedYear = profile.academicYear;
     }
     if (profile.semester.isNotEmpty && _semesters.contains(profile.semester)) {
@@ -77,8 +79,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final updated = current.copyWith(
       preferredName: _nameController.text.trim().isNotEmpty
           ? _nameController.text.trim()
-          : (current.name.isNotEmpty ? current.name.split(' ').first : 'Student'),
-      name: current.name.isNotEmpty ? current.name : _nameController.text.trim(),
+          : (current.name.isNotEmpty
+                ? current.name.split(' ').first
+                : 'Student'),
+      name: current.name.isNotEmpty
+          ? current.name
+          : _nameController.text.trim(),
       college: skipped ? current.college : _institutionController.text.trim(),
       course: skipped ? current.course : _courseController.text.trim(),
       academicYear: skipped ? current.academicYear : _selectedYear,
@@ -124,7 +130,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               children: [
                 // Header with wordmark & Skip action
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -132,7 +141,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: StuDeskWordmark(fontSize: 20, showDot: true),
                       ),
                       TextButton(
-                        onPressed: _isSaving ? null : () => _completeOnboarding(skipped: true),
+                        onPressed: _isSaving
+                            ? null
+                            : () => _completeOnboarding(skipped: true),
                         child: Text(
                           'Skip for now',
                           style: TextStyle(
@@ -237,7 +248,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               color: stuTheme.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(Icons.waving_hand_rounded, color: stuTheme.accent, size: 24),
+            child: Icon(
+              Icons.waving_hand_rounded,
+              color: stuTheme.accent,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 20),
           Text(
@@ -276,7 +291,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               hintStyle: TextStyle(color: stuTheme.textMuted, fontSize: 14),
               filled: true,
               fillColor: stuTheme.surfaceTier1,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(color: stuTheme.border),
@@ -335,7 +353,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Institution
           Text(
             'College / Institution (Optional)',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: stuTheme.textSecondary),
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: stuTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: 6),
           TextField(
@@ -346,10 +368,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               hintStyle: TextStyle(color: stuTheme.textMuted, fontSize: 13),
               filled: true,
               fillColor: stuTheme.surfaceTier1,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.accent)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: stuTheme.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: stuTheme.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: stuTheme.accent),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -357,7 +391,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Course
           Text(
             'Course / Degree Program (Optional)',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: stuTheme.textSecondary),
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: stuTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: 6),
           TextField(
@@ -368,10 +406,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               hintStyle: TextStyle(color: stuTheme.textMuted, fontSize: 13),
               filled: true,
               fillColor: stuTheme.surfaceTier1,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.accent)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: stuTheme.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: stuTheme.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: stuTheme.accent),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -383,21 +433,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Academic Year', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: stuTheme.textSecondary)),
+                    Text(
+                      'Academic Year',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: stuTheme.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedYear,
                       isExpanded: true,
                       dropdownColor: stuTheme.surfaceTier1,
-                      style: TextStyle(color: stuTheme.textPrimary, fontSize: 13.5),
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontSize: 13.5,
+                      ),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: stuTheme.surfaceTier1,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: stuTheme.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: stuTheme.border),
+                        ),
                       ),
-                      items: _academicYears.map((yr) => DropdownMenuItem(value: yr, child: Text(yr))).toList(),
+                      items: _academicYears
+                          .map(
+                            (yr) =>
+                                DropdownMenuItem(value: yr, child: Text(yr)),
+                          )
+                          .toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedYear = val);
                       },
@@ -410,23 +484,49 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Semester', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: stuTheme.textSecondary)),
+                    Text(
+                      'Semester',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: stuTheme.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedSemester,
                       isExpanded: true,
                       dropdownColor: stuTheme.surfaceTier1,
-                      style: TextStyle(color: stuTheme.textPrimary, fontSize: 13.5),
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontSize: 13.5,
+                      ),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: stuTheme.surfaceTier1,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: stuTheme.border)),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: stuTheme.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: stuTheme.border),
+                        ),
                       ),
-                      items: _semesters.map((sem) => DropdownMenuItem(value: sem, child: Text(sem))).toList(),
+                      items: _semesters
+                          .map(
+                            (sem) =>
+                                DropdownMenuItem(value: sem, child: Text(sem)),
+                          )
+                          .toList(),
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedSemester = val);
+                        if (val != null) {
+                          setState(() => _selectedSemester = val);
+                        }
                       },
                     ),
                   ],
@@ -452,7 +552,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               color: stuTheme.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(Icons.check_circle_outline_rounded, color: stuTheme.accent, size: 24),
+            child: Icon(
+              Icons.check_circle_outline_rounded,
+              color: stuTheme.accent,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 20),
           Text(

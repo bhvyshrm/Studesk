@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -7,7 +8,10 @@ class GlobalSearchSheet extends StatefulWidget {
 
   const GlobalSearchSheet({super.key, this.onNavigateToTab});
 
-  static Future<void> show(BuildContext context, {void Function(int tabIndex)? onNavigateToTab}) {
+  static Future<void> show(
+    BuildContext context, {
+    void Function(int tabIndex)? onNavigateToTab,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -29,7 +33,15 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
   String _selectedFilter = 'All';
   List<Map<String, dynamic>> _results = [];
 
-  final List<String> _filters = ['All', 'Task', 'Exam', 'Subject', 'Note', 'Library', 'Class'];
+  final List<String> _filters = [
+    'All',
+    'Task',
+    'Exam',
+    'Subject',
+    'Note',
+    'Library',
+    'Class',
+  ];
 
   @override
   void initState() {
@@ -96,18 +108,32 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
 
               // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
                 child: TextField(
                   controller: _searchController,
                   autofocus: true,
                   style: TextStyle(color: stuTheme.textPrimary, fontSize: 15),
                   decoration: InputDecoration(
                     hintText: 'Search tasks, exams, subjects, notes, links...',
-                    hintStyle: TextStyle(color: stuTheme.textMuted, fontSize: 13.5),
-                    prefixIcon: Icon(Icons.search_rounded, color: stuTheme.accent, size: 22),
+                    hintStyle: TextStyle(
+                      color: stuTheme.textMuted,
+                      fontSize: 13.5,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: stuTheme.accent,
+                      size: 22,
+                    ),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.close_rounded, color: stuTheme.textSecondary, size: 18),
+                            icon: Icon(
+                              Icons.close_rounded,
+                              color: stuTheme.textSecondary,
+                              size: 18,
+                            ),
                             onPressed: () {
                               _searchController.clear();
                               _onSearchChanged();
@@ -116,7 +142,10 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
                         : null,
                     filled: true,
                     fillColor: stuTheme.surfaceTier2,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide(color: stuTheme.border),
@@ -127,7 +156,10 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: stuTheme.accent, width: 1.5),
+                      borderSide: BorderSide(
+                        color: stuTheme.accent,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -136,7 +168,10 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
               // Filter Chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: _filters.map((filter) {
                     final isSelected = _selectedFilter == filter;
@@ -148,13 +183,21 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
                         selectedColor: stuTheme.accent,
                         backgroundColor: stuTheme.surfaceTier2,
                         labelStyle: TextStyle(
-                          color: isSelected ? stuTheme.onAccent : stuTheme.textSecondary,
+                          color: isSelected
+                              ? stuTheme.onAccent
+                              : stuTheme.textSecondary,
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(color: isSelected ? Colors.transparent : stuTheme.border),
+                          side: BorderSide(
+                            color: isSelected
+                                ? Colors.transparent
+                                : stuTheme.border,
+                          ),
                         ),
                         onSelected: (val) {
                           if (val) _onFilterSelected(filter);
@@ -172,16 +215,20 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
                 child: _searchController.text.trim().isEmpty
                     ? _buildInitialGuide(stuTheme)
                     : (_results.isEmpty
-                        ? _buildNoResultsState(stuTheme)
-                        : ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            itemCount: _results.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final res = _results[index];
-                              return _buildResultTile(res, stuTheme);
-                            },
-                          )),
+                          ? _buildNoResultsState(stuTheme)
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              itemCount: _results.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final res = _results[index];
+                                return _buildResultTile(res, stuTheme);
+                              },
+                            )),
               ),
             ],
           ),
@@ -244,10 +291,7 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
             Text(
               'Try searching with a different keyword or removing filters.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: stuTheme.textSecondary,
-              ),
+              style: TextStyle(fontSize: 13, color: stuTheme.textSecondary),
             ),
           ],
         ),
@@ -255,7 +299,10 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
     );
   }
 
-  Widget _buildResultTile(Map<String, dynamic> res, StuDeskThemeExtension stuTheme) {
+  Widget _buildResultTile(
+    Map<String, dynamic> res,
+    StuDeskThemeExtension stuTheme,
+  ) {
     final type = res['type'] as String;
     final title = res['title'] as String;
     final subtitle = res['subtitle'] as String;
@@ -323,10 +370,7 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
         subtitle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: stuTheme.textSecondary,
-          fontSize: 12,
-        ),
+        style: TextStyle(color: stuTheme.textSecondary, fontSize: 12),
       ),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

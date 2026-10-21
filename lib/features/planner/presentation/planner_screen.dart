@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/models.dart';
@@ -34,7 +35,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final stuTheme = context.stuTheme;
     final titleController = TextEditingController();
     TaskPriority selectedPriority = TaskPriority.academic;
-    String selectedTag = _repo.courses.isNotEmpty ? _repo.courses.first.code : 'General';
+    String selectedTag = _repo.courses.isNotEmpty
+        ? _repo.courses.first.code
+        : 'General';
 
     showModalBottomSheet(
       context: context,
@@ -81,17 +84,31 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'e.g., Read OS Lab Chapter 3...',
-                  hintStyle: TextStyle(color: stuTheme.textSecondary, fontSize: 13),
+                  hintStyle: TextStyle(
+                    color: stuTheme.textSecondary,
+                    fontSize: 13,
+                  ),
                   filled: true,
                   fillColor: stuTheme.surfaceTier2,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Text('Priority: ', style: TextStyle(color: stuTheme.textSecondary, fontSize: 13)),
+                  Text(
+                    'Priority: ',
+                    style: TextStyle(
+                      color: stuTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   DropdownButton<TaskPriority>(
                     value: selectedPriority,
@@ -111,20 +128,36 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       );
                     }).toList(),
                     onChanged: (val) {
-                      if (val != null) setSheetState(() => selectedPriority = val);
+                      if (val != null) {
+                        setSheetState(() => selectedPriority = val);
+                      }
                     },
                   ),
                   const Spacer(),
-                  Text('Course: ', style: TextStyle(color: stuTheme.textSecondary, fontSize: 13)),
+                  Text(
+                    'Course: ',
+                    style: TextStyle(
+                      color: stuTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: selectedTag,
                     dropdownColor: stuTheme.surfaceTier2,
                     underline: const SizedBox(),
                     items: [
-                      ..._repo.courses.map((c) => DropdownMenuItem(value: c.code, child: Text(c.code))),
+                      ..._repo.courses.map(
+                        (c) => DropdownMenuItem(
+                          value: c.code,
+                          child: Text(c.code),
+                        ),
+                      ),
                       if (_repo.courses.every((c) => c.code != 'General'))
-                        const DropdownMenuItem(value: 'General', child: Text('General')),
+                        const DropdownMenuItem(
+                          value: 'General',
+                          child: Text('General'),
+                        ),
                     ],
                     onChanged: (val) {
                       if (val != null) setSheetState(() => selectedTag = val);
@@ -140,7 +173,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: stuTheme.accent,
                     foregroundColor: stuTheme.onAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   onPressed: () async {
                     final text = titleController.text.trim();
@@ -160,13 +195,19 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           SnackBar(
                             backgroundColor: stuTheme.surfaceTier3,
                             behavior: SnackBarBehavior.floating,
-                            content: Text('Task added to Planner', style: TextStyle(color: stuTheme.textPrimary)),
+                            content: Text(
+                              'Task added to Planner',
+                              style: TextStyle(color: stuTheme.textPrimary),
+                            ),
                           ),
                         );
                       }
                     }
                   },
-                  child: const Text('Add Task', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Add Task',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -192,20 +233,31 @@ class _PlannerScreenState extends State<PlannerScreen> {
           backgroundColor: stuTheme.canvas,
           appBar: AppTopBar(
             title: 'Planner',
-            subtitle: DateFormat('MMMM yyyy • \'Week\' w').format(DateTime.now()),
+            subtitle: DateFormat('MMMM yyyy • \'Week\' w')
+                .format(DateTime.now()),
             actions: [
               IconButton(
-                icon: Icon(Icons.auto_stories_rounded, color: stuTheme.accent, size: 20),
+                icon: Icon(
+                  Icons.auto_stories_rounded,
+                  color: stuTheme.accent,
+                  size: 20,
+                ),
                 tooltip: 'Open Daily Journal',
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const JournalEditorScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const JournalEditorScreen(),
+                    ),
                   );
                 },
               ),
               IconButton(
-                icon: Icon(Icons.add_task_rounded, color: stuTheme.accent, size: 20),
+                icon: Icon(
+                  Icons.add_task_rounded,
+                  color: stuTheme.accent,
+                  size: 20,
+                ),
                 tooltip: 'Add Task',
                 onPressed: _showAddTaskSheet,
               ),
@@ -220,38 +272,38 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                // View Switcher Segmented Control
-                _buildViewSwitcher(context),
+                    // View Switcher Segmented Control
+                    _buildViewSwitcher(context),
 
-                const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                // Weekly Calendar Strip
-                _buildWeeklyCalendarStrip(context),
+                    // Weekly Calendar Strip
+                    _buildWeeklyCalendarStrip(context),
 
-                const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                // Direct Journal Callout Banner
-                _buildJournalCalloutBanner(context),
+                    // Direct Journal Callout Banner
+                    _buildJournalCalloutBanner(context),
 
-                const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                // Timeline Schedule for Selected Day
-                _buildTimelineSchedule(context, selectedDate, dayTimetable),
+                    // Timeline Schedule for Selected Day
+                    _buildTimelineSchedule(context, selectedDate, dayTimetable),
 
-                const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                // Planner Tasks Checklist
-                _buildTasksSection(context, tasks),
+                    // Planner Tasks Checklist
+                    _buildTasksSection(context, tasks),
 
-                const SizedBox(height: 24),
-              ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
-  },
-);
   }
 
   Widget _buildViewSwitcher(BuildContext context) {
@@ -273,7 +325,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 duration: const Duration(milliseconds: 160),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: _activeViewIndex == 0 ? stuTheme.surfaceTier1 : Colors.transparent,
+                  color: _activeViewIndex == 0
+                      ? stuTheme.surfaceTier1
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(9999),
                   boxShadow: _activeViewIndex == 0
                       ? [
@@ -290,7 +344,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     Icon(
                       Icons.event_note_rounded,
                       size: 16,
-                      color: _activeViewIndex == 0 ? stuTheme.accent : stuTheme.textSecondary,
+                      color: _activeViewIndex == 0
+                          ? stuTheme.accent
+                          : stuTheme.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Flexible(
@@ -298,8 +354,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         'Calendar & Tasks',
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: _activeViewIndex == 0 ? FontWeight.bold : FontWeight.w500,
-                          color: _activeViewIndex == 0 ? stuTheme.textPrimary : stuTheme.textSecondary,
+                          fontWeight: _activeViewIndex == 0
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: _activeViewIndex == 0
+                              ? stuTheme.textPrimary
+                              : stuTheme.textSecondary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -314,7 +374,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const JournalEditorScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const JournalEditorScreen(),
+                  ),
                 );
               },
               child: Container(
@@ -392,18 +454,28 @@ class _PlannerScreenState extends State<PlannerScreen> {
               Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left_rounded, size: 20, color: stuTheme.textSecondary),
+                    icon: Icon(
+                      Icons.chevron_left_rounded,
+                      size: 20,
+                      color: stuTheme.textSecondary,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       setState(() {
-                        _weekStart = _weekStart.subtract(const Duration(days: 7));
+                        _weekStart = _weekStart.subtract(
+                          const Duration(days: 7),
+                        );
                       });
                     },
                   ),
                   const SizedBox(width: 12),
                   IconButton(
-                    icon: Icon(Icons.chevron_right_rounded, size: 20, color: stuTheme.textSecondary),
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: stuTheme.textSecondary,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
@@ -423,7 +495,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
             children: List.generate(7, (index) {
               final date = _weekStart.add(Duration(days: index));
               final isSelected = _selectedDayIndex == index;
-              final isToday = date.day == now.day && date.month == now.month && date.year == now.year;
+              final isToday =
+                  date.day == now.day &&
+                  date.month == now.month &&
+                  date.year == now.year;
               final dayTimetable = _repo.getTimetableForDay(index + 1);
 
               return Expanded(
@@ -434,11 +509,15 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? stuTheme.surfaceTier2 : Colors.transparent,
+                      color: isSelected
+                          ? stuTheme.surfaceTier2
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(14),
                       border: isSelected
                           ? Border.all(color: stuTheme.accent, width: 1.2)
-                          : (isToday ? Border.all(color: stuTheme.border) : null),
+                          : (isToday
+                                ? Border.all(color: stuTheme.border)
+                                : null),
                     ),
                     child: Column(
                       children: [
@@ -447,7 +526,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: isSelected ? stuTheme.textPrimary : stuTheme.textSecondary,
+                            color: isSelected
+                                ? stuTheme.textPrimary
+                                : stuTheme.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -455,7 +536,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: isSelected ? stuTheme.accent : Colors.transparent,
+                            color: isSelected
+                                ? stuTheme.accent
+                                : Colors.transparent,
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -464,7 +547,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: isSelected ? stuTheme.onAccent : stuTheme.textPrimary,
+                                color: isSelected
+                                    ? stuTheme.onAccent
+                                    : stuTheme.textPrimary,
                               ),
                             ),
                           ),
@@ -478,7 +563,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                 width: 5,
                                 height: 5,
                                 decoration: BoxDecoration(
-                                  color: isSelected ? stuTheme.accent : stuTheme.textSecondary,
+                                  color: isSelected
+                                      ? stuTheme.accent
+                                      : stuTheme.textSecondary,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -522,7 +609,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 color: stuTheme.accent.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.auto_stories_rounded, color: stuTheme.accent, size: 20),
+              child: Icon(
+                Icons.auto_stories_rounded,
+                color: stuTheme.accent,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -540,19 +631,30 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   const SizedBox(height: 2),
                   Text(
                     'Track what you learned today and extend your streak',
-                    style: TextStyle(fontSize: 11, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary, size: 20),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: stuTheme.textSecondary,
+              size: 20,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTimelineSchedule(BuildContext context, DateTime date, List<TimetableEntry> entries) {
+  Widget _buildTimelineSchedule(
+    BuildContext context,
+    DateTime date,
+    List<TimetableEntry> entries,
+  ) {
     final stuTheme = context.stuTheme;
     final dateStr = DateFormat('EEEE, MMM d').format(date);
 
@@ -588,12 +690,19 @@ class _PlannerScreenState extends State<PlannerScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(Icons.weekend_rounded, color: stuTheme.textSecondary, size: 22),
+                Icon(
+                  Icons.weekend_rounded,
+                  color: stuTheme.textSecondary,
+                  size: 22,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'No scheduled lectures for this day.',
-                    style: TextStyle(color: stuTheme.textSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: stuTheme.textSecondary,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
@@ -609,7 +718,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
               final item = entries[index];
 
               return CustomCard(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 leadingIndicator: Container(
                   width: 3.5,
                   decoration: BoxDecoration(
@@ -744,7 +856,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
               itemBuilder: (context, index) {
                 final task = tasks[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       GestureDetector(
@@ -753,15 +868,23 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            color: task.isCompleted ? stuTheme.accent : Colors.transparent,
+                            color: task.isCompleted
+                                ? stuTheme.accent
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: task.isCompleted ? stuTheme.accent : stuTheme.border,
+                              color: task.isCompleted
+                                  ? stuTheme.accent
+                                  : stuTheme.border,
                               width: 1.5,
                             ),
                           ),
                           child: task.isCompleted
-                              ? Icon(Icons.check_rounded, size: 14, color: stuTheme.onAccent)
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  size: 14,
+                                  color: stuTheme.onAccent,
+                                )
                               : null,
                         ),
                       ),
@@ -775,15 +898,22 @@ class _PlannerScreenState extends State<PlannerScreen> {
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w500,
-                                color: task.isCompleted ? stuTheme.textSecondary : stuTheme.textPrimary,
-                                decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                                color: task.isCompleted
+                                    ? stuTheme.textSecondary
+                                    : stuTheme.textPrimary,
+                                decoration: task.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
                               ),
                             ),
                             if (task.categoryTag.isNotEmpty) ...[
                               const SizedBox(height: 2),
                               Text(
                                 '${task.categoryTag} • ${task.priority.name.toUpperCase()}',
-                                style: TextStyle(fontSize: 10.5, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
                             ],
                           ],
@@ -800,7 +930,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         ),
                       const SizedBox(width: 6),
                       IconButton(
-                        icon: Icon(Icons.close_rounded, size: 16, color: stuTheme.textSecondary),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: stuTheme.textSecondary,
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () => _repo.deleteTask(task.id),

@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
@@ -28,12 +30,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bioCtrl = TextEditingController(text: profile.bio);
     final instCtrl = TextEditingController(text: profile.institution);
     final courseCtrl = TextEditingController(text: profile.course);
-    String selectedYear = profile.academicYear.isNotEmpty ? profile.academicYear : 'Year 1';
-    String selectedSem = profile.semester.isNotEmpty ? profile.semester : 'Semester 1';
+    String selectedYear = profile.academicYear.isNotEmpty
+        ? profile.academicYear
+        : 'Year 1';
+    String selectedSem = profile.semester.isNotEmpty
+        ? profile.semester
+        : 'Semester 1';
     bool isSaving = false;
 
-    final years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Graduate / Master', 'Other'];
-    final sems = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8', 'Other'];
+    final years = [
+      'Year 1',
+      'Year 2',
+      'Year 3',
+      'Year 4',
+      'Graduate / Master',
+      'Other',
+    ];
+    final sems = [
+      'Semester 1',
+      'Semester 2',
+      'Semester 3',
+      'Semester 4',
+      'Semester 5',
+      'Semester 6',
+      'Semester 7',
+      'Semester 8',
+      'Other',
+    ];
 
     showModalBottomSheet(
       context: context,
@@ -57,7 +80,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   'Edit Student Profile',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: stuTheme.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 TextField(
@@ -67,7 +94,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: 'Full Name',
                     filled: true,
                     fillColor: stuTheme.surfaceTier2,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -78,7 +107,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: 'Preferred Display Name (Greeting)',
                     filled: true,
                     fillColor: stuTheme.surfaceTier2,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -90,7 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     hintText: 'e.g. CS major interested in distributed systems',
                     filled: true,
                     fillColor: stuTheme.surfaceTier2,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -101,7 +134,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: 'College / Institution',
                     filled: true,
                     fillColor: stuTheme.surfaceTier2,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -112,7 +147,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: 'Course / Degree Program',
                     filled: true,
                     fillColor: stuTheme.surfaceTier2,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -121,16 +158,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        initialValue: years.contains(selectedYear) ? selectedYear : years.first,
+                        initialValue: years.contains(selectedYear)
+                            ? selectedYear
+                            : years.first,
                         decoration: InputDecoration(
                           labelText: 'Year',
                           filled: true,
                           fillColor: stuTheme.surfaceTier2,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        items: years.map((y) => DropdownMenuItem(value: y, child: Text(y, style: const TextStyle(fontSize: 13)))).toList(),
+                        items: years
+                            .map(
+                              (y) => DropdownMenuItem(
+                                value: y,
+                                child: Text(
+                                  y,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (val) {
-                          if (val != null) setModalState(() => selectedYear = val);
+                          if (val != null) {
+                            setModalState(() => selectedYear = val);
+                          }
                         },
                       ),
                     ),
@@ -138,16 +191,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        initialValue: sems.contains(selectedSem) ? selectedSem : sems.first,
+                        initialValue: sems.contains(selectedSem)
+                            ? selectedSem
+                            : sems.first,
                         decoration: InputDecoration(
                           labelText: 'Semester',
                           filled: true,
                           fillColor: stuTheme.surfaceTier2,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        items: sems.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
+                        items: sems
+                            .map(
+                              (s) => DropdownMenuItem(
+                                value: s,
+                                child: Text(
+                                  s,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (val) {
-                          if (val != null) setModalState(() => selectedSem = val);
+                          if (val != null) {
+                            setModalState(() => selectedSem = val);
+                          }
                         },
                       ),
                     ),
@@ -161,14 +230,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: stuTheme.accent,
                       foregroundColor: stuTheme.onAccent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     onPressed: isSaving
                         ? null
                         : () async {
                             setModalState(() => isSaving = true);
                             final updated = profile.copyWith(
-                              name: nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : profile.name,
+                              name: nameCtrl.text.trim().isNotEmpty
+                                  ? nameCtrl.text.trim()
+                                  : profile.name,
                               preferredName: prefNameCtrl.text.trim(),
                               bio: bioCtrl.text.trim(),
                               college: instCtrl.text.trim(),
@@ -177,15 +250,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               semester: selectedSem,
                             );
                             try {
-                              await ProfileService.instance.saveProfile(updated);
+                              await ProfileService.instance.saveProfile(
+                                updated,
+                              );
                             } catch (_) {
                               await _repo.updateProfile(updated);
                             }
                             if (context.mounted) Navigator.pop(ctx);
                           },
                     child: isSaving
-                        ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: stuTheme.onAccent, strokeWidth: 2))
-                        : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: stuTheme.onAccent,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Save Changes',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                   ),
                 ),
               ],
@@ -218,18 +303,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Container(
                     width: 36,
                     height: 4,
-                    decoration: BoxDecoration(color: stuTheme.border, borderRadius: BorderRadius.circular(2)),
+                    decoration: BoxDecoration(
+                      color: stuTheme.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Appearance & Theme Modes',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: stuTheme.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Display Mode',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: stuTheme.textSecondary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: stuTheme.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -271,45 +367,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'Accent Palette',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: stuTheme.textSecondary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: stuTheme.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  children: List.generate(ThemeController.availableAccents.length, (idx) {
-                    final color = ThemeController.availableAccents[idx];
-                    final isSelected = _themeCtrl.accentIndex == idx;
-                    return GestureDetector(
-                      onTap: () {
-                        _themeCtrl.setAccentIndex(idx);
-                        setModalState(() {});
-                      },
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected ? Colors.white : Colors.transparent,
-                            width: 2.5,
+                  children: List.generate(
+                    ThemeController.availableAccents.length,
+                    (idx) {
+                      final color = ThemeController.availableAccents[idx];
+                      final isSelected = _themeCtrl.accentIndex == idx;
+                      return GestureDetector(
+                        onTap: () {
+                          _themeCtrl.setAccentIndex(idx);
+                          setModalState(() {});
+                        },
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.transparent,
+                              width: 2.5,
+                            ),
                           ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 20,
+                                  color: Colors.black,
+                                )
+                              : null,
                         ),
-                        child: isSelected ? const Icon(Icons.check, size: 20, color: Colors.black) : null,
-                      ),
-                    );
-                  }),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
                     'Compact Spacing',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: stuTheme.textPrimary,
+                    ),
                   ),
                   subtitle: Text(
                     'Denser card and list margins for smaller screens',
-                    style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                   value: _themeCtrl.isCompactSpacing,
                   activeThumbColor: stuTheme.accent,
@@ -322,11 +440,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   contentPadding: EdgeInsets.zero,
                   title: Text(
                     'Reduced Motion',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: stuTheme.textPrimary,
+                    ),
                   ),
                   subtitle: Text(
                     'Minimize page transition and animation duration',
-                    style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                   value: _themeCtrl.reducedMotion,
                   activeThumbColor: stuTheme.accent,
@@ -361,7 +486,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: BoxDecoration(
             color: isSelected ? stuTheme.accent : stuTheme.surfaceTier2,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? Colors.transparent : stuTheme.border),
+            border: Border.all(
+              color: isSelected ? Colors.transparent : stuTheme.border,
+            ),
           ),
           alignment: Alignment.center,
           child: Text(
@@ -386,14 +513,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: context.stuTheme.surfaceTier1,
-          title: Text('Export Desk Backup', style: TextStyle(color: context.stuTheme.textPrimary)),
+          title: Text(
+            'Export Desk Backup',
+            style: TextStyle(color: context.stuTheme.textPrimary),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Your desk data has been packaged into an encrypted JSON export containing ${_repo.courses.length} subjects, ${_repo.tasks.length} tasks, and ${_repo.notes.length} notes.',
-                style: TextStyle(fontSize: 13, color: context.stuTheme.textSecondary),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: context.stuTheme.textSecondary,
+                ),
               ),
               const SizedBox(height: 12),
               Container(
@@ -404,7 +537,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Text(
                   'Payload size: ${jsonStr.length} bytes',
-                  style: TextStyle(fontSize: 11.5, color: context.stuTheme.textMuted),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: context.stuTheme.textMuted,
+                  ),
                 ),
               ),
             ],
@@ -425,15 +561,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: context.stuTheme.surfaceTier1,
-        title: Text('Sign Out', style: TextStyle(color: context.stuTheme.textPrimary)),
+        title: Text(
+          'Sign Out',
+          style: TextStyle(color: context.stuTheme.textPrimary),
+        ),
         content: Text(
           'Are you sure you want to end your session on this device?',
           style: TextStyle(color: context.stuTheme.textSecondary),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: context.stuTheme.error, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.stuTheme.error,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Sign Out'),
           ),
@@ -489,7 +634,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: stuTheme.accent.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: stuTheme.accent, width: 2),
+                                border: Border.all(
+                                  color: stuTheme.accent,
+                                  width: 2,
+                                ),
                               ),
                               alignment: Alignment.center,
                               child: Text(
@@ -517,13 +665,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(height: 2),
                                   Row(
                                     children: [
-                                      Icon(Icons.lock_outline_rounded, size: 12, color: stuTheme.textMuted),
+                                      Icon(
+                                        Icons.lock_outline_rounded,
+                                        size: 12,
+                                        color: stuTheme.textMuted,
+                                      ),
                                       const SizedBox(width: 4),
                                       Flexible(
                                         child: Text(
-                                          email.isNotEmpty ? email : 'student@university.edu',
+                                          email.isNotEmpty
+                                              ? email
+                                              : 'student@university.edu',
                                           overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: stuTheme.textSecondary,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -534,7 +691,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       profile.bio,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(fontSize: 12, color: stuTheme.textMuted),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: stuTheme.textMuted,
+                                      ),
                                     ),
                                   ],
                                 ],
@@ -555,7 +715,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Section 10.2: My College Life
                       Text(
                         'My College Life',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Material(
@@ -569,13 +733,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              _buildInfoRow('Institution', profile.institution.isNotEmpty ? profile.institution : 'Not configured', stuTheme),
+                              _buildInfoRow(
+                                'Institution',
+                                profile.institution.isNotEmpty
+                                    ? profile.institution
+                                    : 'Not configured',
+                                stuTheme,
+                              ),
                               const Divider(height: 16),
-                              _buildInfoRow('Course / Program', profile.course.isNotEmpty ? profile.course : 'Not configured', stuTheme),
+                              _buildInfoRow(
+                                'Course / Program',
+                                profile.course.isNotEmpty
+                                    ? profile.course
+                                    : 'Not configured',
+                                stuTheme,
+                              ),
                               const Divider(height: 16),
-                              _buildInfoRow('Academic Year', profile.academicYear.isNotEmpty ? profile.academicYear : 'Year 1', stuTheme),
+                              _buildInfoRow(
+                                'Academic Year',
+                                profile.academicYear.isNotEmpty
+                                    ? profile.academicYear
+                                    : 'Year 1',
+                                stuTheme,
+                              ),
                               const Divider(height: 16),
-                              _buildInfoRow('Semester', profile.semester.isNotEmpty ? profile.semester : 'Semester 1', stuTheme),
+                              _buildInfoRow(
+                                'Semester',
+                                profile.semester.isNotEmpty
+                                    ? profile.semester
+                                    : 'Semester 1',
+                                stuTheme,
+                              ),
                               const Divider(height: 16),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
@@ -583,22 +771,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   width: 36,
                                   height: 36,
                                   decoration: BoxDecoration(
-                                    color: stuTheme.accent.withValues(alpha: 0.12),
+                                    color: stuTheme.accent.withValues(
+                                      alpha: 0.12,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Icon(Icons.how_to_reg_rounded, color: stuTheme.accent, size: 20),
+                                  child: Icon(
+                                    Icons.how_to_reg_rounded,
+                                    color: stuTheme.accent,
+                                    size: 20,
+                                  ),
                                 ),
                                 title: Text(
                                   'My Attendance',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: stuTheme.textPrimary,
+                                  ),
                                 ),
                                 subtitle: Text(
                                   _repo.attendanceSummaryDetail,
-                                  style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: stuTheme.textSecondary,
+                                  ),
                                 ),
-                                trailing: Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary),
+                                trailing: Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: stuTheme.textSecondary,
+                                ),
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen()));
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const AttendanceScreen(),
+                                    ),
+                                  );
                                 },
                               ),
                             ],
@@ -611,7 +820,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Section 10.3: My Calendar
                       Text(
                         'My Schedule',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Material(
@@ -629,19 +842,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: stuTheme.accent.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.calendar_month_rounded, color: stuTheme.accent, size: 20),
+                            child: Icon(
+                              Icons.calendar_month_rounded,
+                              color: stuTheme.accent,
+                              size: 20,
+                            ),
                           ),
                           title: Text(
                             'My Calendar',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: stuTheme.textPrimary,
+                            ),
                           ),
                           subtitle: Text(
                             'Unified monthly and daily view of tasks, exams, and events',
-                            style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: stuTheme.textSecondary,
+                            ),
                           ),
-                          trailing: Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary),
+                          trailing: Icon(
+                            Icons.chevron_right_rounded,
+                            color: stuTheme.textSecondary,
+                          ),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const CalendarScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const CalendarScreen(),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -651,7 +883,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Section 10.4: My App Settings & Guides
                       Text(
                         'My App',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Material(
@@ -664,58 +900,138 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           children: [
                             ListTile(
-                              leading: Icon(Icons.palette_outlined, color: stuTheme.accent, size: 22),
-                              title: Text('Appearance & Theme', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: stuTheme.textPrimary)),
+                              leading: Icon(
+                                Icons.palette_outlined,
+                                color: stuTheme.accent,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Appearance & Theme',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: stuTheme.textPrimary,
+                                ),
+                              ),
                               subtitle: Text(
                                 'Light, Dark, and AMOLED modes with gold accent choice',
-                                style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary),
+                              trailing: Icon(
+                                Icons.chevron_right_rounded,
+                                color: stuTheme.textSecondary,
+                              ),
                               onTap: _showAppearanceCustomizationDialog,
                             ),
                             const Divider(height: 1),
                             ListTile(
-                              leading: Icon(Icons.help_outline_rounded, color: stuTheme.accent, size: 22),
-                              title: Text('Help & How-To Guides', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: stuTheme.textPrimary)),
+                              leading: Icon(
+                                Icons.help_outline_rounded,
+                                color: stuTheme.accent,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Help & How-To Guides',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: stuTheme.textPrimary,
+                                ),
+                              ),
                               subtitle: Text(
                                 '12 step-by-step guides for organizing your college life',
-                                style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary),
+                              trailing: Icon(
+                                Icons.chevron_right_rounded,
+                                color: stuTheme.textSecondary,
+                              ),
                               onTap: () => HelpGuidesSheet.show(context),
                             ),
                             const Divider(height: 1),
                             ListTile(
-                              leading: Icon(Icons.file_download_outlined, color: stuTheme.accent, size: 22),
-                              title: Text('Export Desk Backup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: stuTheme.textPrimary)),
+                              leading: Icon(
+                                Icons.file_download_outlined,
+                                color: stuTheme.accent,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Export Desk Backup',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: stuTheme.textPrimary,
+                                ),
+                              ),
                               subtitle: Text(
                                 'Export complete JSON backup of courses, tasks, and notes',
-                                style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
-                              trailing: Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary),
+                              trailing: Icon(
+                                Icons.chevron_right_rounded,
+                                color: stuTheme.textSecondary,
+                              ),
                               onTap: _exportDeskData,
                             ),
                             const Divider(height: 1),
                             ListTile(
-                              leading: Icon(Icons.restart_alt_rounded, color: stuTheme.warning, size: 22),
-                              title: Text('Restore App Defaults', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: stuTheme.textPrimary)),
+                              leading: Icon(
+                                Icons.restart_alt_rounded,
+                                color: stuTheme.warning,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Restore App Defaults',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: stuTheme.textPrimary,
+                                ),
+                              ),
                               subtitle: Text(
                                 'Reset appearance and preferences without altering academic data',
-                                style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
                               onTap: () async {
                                 await _themeCtrl.restoreDefaults();
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('App display preferences restored to defaults')),
+                                    const SnackBar(
+                                      content: Text(
+                                        'App display preferences restored to defaults',
+                                      ),
+                                    ),
                                   );
                                 }
                               },
                             ),
                             const Divider(height: 1),
                             ListTile(
-                              leading: Icon(Icons.logout_rounded, color: stuTheme.error, size: 22),
-                              title: Text('Sign Out', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: stuTheme.error)),
+                              leading: Icon(
+                                Icons.logout_rounded,
+                                color: stuTheme.error,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Sign Out',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: stuTheme.error,
+                                ),
+                              ),
                               onTap: _handleSignOut,
                             ),
                           ],
@@ -734,16 +1050,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, StuDeskThemeExtension stuTheme) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    StuDeskThemeExtension stuTheme,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: 13, color: stuTheme.textSecondary)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 13, color: stuTheme.textSecondary),
+        ),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: stuTheme.textPrimary,
+            ),
           ),
         ),
       ],

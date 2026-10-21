@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../app.dart';
 
 /// Centralized application bootstrap and resilience configurations.
@@ -61,9 +62,7 @@ class AppBootstrap {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    kDebugMode
-                        ? details.exceptionAsString()
-                        : 'A temporary rendering issue occurred. Tap below to refresh.',
+                    kDebugMode ? details.exceptionAsString() : 'A temporary rendering issue occurred. Tap below to refresh.',
                     style: const TextStyle(
                       color: Color(0xFFA1A1AA),
                       fontSize: 13,
@@ -80,7 +79,10 @@ class AppBootstrap {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                     ),
                     onPressed: () {
                       runApp(const StuDeskApp());

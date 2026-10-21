@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 class CircularGauge extends StatelessWidget {
@@ -47,7 +48,8 @@ class CircularGauge extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: labelStyle ??
+                style:
+                    labelStyle ??
                     const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -56,7 +58,8 @@ class CircularGauge extends StatelessWidget {
               ),
               Text(
                 sublabel,
-                style: sublabelStyle ??
+                style:
+                    sublabelStyle ??
                     const TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w700,

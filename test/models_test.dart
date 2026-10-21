@@ -31,43 +31,70 @@ void main() {
       expect(courseValid.attendancePercent, 90.0);
     });
 
-    test('Syllabus percentage is accurately calculated from units and topics', () {
-      const unit1 = CourseUnit(
-        unitNumber: 1,
-        title: 'Trees',
-        status: UnitStatus.completed,
-        topics: [
-          UnitTopic(id: 't1', title: 'BST', date: 'Oct 1', subtitle: 'Search', isCompleted: true),
-          UnitTopic(id: 't2', title: 'AVL', date: 'Oct 3', subtitle: 'Balancing', isCompleted: true),
-        ],
-      );
+    test(
+      'Syllabus percentage is accurately calculated from units and topics',
+      () {
+        const unit1 = CourseUnit(
+          unitNumber: 1,
+          title: 'Trees',
+          status: UnitStatus.completed,
+          topics: [
+            UnitTopic(
+              id: 't1',
+              title: 'BST',
+              date: 'Oct 1',
+              subtitle: 'Search',
+              isCompleted: true,
+            ),
+            UnitTopic(
+              id: 't2',
+              title: 'AVL',
+              date: 'Oct 3',
+              subtitle: 'Balancing',
+              isCompleted: true,
+            ),
+          ],
+        );
 
-      const unit2 = CourseUnit(
-        unitNumber: 2,
-        title: 'Graphs',
-        status: UnitStatus.current,
-        topics: [
-          UnitTopic(id: 't3', title: 'BFS', date: 'Oct 5', subtitle: 'Queue', isCompleted: true),
-          UnitTopic(id: 't4', title: 'DFS', date: 'Oct 7', subtitle: 'Stack', isCompleted: false),
-        ],
-      );
+        const unit2 = CourseUnit(
+          unitNumber: 2,
+          title: 'Graphs',
+          status: UnitStatus.current,
+          topics: [
+            UnitTopic(
+              id: 't3',
+              title: 'BFS',
+              date: 'Oct 5',
+              subtitle: 'Queue',
+              isCompleted: true,
+            ),
+            UnitTopic(
+              id: 't4',
+              title: 'DFS',
+              date: 'Oct 7',
+              subtitle: 'Stack',
+              isCompleted: false,
+            ),
+          ],
+        );
 
-      final course = const Course(
-        code: 'CS201',
-        title: 'DSA',
-        professor: 'Dr. Vance',
-        department: 'CS',
-        schedule: 'MWF',
-        location: 'B-204',
-        credits: 4,
-        attendedLectures: 18,
-        totalLectures: 20,
-      ).copyWith(units: [unit1, unit2]);
+        final course = const Course(
+          code: 'CS201',
+          title: 'DSA',
+          professor: 'Dr. Vance',
+          department: 'CS',
+          schedule: 'MWF',
+          location: 'B-204',
+          credits: 4,
+          attendedLectures: 18,
+          totalLectures: 20,
+        ).copyWith(units: [unit1, unit2]);
 
-      expect(course.completedTopics, 3);
-      expect(course.totalTopics, 4);
-      expect(course.syllabusPercent, 75.0);
-    });
+        expect(course.completedTopics, 3);
+        expect(course.totalTopics, 4);
+        expect(course.syllabusPercent, 75.0);
+      },
+    );
 
     test('Course JSON serialization round-trip retains all data', () {
       const course = Course(
@@ -99,34 +126,37 @@ void main() {
   });
 
   group('Attendance Model Tests', () {
-    test('Subject attendance and College attendance are distinctly preserved', () {
-      final now = DateTime.now();
-      final subjectRec = SubjectAttendanceRecord(
-        id: 'sub-1',
-        courseCode: 'CS201',
-        date: now,
-        isPresent: true,
-        lectureSlot: '10:15 - 11:45 AM',
-        topicDiscussed: 'Red Black Trees',
-      );
+    test(
+      'Subject attendance and College attendance are distinctly preserved',
+      () {
+        final now = DateTime.now();
+        final subjectRec = SubjectAttendanceRecord(
+          id: 'sub-1',
+          courseCode: 'CS201',
+          date: now,
+          isPresent: true,
+          lectureSlot: '10:15 - 11:45 AM',
+          topicDiscussed: 'Red Black Trees',
+        );
 
-      final collegeRec = CollegeAttendanceRecord(
-        id: 'col-1',
-        date: now,
-        isPresent: true,
-        remarks: 'Attended full college day',
-      );
+        final collegeRec = CollegeAttendanceRecord(
+          id: 'col-1',
+          date: now,
+          isPresent: true,
+          remarks: 'Attended full college day',
+        );
 
-      final subJson = subjectRec.toJson();
-      final colJson = collegeRec.toJson();
+        final subJson = subjectRec.toJson();
+        final colJson = collegeRec.toJson();
 
-      final restoredSub = SubjectAttendanceRecord.fromJson(subJson);
-      final restoredCol = CollegeAttendanceRecord.fromJson(colJson);
+        final restoredSub = SubjectAttendanceRecord.fromJson(subJson);
+        final restoredCol = CollegeAttendanceRecord.fromJson(colJson);
 
-      expect(restoredSub.courseCode, 'CS201');
-      expect(restoredSub.topicDiscussed, 'Red Black Trees');
-      expect(restoredCol.remarks, 'Attended full college day');
-    });
+        expect(restoredSub.courseCode, 'CS201');
+        expect(restoredSub.topicDiscussed, 'Red Black Trees');
+        expect(restoredCol.remarks, 'Attended full college day');
+      },
+    );
   });
 
   group('Backup Payload & Checksum Tests', () {
@@ -136,7 +166,9 @@ void main() {
       expect(checksum.isNotEmpty, isTrue);
 
       const modifiedPayload = '{"app_version":"1.0.0","data":"corrupted"}';
-      final modifiedChecksum = StuDeskBackupPayload.generateChecksum(modifiedPayload);
+      final modifiedChecksum = StuDeskBackupPayload.generateChecksum(
+        modifiedPayload,
+      );
       expect(checksum != modifiedChecksum, isTrue);
     });
 

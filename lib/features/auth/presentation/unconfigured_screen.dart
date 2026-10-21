@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../data/auth_service.dart';
 
@@ -74,7 +75,7 @@ class UnconfiguredConfigScreen extends StatelessWidget {
                     const SizedBox(height: 10),
 
                     Text(
-                      'StuDesk needs your Supabase project credentials to enable Google OAuth and cloud profile persistence.',
+                      'StuDesk requires your Supabase project credentials to enable Google OAuth and encrypted student profile synchronization.',
                       style: TextStyle(
                         fontSize: 13.5,
                         color: stuTheme.textSecondary,
@@ -123,7 +124,9 @@ class UnconfiguredConfigScreen extends StatelessWidget {
                                       backgroundColor: stuTheme.surfaceTier3,
                                       content: Text(
                                         'Command copied to clipboard',
-                                        style: TextStyle(color: stuTheme.textPrimary),
+                                        style: TextStyle(
+                                          color: stuTheme.textPrimary,
+                                        ),
                                       ),
                                     ),
                                   );
@@ -147,7 +150,7 @@ class UnconfiguredConfigScreen extends StatelessWidget {
 
                     const SizedBox(height: 28),
 
-                    // Continue in Local Demo Mode
+                    // Retry button
                     SizedBox(
                       height: 50,
                       child: ElevatedButton(
@@ -160,39 +163,13 @@ class UnconfiguredConfigScreen extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          AuthService.instance.enterDemoMode();
-                        },
-                        child: const Text(
-                          'Continue in Local Student Mode (Offline)',
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Retry button
-                    SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: stuTheme.textPrimary,
-                          side: BorderSide(color: stuTheme.border),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        onPressed: () {
                           AuthService.instance.init();
                         },
                         child: const Text(
                           'Retry Connection',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

@@ -9,19 +9,22 @@ void main() {
   });
 
   group('StuDeskRepository Tests', () {
-    test('Repository initializes clean and empty without hardcoded demo items', () async {
-      final repo = StuDeskRepository.instance;
-      await repo.init();
+    test(
+      'Repository initializes clean and empty without hardcoded demo items',
+      () async {
+        final repo = StuDeskRepository.instance;
+        await repo.init();
 
-      expect(repo.isInitialized, isTrue);
-      expect(repo.courses.isEmpty, isTrue);
-      expect(repo.tasks.isEmpty, isTrue);
-      expect(repo.exams.isEmpty, isTrue);
-      expect(repo.notes.isEmpty, isTrue);
-      expect(repo.collections.isEmpty, isTrue);
-      expect(repo.profile.name, isEmpty);
-      expect(repo.profile.onboardingCompleted, isFalse);
-    });
+        expect(repo.isInitialized, isTrue);
+        expect(repo.courses.isEmpty, isTrue);
+        expect(repo.tasks.isEmpty, isTrue);
+        expect(repo.exams.isEmpty, isTrue);
+        expect(repo.notes.isEmpty, isTrue);
+        expect(repo.collections.isEmpty, isTrue);
+        expect(repo.profile.name, isEmpty);
+        expect(repo.profile.onboardingCompleted, isFalse);
+      },
+    );
 
     test('Adding and deleting a course updates repository state', () async {
       final repo = StuDeskRepository.instance;
@@ -66,27 +69,42 @@ void main() {
       final initialAttended = course.attendedLectures;
       final initialTotal = course.totalLectures;
 
-      await repo.logSubjectAttendance('CS201', isPresent: true, slot: 'Morning');
+      await repo.logSubjectAttendance(
+        'CS201',
+        isPresent: true,
+        slot: 'Morning',
+      );
 
       final updatedCourse = repo.courses.firstWhere((c) => c.code == 'CS201');
       expect(updatedCourse.attendedLectures, initialAttended + 1);
       expect(updatedCourse.totalLectures, initialTotal + 1);
     });
 
-    test('College attendance calendar records daily presence distinctly', () async {
-      final repo = StuDeskRepository.instance;
-      await repo.init();
+    test(
+      'College attendance calendar records daily presence distinctly',
+      () async {
+        final repo = StuDeskRepository.instance;
+        await repo.init();
 
-      final targetDate = DateTime(2026, 10, 20);
-      await repo.logCollegeAttendance(targetDate, true, remarks: 'Present in lab');
+        final targetDate = DateTime(2026, 10, 20);
+        await repo.logCollegeAttendance(
+          targetDate,
+          true,
+          remarks: 'Present in lab',
+        );
 
-      final status = repo.getCollegeAttendanceForDate(targetDate);
-      expect(status, isTrue);
+        final status = repo.getCollegeAttendanceForDate(targetDate);
+        expect(status, isTrue);
 
-      // Update to absent (correction)
-      await repo.logCollegeAttendance(targetDate, false, remarks: 'Sick leave');
-      expect(repo.getCollegeAttendanceForDate(targetDate), isFalse);
-    });
+        // Update to absent (correction)
+        await repo.logCollegeAttendance(
+          targetDate,
+          false,
+          remarks: 'Sick leave',
+        );
+        expect(repo.getCollegeAttendanceForDate(targetDate), isFalse);
+      },
+    );
 
     test('Task creation, toggle, and deletion work reliably', () async {
       final repo = StuDeskRepository.instance;
@@ -171,59 +189,68 @@ void main() {
       }
     });
 
-    test('Journal streak logic handles consecutive days and gaps correctly', () async {
-      final repo = StuDeskRepository.instance;
-      await repo.init();
+    test(
+      'Journal streak logic handles consecutive days and gaps correctly',
+      () async {
+        final repo = StuDeskRepository.instance;
+        await repo.init();
 
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = today.subtract(const Duration(days: 1));
-      final twoDaysAgo = today.subtract(const Duration(days: 2));
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final yesterday = today.subtract(const Duration(days: 1));
+        final twoDaysAgo = today.subtract(const Duration(days: 2));
 
-      await repo.saveJournalEntry(JournalEntry(
-        id: 'j-today',
-        date: today,
-        mood: 'Focus',
-        streak: '1',
-        tasksCompleted: 1,
-        totalTasks: 1,
-        linkedCourses: const [],
-        learnedText: 'Learned trees',
-        accomplishments: const [],
-        tags: const [],
-        wordCount: 2,
-      ));
+        await repo.saveJournalEntry(
+          JournalEntry(
+            id: 'j-today',
+            date: today,
+            mood: 'Focus',
+            streak: '1',
+            tasksCompleted: 1,
+            totalTasks: 1,
+            linkedCourses: const [],
+            learnedText: 'Learned trees',
+            accomplishments: const [],
+            tags: const [],
+            wordCount: 2,
+          ),
+        );
 
-      await repo.saveJournalEntry(JournalEntry(
-        id: 'j-yesterday',
-        date: yesterday,
-        mood: 'Focus',
-        streak: '2',
-        tasksCompleted: 1,
-        totalTasks: 1,
-        linkedCourses: const [],
-        learnedText: 'Learned graphs',
-        accomplishments: const [],
-        tags: const [],
-        wordCount: 2,
-      ));
+        await repo.saveJournalEntry(
+          JournalEntry(
+            id: 'j-yesterday',
+            date: yesterday,
+            mood: 'Focus',
+            streak: '2',
+            tasksCompleted: 1,
+            totalTasks: 1,
+            linkedCourses: const [],
+            learnedText: 'Learned graphs',
+            accomplishments: const [],
+            tags: const [],
+            wordCount: 2,
+          ),
+        );
 
-      await repo.saveJournalEntry(JournalEntry(
-        id: 'j-2days',
-        date: twoDaysAgo,
-        mood: 'Focus',
-        streak: '3',
-        tasksCompleted: 1,
-        totalTasks: 1,
-        linkedCourses: const [],
-        learnedText: 'Learned heaps',
-        accomplishments: const [],
-        tags: const [],
-        wordCount: 2,
-      ));
+        await repo.saveJournalEntry(
+          JournalEntry(
+            id: 'j-2days',
+            date: twoDaysAgo,
+            mood: 'Focus',
+            streak: '3',
+            tasksCompleted: 1,
+            totalTasks: 1,
+            linkedCourses: const [],
+            learnedText: 'Learned heaps',
+            accomplishments: const [],
+            tags: const [],
+            wordCount: 2,
+          ),
+        );
 
-      final streak = repo.calculateStreak();
-      expect(streak, greaterThanOrEqualTo(3));
-    });
+        final streak = repo.calculateStreak();
+        expect(streak, greaterThanOrEqualTo(3));
+      },
+    );
   });
 }

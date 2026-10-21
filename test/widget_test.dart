@@ -9,6 +9,7 @@ import 'package:studesk/features/auth/data/auth_service.dart';
 import 'package:studesk/features/home/presentation/home_screen.dart';
 import 'package:studesk/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:studesk/shared/widgets/studesk_wordmark.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
   setUp(() async {
@@ -25,16 +26,29 @@ void main() {
         onboardingCompleted: true,
       ),
     );
-    AuthService.instance.enterDemoMode();
+    AuthService.instance.setAuthenticatedForTesting(
+      const User(
+        id: '00000000-0000-0000-0000-000000000001',
+        appMetadata: {},
+        userMetadata: {'full_name': 'Jordan Lee'},
+        aud: 'authenticated',
+        createdAt: '2026-10-21T00:00:00Z',
+        email: 'jordan@example.com',
+      ),
+    );
   });
 
   void configurePhoneDimensions(WidgetTester tester) {
-    tester.view.physicalSize = const Size(1170, 2532); // iPhone standard resolution
+    tester.view.physicalSize = const Size(
+      1170,
+      2532,
+    ); // iPhone standard resolution
     tester.view.devicePixelRatio = 3.0;
   }
 
-  testWidgets('StuDesk App smoke and navigation test across 4 destinations',
-      (WidgetTester tester) async {
+  testWidgets('StuDesk App smoke and navigation test across 4 destinations', (
+    WidgetTester tester,
+  ) async {
     configurePhoneDimensions(tester);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -50,7 +64,10 @@ void main() {
     // Verify bottom navigation destinations by accessible tooltips
     expect(find.byTooltip('Home Dashboard'), findsOneWidget);
     expect(find.byTooltip('Syllabus, Notes & Timetable'), findsOneWidget);
-    expect(find.byTooltip('Personal Learning Collections & Resources'), findsOneWidget);
+    expect(
+      find.byTooltip('Personal Learning Collections & Resources'),
+      findsOneWidget,
+    );
     expect(find.byTooltip('Profile, Attendance & Settings'), findsOneWidget);
 
     // Navigate to Academics tab
@@ -61,7 +78,9 @@ void main() {
     expect(find.text('Timetable'), findsOneWidget);
 
     // Navigate to Library tab
-    await tester.tap(find.byTooltip('Personal Learning Collections & Resources'));
+    await tester.tap(
+      find.byTooltip('Personal Learning Collections & Resources'),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Your library is empty'), findsOneWidget);
     expect(find.text('Create Collection'), findsWidgets);
@@ -79,7 +98,9 @@ void main() {
     expect(find.text("Today's Plan"), findsOneWidget);
   });
 
-  testWidgets('Quick action sheet (+) opens from main shell', (WidgetTester tester) async {
+  testWidgets('Quick action sheet (+) opens from main shell', (
+    WidgetTester tester,
+  ) async {
     configurePhoneDimensions(tester);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -101,7 +122,9 @@ void main() {
     expect(find.text('Quick Reminder'), findsOneWidget);
   });
 
-  testWidgets('Theme toggle switches mode cleanly', (WidgetTester tester) async {
+  testWidgets('Theme toggle switches mode cleanly', (
+    WidgetTester tester,
+  ) async {
     configurePhoneDimensions(tester);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -124,43 +147,47 @@ void main() {
     expect(ThemeController.instance.isDarkMode, initialBrightness);
   });
 
-  testWidgets('Startup error fallback renders recovery UI instead of black screen',
-      (WidgetTester tester) async {
-    final details = FlutterErrorDetails(
-      exception: Exception('Simulated widget failure'),
-      stack: StackTrace.current,
-    );
+  testWidgets(
+    'Startup error fallback renders recovery UI instead of black screen',
+    (WidgetTester tester) async {
+      final details = FlutterErrorDetails(
+        exception: Exception('Simulated widget failure'),
+        stack: StackTrace.current,
+      );
 
-    final errorWidget = ErrorWidget.builder(details);
+      final errorWidget = ErrorWidget.builder(details);
 
-    await tester.pumpWidget(errorWidget);
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(errorWidget);
+      await tester.pumpAndSettle();
 
-    expect(find.text('StuDesk Interface Error'), findsOneWidget);
-    expect(find.text('Reload StuDesk'), findsOneWidget);
-    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
-  });
+      expect(find.text('StuDesk Interface Error'), findsOneWidget);
+      expect(find.text('Reload StuDesk'), findsOneWidget);
+      expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    },
+  );
 
-  testWidgets('AppBottomNavBar maintains constrained height leaving space for body',
-      (WidgetTester tester) async {
-    configurePhoneDimensions(tester);
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'AppBottomNavBar maintains constrained height leaving space for body',
+    (WidgetTester tester) async {
+      configurePhoneDimensions(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const StuDeskApp());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(const StuDeskApp());
+      await tester.pumpAndSettle();
 
-    // Verify the bottom nav bar is bounded and does not consume the whole screen
-    final navFinder = find.byType(AppBottomNavBar);
-    expect(navFinder, findsOneWidget);
-    final navSize = tester.getSize(navFinder);
-    expect(navSize.height, lessThan(120.0));
-    expect(navSize.height, greaterThan(50.0));
+      // Verify the bottom nav bar is bounded and does not consume the whole screen
+      final navFinder = find.byType(AppBottomNavBar);
+      expect(navFinder, findsOneWidget);
+      final navSize = tester.getSize(navFinder);
+      expect(navSize.height, lessThan(120.0));
+      expect(navSize.height, greaterThan(50.0));
 
-    // Verify Home dashboard body has substantial height (> 500)
-    final homeFinder = find.byType(HomeScreen);
-    expect(homeFinder, findsOneWidget);
-    final homeSize = tester.getSize(homeFinder);
-    expect(homeSize.height, greaterThan(600.0));
-  });
+      // Verify Home dashboard body has substantial height (> 500)
+      final homeFinder = find.byType(HomeScreen);
+      expect(homeFinder, findsOneWidget);
+      final homeSize = tester.getSize(homeFinder);
+      expect(homeSize.height, greaterThan(600.0));
+    },
+  );
 }

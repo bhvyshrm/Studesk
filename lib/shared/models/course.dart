@@ -33,20 +33,22 @@ class UnitTopic {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id.isEmpty ? 'topic_${DateTime.now().microsecondsSinceEpoch}' : id,
-        'title': title,
-        'date': date,
-        'subtitle': subtitle,
-        'is_completed': isCompleted,
-      };
+    'id': id.isEmpty ? 'topic_${DateTime.now().microsecondsSinceEpoch}' : id,
+    'title': title,
+    'date': date,
+    'subtitle': subtitle,
+    'is_completed': isCompleted,
+  };
 
   factory UnitTopic.fromJson(Map<String, dynamic> json) => UnitTopic(
-        id: json['id'] as String? ?? 'topic_${DateTime.now().microsecondsSinceEpoch}',
-        title: json['title'] as String? ?? '',
-        date: json['date'] as String? ?? '',
-        subtitle: json['subtitle'] as String? ?? '',
-        isCompleted: json['is_completed'] as bool? ?? false,
-      );
+    id:
+        json['id'] as String? ??
+        'topic_${DateTime.now().microsecondsSinceEpoch}',
+    title: json['title'] as String? ?? '',
+    date: json['date'] as String? ?? '',
+    subtitle: json['subtitle'] as String? ?? '',
+    isCompleted: json['is_completed'] as bool? ?? false,
+  );
 }
 
 class CourseUnit {
@@ -64,13 +66,12 @@ class CourseUnit {
     int? completedTopics,
     int? totalTopics,
     this.topics = const [],
-  })  : _completedTopics = completedTopics,
-        _totalTopics = totalTopics;
+  }) : _completedTopics = completedTopics,
+       _totalTopics = totalTopics;
 
-  int get completedTopics =>
-      topics.isNotEmpty
-          ? topics.where((t) => t.isCompleted).length
-          : (_completedTopics ?? 0);
+  int get completedTopics => topics.isNotEmpty
+      ? topics.where((t) => t.isCompleted).length
+      : (_completedTopics ?? 0);
 
   int get totalTopics =>
       topics.isNotEmpty ? topics.length : (_totalTopics ?? 0);
@@ -97,13 +98,13 @@ class CourseUnit {
   }
 
   Map<String, dynamic> toJson() => {
-        'unit_number': unitNumber,
-        'title': title,
-        'status': status.name,
-        'completed_topics': completedTopics,
-        'total_topics': totalTopics,
-        'topics': topics.map((t) => t.toJson()).toList(),
-      };
+    'unit_number': unitNumber,
+    'title': title,
+    'status': status.name,
+    'completed_topics': completedTopics,
+    'total_topics': totalTopics,
+    'topics': topics.map((t) => t.toJson()).toList(),
+  };
 
   factory CourseUnit.fromJson(Map<String, dynamic> json) {
     final statusStr = json['status'] as String? ?? 'upcoming';
@@ -118,7 +119,9 @@ class CourseUnit {
       status: unitStatus,
       completedTopics: (json['completed_topics'] as num?)?.toInt(),
       totalTopics: (json['total_topics'] as num?)?.toInt(),
-      topics: rawTopics.map((t) => UnitTopic.fromJson(t as Map<String, dynamic>)).toList(),
+      topics: rawTopics
+          .map((t) => UnitTopic.fromJson(t as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -162,34 +165,32 @@ class Course {
     this.lastTopic = '',
     this.isWarning = false,
     this.units = const [],
-  })  : _attendancePercent = attendancePercent,
-        _syllabusPercent = syllabusPercent,
-        _completedTopics = completedTopics,
-        _totalTopics = totalTopics;
+  }) : _attendancePercent = attendancePercent,
+       _syllabusPercent = syllabusPercent,
+       _completedTopics = completedTopics,
+       _totalTopics = totalTopics;
 
   /// Safe calculation avoiding division by zero
   double get attendancePercent =>
       _attendancePercent ??
       (totalLectures == 0 ? 0.0 : ((attendedLectures / totalLectures) * 100.0));
 
-  int get completedTopics =>
-      units.isNotEmpty
-          ? units.fold(0, (acc, unit) => acc + unit.completedTopics)
-          : (_completedTopics ?? 0);
+  int get completedTopics => units.isNotEmpty
+      ? units.fold(0, (acc, unit) => acc + unit.completedTopics)
+      : (_completedTopics ?? 0);
 
-  int get totalTopics =>
-      units.isNotEmpty
-          ? units.fold(0, (acc, unit) => acc + unit.totalTopics)
-          : (_totalTopics ?? 0);
+  int get totalTopics => units.isNotEmpty
+      ? units.fold(0, (acc, unit) => acc + unit.totalTopics)
+      : (_totalTopics ?? 0);
 
-  int get remainingTopics =>
-      (totalTopics - completedTopics).clamp(0, 9999);
+  int get remainingTopics => (totalTopics - completedTopics).clamp(0, 9999);
 
-  double get syllabusPercent =>
-      units.isNotEmpty
-          ? (totalTopics == 0 ? 0.0 : ((completedTopics / totalTopics) * 100.0))
-          : (_syllabusPercent ??
-              (totalTopics == 0 ? 0.0 : ((completedTopics / totalTopics) * 100.0)));
+  double get syllabusPercent => units.isNotEmpty
+      ? (totalTopics == 0 ? 0.0 : ((completedTopics / totalTopics) * 100.0))
+      : (_syllabusPercent ??
+            (totalTopics == 0
+                ? 0.0
+                : ((completedTopics / totalTopics) * 100.0)));
 
   Course copyWith({
     String? code,
@@ -234,25 +235,25 @@ class Course {
   }
 
   Map<String, dynamic> toJson() => {
-        'code': code,
-        'title': title,
-        'professor': professor,
-        'department': department,
-        'schedule': schedule,
-        'location': location,
-        'credits': credits,
-        'attended_lectures': attendedLectures,
-        'total_lectures': totalLectures,
-        'attendance_percent': attendancePercent,
-        'syllabus_percent': syllabusPercent,
-        'completed_topics': completedTopics,
-        'total_topics': totalTopics,
-        'grade': grade,
-        'standing': standing,
-        'last_topic': lastTopic,
-        'is_warning': isWarning,
-        'units': units.map((u) => u.toJson()).toList(),
-      };
+    'code': code,
+    'title': title,
+    'professor': professor,
+    'department': department,
+    'schedule': schedule,
+    'location': location,
+    'credits': credits,
+    'attended_lectures': attendedLectures,
+    'total_lectures': totalLectures,
+    'attendance_percent': attendancePercent,
+    'syllabus_percent': syllabusPercent,
+    'completed_topics': completedTopics,
+    'total_topics': totalTopics,
+    'grade': grade,
+    'standing': standing,
+    'last_topic': lastTopic,
+    'is_warning': isWarning,
+    'units': units.map((u) => u.toJson()).toList(),
+  };
 
   factory Course.fromJson(Map<String, dynamic> json) {
     final rawUnits = json['units'] as List<dynamic>? ?? [];
@@ -274,7 +275,9 @@ class Course {
       standing: json['standing'] as String? ?? 'Safe',
       lastTopic: json['last_topic'] as String? ?? '',
       isWarning: json['is_warning'] as bool? ?? false,
-      units: rawUnits.map((u) => CourseUnit.fromJson(u as Map<String, dynamic>)).toList(),
+      units: rawUnits
+          .map((u) => CourseUnit.fromJson(u as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

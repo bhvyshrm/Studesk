@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../core/config/supabase_config.dart';
 import '../../../core/data/studesk_repository.dart';
 import '../../../shared/models/user_profile.dart';
@@ -22,13 +25,16 @@ class ProfileService {
     _lastError = null;
 
     final fallbackEmail = user.email ?? '';
-    final fallbackName = (user.userMetadata?['full_name'] as String?) ??
+    final fallbackName =
+        (user.userMetadata?['full_name'] as String?) ??
         (user.userMetadata?['name'] as String?) ??
         (fallbackEmail.isNotEmpty ? fallbackEmail.split('@').first : 'Student');
-    final fallbackAvatar = (user.userMetadata?['avatar_url'] as String?) ??
+    final fallbackAvatar =
+        (user.userMetadata?['avatar_url'] as String?) ??
         (user.userMetadata?['picture'] as String?);
 
-    if (!SupabaseConfig.isConfigured || !AuthService.instance.isSupabaseInitialized) {
+    if (!SupabaseConfig.isConfigured ||
+        !AuthService.instance.isSupabaseInitialized) {
       _isLoading = false;
       return StuDeskRepository.instance.profile;
     }
@@ -45,7 +51,9 @@ class ProfileService {
         final initialMap = {
           'id': user.id,
           'full_name': fallbackName,
-          'preferred_name': fallbackName.isNotEmpty ? fallbackName.split(' ').first : '',
+          'preferred_name': fallbackName.isNotEmpty
+              ? fallbackName.split(' ').first
+              : '',
           'avatar_url': fallbackAvatar ?? '',
           'institution': '',
           'course': '',
@@ -68,6 +76,11 @@ class ProfileService {
           fallbackAvatar: fallbackAvatar,
         );
         await StuDeskRepository.instance.updateProfile(newProfile);
+        unawaited(
+          StuDeskRepository.instance.fetchAndSyncAllDataFromSupabase(
+            user: user,
+          ),
+        );
         _isLoading = false;
         return newProfile;
       }
@@ -80,6 +93,9 @@ class ProfileService {
       );
 
       await StuDeskRepository.instance.updateProfile(profile);
+      unawaited(
+        StuDeskRepository.instance.fetchAndSyncAllDataFromSupabase(user: user),
+      );
       _isLoading = false;
       return profile;
     } catch (e) {

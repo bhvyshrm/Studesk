@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/dialogs/studesk_forms.dart';
 import '../../../shared/models/models.dart';
 import '../../../shared/widgets/custom_card.dart';
 import '../../../shared/widgets/pill_badge.dart';
@@ -9,10 +11,7 @@ import '../../../shared/widgets/pill_badge.dart';
 class SubjectDetailsScreen extends StatefulWidget {
   final Course? course;
 
-  const SubjectDetailsScreen({
-    super.key,
-    this.course,
-  });
+  const SubjectDetailsScreen({super.key, this.course});
 
   @override
   State<SubjectDetailsScreen> createState() => _SubjectDetailsScreenState();
@@ -20,47 +19,215 @@ class SubjectDetailsScreen extends StatefulWidget {
 
 class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
   final StuDeskRepository _repo = StuDeskRepository.instance;
-  int _selectedTabIndex = 0; // 0: Syllabus & Units, 1: Attendance, 2: Docs, 3: Tasks
+  int _selectedTabIndex =
+      0; // 0: Syllabus & Units, 1: Attendance, 2: Docs, 3: Tasks
   bool _isBookmarked = true;
   final Set<int> _expandedUnits = {1, 2};
 
-  void _showDeleteCourseDialog(Course course) {
+  void _showAddTopicDialog(Course course) {
     final stuTheme = context.stuTheme;
-    showDialog(
+    final topicCtrl = TextEditingController();
+    final subtitleCtrl = TextEditingController();
+    bool isSaving = false;
+    String? topicError;
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: stuTheme.surfaceTier1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Delete Subject',
-          style: TextStyle(color: stuTheme.textPrimary, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Are you sure you want to delete ${course.title} (${course.code})?',
-          style: TextStyle(color: stuTheme.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: stuTheme.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: stuTheme.error,
-              foregroundColor: Colors.white,
+      isScrollControlled: true,
+      backgroundColor: stuTheme.surfaceTier1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
             ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await _repo.deleteCourse(course.code);
-              if (mounted) {
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Delete'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Add Topic to ${course.code}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: stuTheme.textSecondary,
+                        size: 20,
+                      ),
+                      onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: topicCtrl,
+                  autofocus: true,
+                  enabled: !isSaving,
+                  style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
+                    labelText: 'Topic Title *',
+                    hintText: 'e.g. Unit 3: Dynamic Memory Allocation',
+                    errorText: topicError,
+                    filled: true,
+                    fillColor: stuTheme.surfaceTier2,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (_) {
+                    if (topicError != null) {
+                      setModalState(() => topicError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: subtitleCtrl,
+                  enabled: !isSaving,
+                  style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
+                    labelText: 'Notes / Subtopics (Optional)',
+                    hintText: 'e.g. malloc, free, memory leaks',
+                    filled: true,
+                    fillColor: stuTheme.surfaceTier2,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: stuTheme.accent,
+                      foregroundColor: stuTheme.onAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: isSaving
+                        ? null
+                        : () async {
+                            final text = topicCtrl.text.trim();
+                            if (text.isEmpty) {
+                              setModalState(
+                                () =>
+                                    topicError = 'Topic title cannot be empty',
+                              );
+                              return;
+                            }
+
+                            setModalState(() => isSaving = true);
+                            try {
+                              final newTopic = UnitTopic(
+                                id: StuDeskForms.generateId(),
+                                title: text,
+                                subtitle: subtitleCtrl.text.trim(),
+                                date: DateFormat('MMM d')
+                                    .format(DateTime.now()),
+                                isCompleted: false,
+                              );
+
+                              List<CourseUnit> updatedUnits = List.from(
+                                course.units,
+                              );
+                              if (updatedUnits.isEmpty) {
+                                updatedUnits.add(
+                                  CourseUnit(
+                                    unitNumber: 1,
+                                    title: 'Syllabus Core',
+                                    status: UnitStatus.current,
+                                    topics: [newTopic],
+                                  ),
+                                );
+                              } else {
+                                final firstUnit = updatedUnits.first;
+                                final newTopicsList = List<UnitTopic>.from(
+                                  firstUnit.topics,
+                                )..add(newTopic);
+                                updatedUnits[0] = firstUnit.copyWith(
+                                  topics: newTopicsList,
+                                );
+                              }
+
+                              await _repo.updateCourse(
+                                course.copyWith(units: updatedUnits),
+                              );
+                              if (context.mounted) {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Topic added to ${course.code}',
+                                    ),
+                                    backgroundColor: const Color(0xFF10B981),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              setModalState(() {
+                                isSaving = false;
+                                topicError = 'Failed to save topic: $e';
+                              });
+                            }
+                          },
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Add Topic',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  Future<void> _showDeleteCourseDialog(Course course) async {
+    final confirmed = await StuDeskForms.confirmDelete(
+      context,
+      title: 'Delete Subject',
+      message:
+          'Are you sure you want to delete ${course.title} (${course.code}) and all its syllabus topics? This cannot be undone.',
+    );
+    if (confirmed) {
+      await _repo.deleteCourse(course.code);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Subject ${course.code} deleted')),
+        );
+      }
+    }
   }
 
   @override
@@ -83,19 +250,32 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             backgroundColor: stuTheme.canvas,
             appBar: AppBar(backgroundColor: stuTheme.canvas),
             body: Center(
-              child: Text('Subject not found', style: TextStyle(color: stuTheme.textSecondary)),
+              child: Text(
+                'Subject not found',
+                style: TextStyle(color: stuTheme.textSecondary),
+              ),
             ),
           );
         }
 
         final subjectResources = _repo.resources
-            .where((r) => r.subjectTag.toLowerCase().contains(course.code.toLowerCase()))
+            .where(
+              (r) => r.subjectTag.toLowerCase().contains(
+                course.code.toLowerCase(),
+              ),
+            )
             .toList();
         final subjectTasks = _repo.tasks
-            .where((t) => t.categoryTag.toLowerCase().contains(course.code.toLowerCase()))
+            .where(
+              (t) => t.categoryTag.toLowerCase().contains(
+                course.code.toLowerCase(),
+              ),
+            )
             .toList();
         final subjectAttendance = _repo.subjectAttendance
-            .where((a) => a.courseCode.toLowerCase() == course.code.toLowerCase())
+            .where(
+              (a) => a.courseCode.toLowerCase() == course.code.toLowerCase(),
+            )
             .toList();
 
         final tabs = [
@@ -140,8 +320,12 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             actions: [
               IconButton(
                 icon: Icon(
-                  _isBookmarked ? Icons.star_rounded : Icons.star_border_rounded,
-                  color: _isBookmarked ? stuTheme.accent : stuTheme.textSecondary,
+                  _isBookmarked
+                      ? Icons.star_rounded
+                      : Icons.star_border_rounded,
+                  color: _isBookmarked
+                      ? stuTheme.accent
+                      : stuTheme.textSecondary,
                   size: 24,
                 ),
                 onPressed: () {
@@ -149,21 +333,79 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                 },
               ),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_horiz_rounded, color: stuTheme.textSecondary, size: 22),
+                icon: Icon(
+                  Icons.more_horiz_rounded,
+                  color: stuTheme.textSecondary,
+                  size: 22,
+                ),
                 color: stuTheme.surfaceTier2,
                 onSelected: (val) {
-                  if (val == 'delete') {
+                  if (val == 'edit') {
+                    StuDeskForms.showSubjectForm(
+                      context,
+                      existingCourse: course,
+                    );
+                  } else if (val == 'add_topic') {
+                    _showAddTopicDialog(course);
+                  } else if (val == 'delete') {
                     _showDeleteCourseDialog(course);
                   }
                 },
                 itemBuilder: (ctx) => [
                   PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.edit_outlined,
+                          color: stuTheme.textPrimary,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Edit Subject',
+                          style: TextStyle(
+                            color: stuTheme.textPrimary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'add_topic',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.add_rounded,
+                          color: stuTheme.textPrimary,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Add Topic',
+                          style: TextStyle(
+                            color: stuTheme.textPrimary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline_rounded, color: stuTheme.error, size: 18),
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          color: stuTheme.error,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
-                        Text('Delete Subject', style: TextStyle(color: stuTheme.error, fontSize: 13)),
+                        Text(
+                          'Delete Subject',
+                          style: TextStyle(color: stuTheme.error, fontSize: 13),
+                        ),
                       ],
                     ),
                   ),
@@ -286,10 +528,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   course.department,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: stuTheme.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
                 ),
               ),
             ],
@@ -297,17 +536,18 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(Icons.schedule_rounded, size: 14, color: stuTheme.textSecondary),
+              Icon(
+                Icons.schedule_rounded,
+                size: 14,
+                color: stuTheme.textSecondary,
+              ),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   '${course.schedule} • ${course.location}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: stuTheme.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
                 ),
               ),
             ],
@@ -339,13 +579,20 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                               'Attendance',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 10.5, color: stuTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: stuTheme.textSecondary,
+                              ),
                             ),
                           ),
                           Icon(
-                            course.isWarning ? Icons.warning_rounded : Icons.check_circle_rounded,
+                            course.isWarning
+                                ? Icons.warning_rounded
+                                : Icons.check_circle_rounded,
                             size: 13,
-                            color: course.isWarning ? stuTheme.warning : stuTheme.success,
+                            color: course.isWarning
+                                ? stuTheme.warning
+                                : stuTheme.success,
                           ),
                         ],
                       ),
@@ -355,12 +602,17 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         style: TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
-                          color: course.isWarning ? stuTheme.warning : stuTheme.success,
+                          color: course.isWarning
+                              ? stuTheme.warning
+                              : stuTheme.success,
                         ),
                       ),
                       Text(
                         '${course.totalLectures} lectures held',
-                        style: TextStyle(fontSize: 10, color: stuTheme.textSecondary),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: stuTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -387,7 +639,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                               'Syllabus',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 10.5, color: stuTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: stuTheme.textSecondary,
+                              ),
                             ),
                           ),
                           Icon(
@@ -410,7 +665,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         course.totalTopics > course.completedTopics
                             ? '${course.totalTopics - course.completedTopics} topics left'
                             : 'All caught up',
-                        style: TextStyle(fontSize: 10, color: stuTheme.textSecondary),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: stuTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -437,7 +695,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                               'Standing',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 10.5, color: stuTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: stuTheme.textSecondary,
+                              ),
                             ),
                           ),
                           Icon(
@@ -495,7 +756,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                 duration: const Duration(milliseconds: 160),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? stuTheme.surfaceTier1 : Colors.transparent,
+                  color: isSelected
+                      ? stuTheme.surfaceTier1
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: isSelected
                       ? [
@@ -514,7 +777,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? stuTheme.textPrimary : stuTheme.textSecondary,
+                    color: isSelected
+                        ? stuTheme.textPrimary
+                        : stuTheme.textSecondary,
                   ),
                 ),
               ),
@@ -531,119 +796,159 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     if (course.units.isEmpty) {
       return CustomCard(
         padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Text(
-            'No syllabus units added yet.',
-            style: TextStyle(color: stuTheme.textSecondary, fontSize: 13),
-          ),
+        child: Column(
+          children: [
+            Text(
+              'No syllabus units added yet.',
+              style: TextStyle(color: stuTheme.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: stuTheme.accent,
+                foregroundColor: stuTheme.onAccent,
+              ),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Add Topic'),
+              onPressed: () => _showAddTopicDialog(course),
+            ),
+          ],
         ),
       );
     }
 
     return Column(
-      children: course.units.map((unit) {
-        final isExpanded = _expandedUnits.contains(unit.unitNumber);
-        final completedInUnit = unit.topics.where((t) => t.isCompleted).length;
-        final totalInUnit = unit.topics.length;
+      children: [
+        ...course.units.map((unit) {
+          final isExpanded = _expandedUnits.contains(unit.unitNumber);
+          final completedInUnit = unit.topics
+              .where((t) => t.isCompleted)
+              .length;
+          final totalInUnit = unit.topics.length;
 
-        return CustomCard(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isExpanded) {
-                      _expandedUnits.remove(unit.unitNumber);
-                    } else {
-                      _expandedUnits.add(unit.unitNumber);
-                    }
-                  });
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: completedInUnit == totalInUnit && totalInUnit > 0
-                            ? stuTheme.successContainer
-                            : stuTheme.surfaceTier2,
-                        shape: BoxShape.circle,
+          return CustomCard(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (isExpanded) {
+                        _expandedUnits.remove(unit.unitNumber);
+                      } else {
+                        _expandedUnits.add(unit.unitNumber);
+                      }
+                    });
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color:
+                              completedInUnit == totalInUnit && totalInUnit > 0
+                              ? stuTheme.successContainer
+                              : stuTheme.surfaceTier2,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          completedInUnit == totalInUnit && totalInUnit > 0
+                              ? Icons.done_all_rounded
+                              : Icons.auto_stories_rounded,
+                          color:
+                              completedInUnit == totalInUnit && totalInUnit > 0
+                              ? stuTheme.success
+                              : stuTheme.accent,
+                          size: 18,
+                        ),
                       ),
-                      child: Icon(
-                        completedInUnit == totalInUnit && totalInUnit > 0
-                            ? Icons.done_all_rounded
-                            : Icons.auto_stories_rounded,
-                        color: completedInUnit == totalInUnit && totalInUnit > 0
-                            ? stuTheme.success
-                            : stuTheme.accent,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  unit.title,
-                                  style: TextStyle(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: stuTheme.textPrimary,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    unit.title,
+                                    style: TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: stuTheme.textPrimary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if (unit.status == UnitStatus.current) ...[
-                                const SizedBox(width: 8),
-                                PillBadge(
-                                  label: 'Current Focus',
-                                  backgroundColor: stuTheme.accent,
-                                  textColor: stuTheme.onAccent,
-                                  fontSize: 10.5,
-                                ),
+                                if (unit.status == UnitStatus.current) ...[
+                                  const SizedBox(width: 8),
+                                  PillBadge(
+                                    label: 'Current Focus',
+                                    backgroundColor: stuTheme.accent,
+                                    textColor: stuTheme.onAccent,
+                                    fontSize: 10.5,
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Unit ${unit.unitNumber} • $completedInUnit of $totalInUnit topics completed',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: stuTheme.textSecondary,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 2),
+                            Text(
+                              'Unit ${unit.unitNumber} • $completedInUnit of $totalInUnit topics completed',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: stuTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Icon(
-                      isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                      color: stuTheme.textSecondary,
-                    ),
-                  ],
+                      Icon(
+                        isExpanded
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: stuTheme.textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (isExpanded) ...[
-                const SizedBox(height: 12),
-                Divider(color: stuTheme.border, height: 1),
-                const SizedBox(height: 10),
-                ...unit.topics.map((t) => _buildTopicRow(context, course.code, unit.unitNumber, t)),
+                if (isExpanded) ...[
+                  const SizedBox(height: 12),
+                  Divider(color: stuTheme.border, height: 1),
+                  const SizedBox(height: 10),
+                  ...unit.topics.map(
+                    (t) => _buildTopicRow(
+                      context,
+                      course.code,
+                      unit.unitNumber,
+                      t,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
+          );
+        }),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            icon: const Icon(Icons.add_rounded, size: 16),
+            label: const Text('Add Topic'),
+            onPressed: () => _showAddTopicDialog(course),
           ),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
 
-  Widget _buildTopicRow(BuildContext context, String courseCode, int unitNumber, UnitTopic topic) {
+  Widget _buildTopicRow(
+    BuildContext context,
+    String courseCode,
+    int unitNumber,
+    UnitTopic topic,
+  ) {
     final stuTheme = context.stuTheme;
 
     return InkWell(
@@ -666,14 +971,20 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
               height: 20,
               margin: const EdgeInsets.only(top: 1),
               decoration: BoxDecoration(
-                color: topic.isCompleted ? stuTheme.success : Colors.transparent,
+                color: topic.isCompleted
+                    ? stuTheme.success
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(9999),
                 border: Border.all(
                   color: topic.isCompleted ? stuTheme.success : stuTheme.border,
                 ),
               ),
               child: topic.isCompleted
-                  ? const Icon(Icons.check_rounded, size: 12, color: Colors.white)
+                  ? const Icon(
+                      Icons.check_rounded,
+                      size: 12,
+                      color: Colors.white,
+                    )
                   : null,
             ),
             const SizedBox(width: 10),
@@ -690,21 +1001,31 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
-                            color: topic.isCompleted ? stuTheme.textSecondary : stuTheme.textPrimary,
-                            decoration: topic.isCompleted ? TextDecoration.lineThrough : null,
+                            color: topic.isCompleted
+                                ? stuTheme.textSecondary
+                                : stuTheme.textPrimary,
+                            decoration: topic.isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                       ),
                       Text(
                         topic.date,
-                        style: TextStyle(fontSize: 10.5, color: stuTheme.textSecondary),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: stuTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     topic.subtitle,
-                    style: TextStyle(fontSize: 11, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -715,7 +1036,11 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     );
   }
 
-  Widget _buildAttendanceTab(BuildContext context, Course course, List<SubjectAttendanceRecord> records) {
+  Widget _buildAttendanceTab(
+    BuildContext context,
+    Course course,
+    List<SubjectAttendanceRecord> records,
+  ) {
     final stuTheme = context.stuTheme;
 
     return Column(
@@ -727,7 +1052,11 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             Expanded(
               child: Text(
                 'Recorded Lectures for ${course.code}',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: stuTheme.textPrimary,
+                ),
               ),
             ),
             Row(
@@ -736,28 +1065,52 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: stuTheme.successContainer,
                     foregroundColor: stuTheme.success,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: () async {
-                    await _repo.logSubjectAttendance(course.code, isPresent: true, slot: 'Lecture');
+                    await _repo.logSubjectAttendance(
+                      course.code,
+                      isPresent: true,
+                      slot: 'Lecture',
+                    );
                   },
-                  child: const Text('+ Present', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    '+ Present',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(width: 6),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: stuTheme.errorContainer,
                     foregroundColor: stuTheme.error,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: () async {
-                    await _repo.logSubjectAttendance(course.code, isPresent: false, slot: 'Lecture');
+                    await _repo.logSubjectAttendance(
+                      course.code,
+                      isPresent: false,
+                      slot: 'Lecture',
+                    );
                   },
-                  child: const Text('+ Absent', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    '+ Absent',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -788,7 +1141,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      rec.isPresent ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                      rec.isPresent
+                          ? Icons.check_circle_rounded
+                          : Icons.cancel_rounded,
                       color: rec.isPresent ? stuTheme.success : stuTheme.error,
                       size: 20,
                     ),
@@ -799,19 +1154,30 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         children: [
                           Text(
                             rec.topicDiscussed ?? 'Lecture Session',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: stuTheme.textPrimary,
+                            ),
                           ),
                           Text(
                             DateFormat('EEE, MMM d, yyyy').format(rec.date),
-                            style: TextStyle(fontSize: 11, color: stuTheme.textSecondary),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: stuTheme.textSecondary,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     PillBadge(
                       label: rec.isPresent ? 'Attended' : 'Absent',
-                      backgroundColor: rec.isPresent ? stuTheme.successContainer : stuTheme.errorContainer,
-                      textColor: rec.isPresent ? stuTheme.success : stuTheme.error,
+                      backgroundColor: rec.isPresent
+                          ? stuTheme.successContainer
+                          : stuTheme.errorContainer,
+                      textColor: rec.isPresent
+                          ? stuTheme.success
+                          : stuTheme.error,
                     ),
                   ],
                 ),
@@ -849,7 +1215,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           child: Row(
             children: [
               Icon(
-                res.type == ResourceType.video ? Icons.play_circle_rounded : Icons.description_rounded,
+                res.type == ResourceType.video
+                    ? Icons.play_circle_rounded
+                    : Icons.description_rounded,
                 color: stuTheme.accent,
                 size: 24,
               ),
@@ -860,11 +1228,18 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   children: [
                     Text(
                       res.title,
-                      style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: stuTheme.textPrimary,
+                      ),
                     ),
                     Text(
                       res.channel ?? 'Study Resource',
-                      style: TextStyle(fontSize: 11.5, color: stuTheme.textSecondary),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: stuTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -882,7 +1257,11 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     );
   }
 
-  Widget _buildTasksTab(BuildContext context, Course course, List<TaskItem> tasks) {
+  Widget _buildTasksTab(
+    BuildContext context,
+    Course course,
+    List<TaskItem> tasks,
+  ) {
     final stuTheme = context.stuTheme;
 
     if (tasks.isEmpty) {
@@ -910,7 +1289,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             children: [
               IconButton(
                 icon: Icon(
-                  task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+                  task.isCompleted
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked,
                   color: task.isCompleted ? stuTheme.success : stuTheme.border,
                 ),
                 onPressed: () => _repo.toggleTask(task.id),
@@ -921,15 +1302,23 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   task.title,
                   style: TextStyle(
                     fontSize: 13,
-                    color: task.isCompleted ? stuTheme.textSecondary : stuTheme.textPrimary,
-                    decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                    color: task.isCompleted
+                        ? stuTheme.textSecondary
+                        : stuTheme.textPrimary,
+                    decoration: task.isCompleted
+                        ? TextDecoration.lineThrough
+                        : null,
                   ),
                 ),
               ),
               if (task.dueTime != null)
                 Text(
                   task.dueTime!,
-                  style: TextStyle(fontSize: 11, color: stuTheme.error, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: stuTheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
             ],
           ),

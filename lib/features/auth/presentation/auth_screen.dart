@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../data/auth_service.dart';
 
@@ -28,7 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _onAuthChanged() {
     if (mounted) setState(() {});
-    if (_authService.isAuthenticated || _authService.isDemoMode) {
+    if (_authService.isAuthenticated) {
       widget.onAuthenticated?.call();
     }
   }
@@ -53,11 +54,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  void _handleContinueAsGuest() {
-    _authService.enterDemoMode();
-    widget.onAuthenticated?.call();
-  }
-
   @override
   Widget build(BuildContext context) {
     final stuTheme = context.stuTheme;
@@ -79,8 +75,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   // App Branding Logo
                   Center(
                     child: Container(
-                      width: 84,
-                      height: 84,
+                      width: 88,
+                      height: 88,
                       decoration: BoxDecoration(
                         color: stuTheme.surfaceTier1,
                         borderRadius: BorderRadius.circular(24),
@@ -114,7 +110,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   Text(
                     'StuDesk',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.6,
                       color: stuTheme.textPrimary,
@@ -122,20 +118,21 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
 
                   Text(
-                    'Academic Companion & Intelligent Desk',
+                    'Your Intelligent Student Workspace & Academic Desk',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14.5,
                       color: stuTheme.textSecondary,
+                      height: 1.35,
                     ),
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
-                  // Supabase Cloud Status Pill / Card
+                  // Supabase Cloud Status Card
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -149,15 +146,20 @@ class _AuthScreenState extends State<AuthScreen> {
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: (isConfigured ? stuTheme.success : stuTheme.accent)
-                                .withValues(alpha: 0.15),
+                            color:
+                                (isConfigured
+                                        ? stuTheme.success
+                                        : stuTheme.accent)
+                                    .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             isConfigured
-                                ? Icons.cloud_done_rounded
+                                ? Icons.verified_user_rounded
                                 : Icons.settings_ethernet_rounded,
-                            color: isConfigured ? stuTheme.success : stuTheme.accent,
+                            color: isConfigured
+                                ? stuTheme.success
+                                : stuTheme.accent,
                             size: 18,
                           ),
                         ),
@@ -168,23 +170,23 @@ class _AuthScreenState extends State<AuthScreen> {
                             children: [
                               Text(
                                 isConfigured
-                                    ? 'Supabase Backend Connected'
-                                    : 'Local Development / Offline Mode',
+                                    ? 'Supabase Cloud Authentication'
+                                    : 'Supabase Configuration Missing',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: stuTheme.textPrimary,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 3),
                               Text(
                                 isConfigured
-                                    ? 'PostgreSQL profile synchronization with Row Level Security.'
-                                    : 'Credentials missing. Pass SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define.',
+                                    ? 'Sign in with your Google account to sync your academic desk, timetable, syllabus, and study resources.'
+                                    : 'Supply SUPABASE_URL and SUPABASE_ANON_KEY to enable Google OAuth sign-in.',
                                 style: TextStyle(
                                   fontSize: 11.5,
                                   color: stuTheme.textSecondary,
-                                  height: 1.3,
+                                  height: 1.35,
                                 ),
                               ),
                             ],
@@ -198,7 +200,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   if (_authService.errorMessage != null) ...[
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: stuTheme.errorContainer,
                         borderRadius: BorderRadius.circular(12),
@@ -208,8 +213,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline_rounded,
-                              color: stuTheme.error, size: 20),
+                          Icon(
+                            Icons.error_outline_rounded,
+                            color: stuTheme.error,
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -221,6 +229,16 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                             ),
                           ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: stuTheme.error,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => _authService.clearError(),
+                          ),
                         ],
                       ),
                     ),
@@ -228,9 +246,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: 28),
 
-                  // Continue with Google Button
+                  // Continue with Google Button (The Only Supported Method)
                   SizedBox(
-                    height: 52,
+                    height: 54,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: stuTheme.surfaceTier2,
@@ -238,10 +256,15 @@ class _AuthScreenState extends State<AuthScreen> {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
-                          side: BorderSide(color: stuTheme.border),
+                          side: BorderSide(
+                            color: isAuthenticating
+                                ? stuTheme.accent
+                                : stuTheme.border,
+                            width: isAuthenticating ? 1.5 : 1.0,
+                          ),
                         ),
-                        disabledBackgroundColor:
-                            stuTheme.surfaceTier2.withValues(alpha: 0.6),
+                        disabledBackgroundColor: stuTheme.surfaceTier2
+                            .withValues(alpha: 0.6),
                       ),
                       onPressed: (isAuthenticating || !isConfigured)
                           ? null
@@ -286,7 +309,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                       color: Colors.white,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.grey.withValues(alpha: 0.3),
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                     alignment: Alignment.center,
@@ -314,32 +339,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 14),
-
-                  // Continue in Local Student Mode Button
-                  SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: stuTheme.accent,
-                        foregroundColor: stuTheme.onAccent,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: isAuthenticating ? null : _handleContinueAsGuest,
-                      child: const Text(
-                        'Continue in Local Student Mode',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   FittedBox(
                     fit: BoxFit.scaleDown,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/data/studesk_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
@@ -112,11 +113,12 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                     size: 22,
                     color: stuTheme.textSecondary,
                   ),
-                  onPressed: onSearchTap ??
+                  onPressed:
+                      onSearchTap ??
                       () => GlobalSearchSheet.show(
-                            context,
-                            onNavigateToTab: onNavigateToTab,
-                          ),
+                        context,
+                        onNavigateToTab: onNavigateToTab,
+                      ),
                   style: IconButton.styleFrom(
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(8),
@@ -156,13 +158,16 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                                 ? Icons.notifications_active_rounded
                                 : Icons.notifications_none_rounded,
                             size: 22,
-                            color: unread > 0 ? stuTheme.accent : stuTheme.textSecondary,
+                            color: unread > 0
+                                ? stuTheme.accent
+                                : stuTheme.textSecondary,
                           ),
-                          onPressed: onNotificationsTap ??
+                          onPressed:
+                              onNotificationsTap ??
                               () => NotificationCenterSheet.show(
-                                    context,
-                                    onNavigateToTab: onNavigateToTab,
-                                  ),
+                                context,
+                                onNavigateToTab: onNavigateToTab,
+                              ),
                           style: IconButton.styleFrom(
                             shape: const CircleBorder(),
                             padding: const EdgeInsets.all(8),
@@ -178,7 +183,10 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                               decoration: BoxDecoration(
                                 color: stuTheme.accent,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: stuTheme.canvas, width: 1.5),
+                                border: Border.all(
+                                  color: stuTheme.canvas,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),

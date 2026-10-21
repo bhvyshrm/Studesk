@@ -15,16 +15,19 @@ void main() {
   });
 
   group('BackupService Tests', () {
-    test('Manual backup creation creates valid snapshot and metadata', () async {
-      final service = BackupService.instance;
-      final meta = await service.createManualBackup();
+    test(
+      'Manual backup creation creates valid snapshot and metadata',
+      () async {
+        final service = BackupService.instance;
+        final meta = await service.createManualBackup();
 
-      expect(meta.schemaVersion, 1);
-      expect(meta.dataChecksum.isNotEmpty, isTrue);
-      expect(service.snapshots.isNotEmpty, isTrue);
-      expect(service.lastBackupTime, isNotNull);
-      expect(service.shouldShowBackupReminder, isFalse);
-    });
+        expect(meta.schemaVersion, 1);
+        expect(meta.dataChecksum.isNotEmpty, isTrue);
+        expect(service.snapshots.isNotEmpty, isTrue);
+        expect(service.lastBackupTime, isNotNull);
+        expect(service.shouldShowBackupReminder, isFalse);
+      },
+    );
 
     test('3-day backup reminder logic triggers when backup is old', () {
       final service = BackupService.instance;
@@ -42,8 +45,9 @@ void main() {
   });
 
   group('BackupRestoreScreen Widget Tests', () {
-    testWidgets('Screen renders manual backup button and retention info',
-        (WidgetTester tester) async {
+    testWidgets('Screen renders manual backup button and retention info', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(tester.view.resetPhysicalSize);

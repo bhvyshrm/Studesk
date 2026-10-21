@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 
 /// Clean 4-destination bottom navigation bar with icons only (no visible text labels),
@@ -24,9 +25,7 @@ class AppBottomNavBar extends StatelessWidget {
       height: navBarHeight,
       decoration: BoxDecoration(
         color: isDark ? stuTheme.canvas : stuTheme.surfaceTier1,
-        border: Border(
-          top: BorderSide(color: stuTheme.border, width: 1),
-        ),
+        border: Border(top: BorderSide(color: stuTheme.border, width: 1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.04),

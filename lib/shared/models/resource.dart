@@ -74,21 +74,21 @@ class LibraryResource {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'type': type.name,
-        'subject_tag': subjectTag,
-        'url': url,
-        'note_content': noteContent,
-        'description': description,
-        'collection_id': collectionId,
-        'duration': duration,
-        'meta_info': metaInfo,
-        'channel': channel,
-        'is_bookmarked': isBookmarked,
-        'created_at': (createdAt ?? DateTime.now()).toIso8601String(),
-        'updated_at': (updatedAt ?? DateTime.now()).toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'type': type.name,
+    'subject_tag': subjectTag,
+    'url': url,
+    'note_content': noteContent,
+    'description': description,
+    'collection_id': collectionId,
+    'duration': duration,
+    'meta_info': metaInfo,
+    'channel': channel,
+    'is_bookmarked': isBookmarked,
+    'created_at': (createdAt ?? DateTime.now()).toIso8601String(),
+    'updated_at': (updatedAt ?? DateTime.now()).toIso8601String(),
+  };
 
   factory LibraryResource.fromJson(Map<String, dynamic> json) {
     final typeStr = json['type'] as String? ?? 'note';
@@ -97,7 +97,9 @@ class LibraryResource {
       orElse: () => ResourceType.note,
     );
     return LibraryResource(
-      id: json['id'] as String? ?? 'res_${DateTime.now().microsecondsSinceEpoch}',
+      id:
+          json['id'] as String? ??
+          'res_${DateTime.now().microsecondsSinceEpoch}',
       title: json['title'] as String? ?? '',
       type: type,
       subjectTag: json['subject_tag'] as String? ?? 'General',

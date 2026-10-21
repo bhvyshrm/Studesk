@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/dialogs/studesk_forms.dart';
 import '../../../shared/models/models.dart';
 import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/custom_card.dart';
@@ -80,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: 'Assignment or study task with due date',
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showAddTaskDialog();
+                  StuDeskForms.showTaskForm(context);
                 },
               ),
               _buildAddTile(
@@ -90,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: 'Campus meeting, workshop, or event',
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showAddEventDialog();
+                  StuDeskForms.showEventForm(context);
                 },
               ),
               _buildAddTile(
@@ -100,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: 'Midterm, quiz, or final exam date',
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showAddExamDialog();
+                  StuDeskForms.showExamForm(context);
                 },
               ),
               _buildAddTile(
@@ -110,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: 'Reminder for submission or preparation',
                 onTap: () {
                   Navigator.pop(ctx);
-                  _showAddReminderDialog();
+                  StuDeskForms.showReminderForm(context);
                 },
               ),
             ],
@@ -151,497 +153,12 @@ class _HomeScreenState extends State<HomeScreen> {
         subtitle,
         style: TextStyle(color: stuTheme.textSecondary, fontSize: 12),
       ),
-      trailing: Icon(Icons.chevron_right_rounded, color: stuTheme.textSecondary, size: 18),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: stuTheme.textSecondary,
+        size: 18,
+      ),
       onTap: onTap,
-    );
-  }
-
-  void _showAddTaskDialog() {
-    final stuTheme = context.stuTheme;
-    final titleCtrl = TextEditingController();
-    final detailCtrl = TextEditingController();
-    DateTime selectedDate = DateTime.now();
-    TaskPriority priority = TaskPriority.normal;
-    String selectedTag = _repo.courses.isNotEmpty ? _repo.courses.first.code : 'General';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: stuTheme.surfaceTier1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'New Task',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: stuTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: titleCtrl,
-                autofocus: true,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Task Title *',
-                  hintText: 'e.g., Complete Trees lab submission',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: detailCtrl,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Optional details / instructions',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.calendar_today_rounded, size: 16),
-                      label: Text(DateFormat('MMM d').format(selectedDate)),
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (picked != null) {
-                          setModalState(() => selectedDate = picked);
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  DropdownButton<TaskPriority>(
-                    value: priority,
-                    dropdownColor: stuTheme.surfaceTier2,
-                    items: TaskPriority.values
-                        .map((p) => DropdownMenuItem(value: p, child: Text(p.name.toUpperCase())))
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) setModalState(() => priority = val);
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: stuTheme.accent,
-                    foregroundColor: stuTheme.onAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  onPressed: () async {
-                    final title = titleCtrl.text.trim();
-                    if (title.isEmpty) return;
-                    final newTask = TaskItem(
-                      id: 'task_${DateTime.now().microsecondsSinceEpoch}',
-                      title: title,
-                      detail: detailCtrl.text.trim().isNotEmpty ? detailCtrl.text.trim() : null,
-                      dueDate: selectedDate,
-                      dueTime: DateFormat('h:mm a').format(DateTime.now()),
-                      priority: priority,
-                      categoryTag: selectedTag,
-                      isCompleted: false,
-                    );
-                    await _repo.addTask(newTask);
-                    if (context.mounted) Navigator.pop(ctx);
-                  },
-                  child: const Text('Save Task', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAddEventDialog() {
-    final stuTheme = context.stuTheme;
-    final titleCtrl = TextEditingController();
-    final locationCtrl = TextEditingController();
-    final notesCtrl = TextEditingController();
-    DateTime selectedDate = DateTime.now();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: stuTheme.surfaceTier1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'New Event',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: stuTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: titleCtrl,
-                autofocus: true,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Event Title *',
-                  hintText: 'e.g. ACM Seminar or Project Sync',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: locationCtrl,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Location (Optional)',
-                  hintText: 'e.g. Auditorium B or Zoom',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: notesCtrl,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 14),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today_rounded, size: 16),
-                label: Text(DateFormat('EEE, MMM d, yyyy').format(selectedDate)),
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                  );
-                  if (picked != null) {
-                    setModalState(() => selectedDate = picked);
-                  }
-                },
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: stuTheme.accent,
-                    foregroundColor: stuTheme.onAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  onPressed: () async {
-                    final title = titleCtrl.text.trim();
-                    if (title.isEmpty) return;
-                    final newEvent = EventItem(
-                      id: 'event_${DateTime.now().microsecondsSinceEpoch}',
-                      title: title,
-                      eventDate: selectedDate,
-                      location: locationCtrl.text.trim().isNotEmpty ? locationCtrl.text.trim() : null,
-                      notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
-                    );
-                    await _repo.addEvent(newEvent);
-                    if (context.mounted) Navigator.pop(ctx);
-                  },
-                  child: const Text('Save Event', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAddExamDialog() {
-    final stuTheme = context.stuTheme;
-    final titleCtrl = TextEditingController();
-    final courseCtrl = TextEditingController();
-    final roomCtrl = TextEditingController();
-    final cutoffCtrl = TextEditingController();
-    DateTime examDate = DateTime.now().add(const Duration(days: 7));
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: stuTheme.surfaceTier1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Add Exam',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: stuTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: titleCtrl,
-                autofocus: true,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Exam Title *',
-                  hintText: 'e.g. Midterm Examination',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: courseCtrl,
-                      style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                      decoration: InputDecoration(
-                        labelText: 'Subject Code',
-                        hintText: 'e.g. CS201',
-                        filled: true,
-                        fillColor: stuTheme.surfaceTier2,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: roomCtrl,
-                      style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                      decoration: InputDecoration(
-                        labelText: 'Hall / Room',
-                        hintText: 'e.g. Hall B-204',
-                        filled: true,
-                        fillColor: stuTheme.surfaceTier2,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: cutoffCtrl,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Syllabus Coverage / Notes',
-                  hintText: 'e.g. Units 1 through 3',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 14),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today_rounded, size: 16),
-                label: Text(DateFormat('EEE, MMM d, yyyy').format(examDate)),
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: examDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                  );
-                  if (picked != null) {
-                    setModalState(() => examDate = picked);
-                  }
-                },
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: stuTheme.accent,
-                    foregroundColor: stuTheme.onAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  onPressed: () async {
-                    final title = titleCtrl.text.trim();
-                    if (title.isEmpty) return;
-                    final newExam = ExamItem(
-                      id: 'exam_${DateTime.now().microsecondsSinceEpoch}',
-                      title: title,
-                      courseCode: courseCtrl.text.trim().isNotEmpty ? courseCtrl.text.trim() : 'General',
-                      room: roomCtrl.text.trim().isNotEmpty ? roomCtrl.text.trim() : 'TBA',
-                      syllabusCutoff: cutoffCtrl.text.trim().isNotEmpty ? cutoffCtrl.text.trim() : 'Full Syllabus',
-                      examDate: examDate,
-                    );
-                    await _repo.addExam(newExam);
-                    if (context.mounted) Navigator.pop(ctx);
-                  },
-                  child: const Text('Save Exam', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAddReminderDialog() {
-    final stuTheme = context.stuTheme;
-    final textCtrl = TextEditingController();
-    DateTime selectedTime = DateTime.now().add(const Duration(hours: 2));
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: stuTheme.surfaceTier1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Quick Reminder',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: stuTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: textCtrl,
-                autofocus: true,
-                style: TextStyle(color: stuTheme.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Reminder Text *',
-                  hintText: 'e.g. Return library book or review flashcards',
-                  filled: true,
-                  fillColor: stuTheme.surfaceTier2,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 14),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.access_time_rounded, size: 16),
-                label: Text(DateFormat('MMM d, h:mm a').format(selectedTime)),
-                onPressed: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: selectedTime,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 90)),
-                  );
-                  if (date != null && context.mounted) {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.fromDateTime(selectedTime),
-                    );
-                    if (time != null) {
-                      setModalState(() {
-                        selectedTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-                      });
-                    }
-                  }
-                },
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: stuTheme.accent,
-                    foregroundColor: stuTheme.onAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  onPressed: () async {
-                    final text = textCtrl.text.trim();
-                    if (text.isEmpty) return;
-                    final reminder = ReminderItem(
-                      id: 'rem_${DateTime.now().microsecondsSinceEpoch}',
-                      text: text,
-                      reminderTime: selectedTime,
-                    );
-                    await _repo.addReminder(reminder);
-                    if (context.mounted) Navigator.pop(ctx);
-                  },
-                  child: const Text('Save Reminder', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -662,18 +179,33 @@ class _HomeScreenState extends State<HomeScreen> {
         final todayEvents = _repo.todayEvents;
         final todayReminders = _repo.todayReminders;
 
-        final hasTodayItems = todayClasses.isNotEmpty ||
+        final hasTodayItems =
+            todayClasses.isNotEmpty ||
             todayTasks.isNotEmpty ||
             todayExams.isNotEmpty ||
             todayEvents.isNotEmpty ||
             todayReminders.isNotEmpty;
 
         // Nearest upcoming items
-        final upcomingExams = _repo.exams.where((e) => e.examDate.isAfter(DateTime.now())).toList();
-        final upcomingTasks = _repo.tasks.where((t) => !t.isCompleted && t.dueDate != null && t.dueDate!.isAfter(DateTime.now())).toList();
-        final upcomingEvents = _repo.events.where((e) => e.eventDate.isAfter(DateTime.now())).toList();
+        final upcomingExams = _repo.exams
+            .where((e) => e.examDate.isAfter(DateTime.now()))
+            .toList();
+        final upcomingTasks = _repo.tasks
+            .where(
+              (t) =>
+                  !t.isCompleted &&
+                  t.dueDate != null &&
+                  t.dueDate!.isAfter(DateTime.now()),
+            )
+            .toList();
+        final upcomingEvents = _repo.events
+            .where((e) => e.eventDate.isAfter(DateTime.now()))
+            .toList();
 
-        final hasUpcomingItems = upcomingExams.isNotEmpty || upcomingTasks.isNotEmpty || upcomingEvents.isNotEmpty;
+        final hasUpcomingItems =
+            upcomingExams.isNotEmpty ||
+            upcomingTasks.isNotEmpty ||
+            upcomingEvents.isNotEmpty;
 
         return Scaffold(
           backgroundColor: stuTheme.canvas,
@@ -756,15 +288,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       else ...[
                         // Today's Classes
-                        ...todayClasses.map((c) => _buildClassTile(c, stuTheme)),
+                        ...todayClasses.map(
+                          (c) => _buildClassTile(c, stuTheme),
+                        ),
                         // Today's Exams
                         ...todayExams.map((e) => _buildExamTile(e, stuTheme)),
                         // Today's Events
-                        ...todayEvents.map((ev) => _buildEventTile(ev, stuTheme)),
+                        ...todayEvents.map(
+                          (ev) => _buildEventTile(ev, stuTheme),
+                        ),
                         // Today's Tasks
                         ...todayTasks.map((t) => _buildTaskTile(t, stuTheme)),
                         // Today's Reminders
-                        ...todayReminders.map((r) => _buildReminderTile(r, stuTheme)),
+                        ...todayReminders.map(
+                          (r) => _buildReminderTile(r, stuTheme),
+                        ),
                       ],
 
                       const SizedBox(height: 28),
@@ -800,13 +338,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: 'No upcoming deadlines',
                           subtitle: 'No exams or scheduled assignments in the near horizon. All caught up!',
                           actionText: 'Schedule Exam / Event',
-                          onAction: _showAddExamDialog,
+                          onAction: () => StuDeskForms.showExamForm(context),
                           stuTheme: stuTheme,
                         )
                       else ...[
-                        ...upcomingExams.take(2).map((e) => _buildUpcomingExamTile(e, stuTheme)),
-                        ...upcomingTasks.take(3).map((t) => _buildUpcomingTaskTile(t, stuTheme)),
-                        ...upcomingEvents.take(2).map((ev) => _buildEventTile(ev, stuTheme)),
+                        ...upcomingExams
+                            .take(2)
+                            .map((e) => _buildUpcomingExamTile(e, stuTheme)),
+                        ...upcomingTasks
+                            .take(3)
+                            .map((t) => _buildUpcomingTaskTile(t, stuTheme)),
+                        ...upcomingEvents
+                            .take(2)
+                            .map((ev) => _buildEventTile(ev, stuTheme)),
                       ],
 
                       const SizedBox(height: 28),
@@ -823,7 +367,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: stuTheme.accent.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: Icon(Icons.how_to_reg_rounded, color: stuTheme.accent, size: 22),
+                              child: Icon(
+                                Icons.how_to_reg_rounded,
+                                color: stuTheme.accent,
+                                size: 22,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -929,7 +477,9 @@ class _HomeScreenState extends State<HomeScreen> {
               foregroundColor: stuTheme.onAccent,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: onAction,
             child: Text(
@@ -961,7 +511,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: stuTheme.success.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.schedule_rounded, color: stuTheme.success, size: 20),
+              child: Icon(
+                Icons.schedule_rounded,
+                color: stuTheme.success,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1013,55 +567,91 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTaskTile(TaskItem t, StuDeskThemeExtension stuTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: stuTheme.surfaceTier1,
+      child: Material(
+        color: stuTheme.surfaceTier1,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: stuTheme.border),
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              icon: Icon(
-                t.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                color: t.isCompleted ? stuTheme.success : stuTheme.accent,
-                size: 22,
-              ),
-              onPressed: () => _repo.toggleTask(t.id),
+          onTap: () => StuDeskForms.showTaskForm(context, existingTask: t),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: stuTheme.border),
             ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    t.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      decoration: t.isCompleted ? TextDecoration.lineThrough : null,
-                      color: t.isCompleted ? stuTheme.textMuted : stuTheme.textPrimary,
-                    ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    t.isCompleted
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: t.isCompleted ? stuTheme.success : stuTheme.accent,
+                    size: 22,
                   ),
-                  if (t.detail != null && t.detail!.isNotEmpty) ...[
-                    const SizedBox(height: 1),
-                    Text(
-                      t.detail!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, color: stuTheme.textSecondary),
-                    ),
-                  ],
-                ],
-              ),
+                  onPressed: () => _repo.toggleTask(t.id),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          decoration: t.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
+                          color: t.isCompleted
+                              ? stuTheme.textMuted
+                              : stuTheme.textPrimary,
+                        ),
+                      ),
+                      if (t.detail != null && t.detail!.isNotEmpty) ...[
+                        const SizedBox(height: 1),
+                        Text(
+                          t.detail!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: stuTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Edit Task',
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    size: 18,
+                    color: stuTheme.textMuted,
+                  ),
+                  onPressed: () =>
+                      StuDeskForms.showTaskForm(context, existingTask: t),
+                ),
+                IconButton(
+                  tooltip: 'Delete Task',
+                  icon: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: stuTheme.textMuted,
+                  ),
+                  onPressed: () => StuDeskForms.confirmDelete(
+                    context,
+                    title: 'Delete Task',
+                    message: 'Are you sure you want to delete "${t.title}"?',
+                    onConfirm: () => _repo.deleteTask(t.id),
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline_rounded, size: 18, color: stuTheme.textMuted),
-              onPressed: () => _repo.deleteTask(t.id),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1070,37 +660,66 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildExamTile(ExamItem e, StuDeskThemeExtension stuTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: stuTheme.error.withValues(alpha: 0.08),
+      child: Material(
+        color: stuTheme.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: stuTheme.error.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.event_available_rounded, color: stuTheme.error, size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'EXAM TODAY: ${e.title}',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.bold,
-                      color: stuTheme.error,
-                    ),
-                  ),
-                  Text(
-                    '${e.courseCode} • Room ${e.room} • ${e.syllabusCutoff}',
-                    style: TextStyle(fontSize: 11.5, color: stuTheme.textSecondary),
-                  ),
-                ],
-              ),
+          onTap: () => StuDeskForms.showExamForm(context, existingExam: e),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: stuTheme.error.withValues(alpha: 0.3)),
             ),
-          ],
+            child: Row(
+              children: [
+                Icon(
+                  Icons.event_available_rounded,
+                  color: stuTheme.error,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'EXAM TODAY: ${e.title}',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.error,
+                        ),
+                      ),
+                      Text(
+                        '${e.courseCode} • Room ${e.room} • ${e.syllabusCutoff}',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: stuTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Delete Exam',
+                  icon: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: stuTheme.error,
+                  ),
+                  onPressed: () => StuDeskForms.confirmDelete(
+                    context,
+                    title: 'Delete Exam',
+                    message:
+                        'Are you sure you want to delete exam "${e.title}"?',
+                    onConfirm: () => _repo.deleteExam(e.id),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1109,46 +728,75 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildEventTile(EventItem ev, StuDeskThemeExtension stuTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: stuTheme.surfaceTier1,
+      child: Material(
+        color: stuTheme.surfaceTier1,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: stuTheme.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: stuTheme.accent.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(Icons.calendar_month_rounded, color: stuTheme.accent, size: 20),
+          onTap: () => StuDeskForms.showEventForm(context, existingEvent: ev),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: stuTheme.border),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ev.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: stuTheme.textPrimary,
-                    ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: stuTheme.accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    DateFormat('EEE, MMM d').format(ev.eventDate) +
-                        (ev.location != null ? ' • ${ev.location}' : ''),
-                    style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                  child: Icon(
+                    Icons.calendar_month_rounded,
+                    color: stuTheme.accent,
+                    size: 20,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ev.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        DateFormat('EEE, MMM d').format(ev.eventDate) +
+                            (ev.location != null ? ' • ${ev.location}' : ''),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: stuTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Delete Event',
+                  icon: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: stuTheme.textMuted,
+                  ),
+                  onPressed: () => StuDeskForms.confirmDelete(
+                    context,
+                    title: 'Delete Event',
+                    message:
+                        'Are you sure you want to delete event "${ev.title}"?',
+                    onConfirm: () => _repo.deleteEvent(ev.id),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1157,32 +805,50 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildReminderTile(ReminderItem r, StuDeskThemeExtension stuTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: stuTheme.surfaceTier1,
+      child: Material(
+        color: stuTheme.surfaceTier1,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: stuTheme.border),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.alarm_rounded, color: stuTheme.warning, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                r.text,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: stuTheme.textPrimary,
+          onTap: () =>
+              StuDeskForms.showReminderForm(context, existingReminder: r),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: stuTheme.border),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.alarm_rounded, color: stuTheme.warning, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    r.text,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: stuTheme.textPrimary,
+                    ),
+                  ),
                 ),
-              ),
+                IconButton(
+                  tooltip: 'Delete Reminder',
+                  icon: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: stuTheme.textMuted,
+                  ),
+                  onPressed: () => StuDeskForms.confirmDelete(
+                    context,
+                    title: 'Delete Reminder',
+                    message: 'Are you sure you want to remove this reminder?',
+                    onConfirm: () => _repo.deleteReminder(r.id),
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              icon: Icon(Icons.close_rounded, size: 16, color: stuTheme.textMuted),
-              onPressed: () => _repo.deleteReminder(r.id),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1190,57 +856,87 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUpcomingExamTile(ExamItem e, StuDeskThemeExtension stuTheme) {
     final diff = e.examDate.difference(DateTime.now()).inDays;
-    final countdown = diff == 0 ? 'Today' : (diff == 1 ? 'Tomorrow' : '$diff days left');
+    final countdown = diff == 0
+        ? 'Today'
+        : (diff == 1 ? 'Tomorrow' : '$diff days left');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: stuTheme.surfaceTier1,
+      child: Material(
+        color: stuTheme.surfaceTier1,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: stuTheme.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: stuTheme.error.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                countdown,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: stuTheme.error,
-                ),
-              ),
+          onTap: () => StuDeskForms.showExamForm(context, existingExam: e),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: stuTheme.border),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    e.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: stuTheme.error.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    countdown,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
-                      color: stuTheme.textPrimary,
+                      color: stuTheme.error,
                     ),
                   ),
-                  Text(
-                    '${DateFormat('MMM d').format(e.examDate)} • Room ${e.room}',
-                    style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        '${DateFormat('MMM d').format(e.examDate)} • Room ${e.room}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: stuTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                IconButton(
+                  tooltip: 'Delete Exam',
+                  icon: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: stuTheme.textMuted,
+                  ),
+                  onPressed: () => StuDeskForms.confirmDelete(
+                    context,
+                    title: 'Delete Exam',
+                    message:
+                        'Are you sure you want to delete exam "${e.title}"?',
+                    onConfirm: () => _repo.deleteExam(e.id),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1249,35 +945,49 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildUpcomingTaskTile(TaskItem t, StuDeskThemeExtension stuTheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: stuTheme.surfaceTier1,
+      child: Material(
+        color: stuTheme.surfaceTier1,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: stuTheme.border),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.assignment_outlined, size: 20, color: stuTheme.textSecondary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                t.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: stuTheme.textPrimary,
-                ),
-              ),
+          onTap: () => StuDeskForms.showTaskForm(context, existingTask: t),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: stuTheme.border),
             ),
-            if (t.dueDate != null)
-              Text(
-                DateFormat('MMM d').format(t.dueDate!),
-                style: TextStyle(fontSize: 11.5, color: stuTheme.textSecondary),
-              ),
-          ],
+            child: Row(
+              children: [
+                Icon(
+                  Icons.assignment_outlined,
+                  size: 20,
+                  color: stuTheme.textSecondary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    t.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: stuTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                if (t.dueDate != null)
+                  Text(
+                    DateFormat('MMM d').format(t.dueDate!),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: stuTheme.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

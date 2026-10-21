@@ -21,8 +21,8 @@ class AcademicNote {
     this.fileSize = '',
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   AcademicNote copyWith({
     String? id,
@@ -49,16 +49,16 @@ class AcademicNote {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'subject_code': subjectCode,
-        'file_type': fileType.name,
-        'file_url': fileUrl,
-        'content': content,
-        'file_size': fileSize,
-        'created_at': createdAt.toIso8601String(),
-        'updated_at': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'subject_code': subjectCode,
+    'file_type': fileType.name,
+    'file_url': fileUrl,
+    'content': content,
+    'file_size': fileSize,
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+  };
 
   factory AcademicNote.fromJson(Map<String, dynamic> json) {
     final typeStr = json['file_type'] as String? ?? 'note';
@@ -67,7 +67,9 @@ class AcademicNote {
       orElse: () => AcademicFileType.note,
     );
     return AcademicNote(
-      id: json['id'] as String? ?? 'note_${DateTime.now().microsecondsSinceEpoch}',
+      id:
+          json['id'] as String? ??
+          'note_${DateTime.now().microsecondsSinceEpoch}',
       title: json['title'] as String? ?? '',
       subjectCode: json['subject_code'] as String? ?? 'General',
       fileType: type,

@@ -52,17 +52,17 @@ class TaskItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'priority': priority.name,
-        'due_time': dueTime,
-        'due_date': dueDate?.toIso8601String(),
-        'category_tag': categoryTag,
-        'detail': detail,
-        'course_code': courseCode,
-        'is_recurring': isRecurring,
-        'is_completed': isCompleted,
-      };
+    'id': id,
+    'title': title,
+    'priority': priority.name,
+    'due_time': dueTime,
+    'due_date': dueDate?.toIso8601String(),
+    'category_tag': categoryTag,
+    'detail': detail,
+    'course_code': courseCode,
+    'is_recurring': isRecurring,
+    'is_completed': isCompleted,
+  };
 
   factory TaskItem.fromJson(Map<String, dynamic> json) {
     final priorityStr = json['priority'] as String? ?? 'normal';
@@ -71,7 +71,9 @@ class TaskItem {
       orElse: () => TaskPriority.normal,
     );
     return TaskItem(
-      id: json['id'] as String? ?? 'task_${DateTime.now().microsecondsSinceEpoch}',
+      id:
+          json['id'] as String? ??
+          'task_${DateTime.now().microsecondsSinceEpoch}',
       title: json['title'] as String? ?? '',
       priority: priority,
       dueTime: json['due_time'] as String?,

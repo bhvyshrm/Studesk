@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'app_colors.dart';
 
-enum AppAppearanceMode {
-  light,
-  dark,
-  amoled,
-}
+enum AppAppearanceMode { light, dark, amoled }
 
 class ThemeController extends ChangeNotifier {
   ThemeController._();
@@ -32,7 +29,8 @@ class ThemeController extends ChangeNotifier {
   AppAppearanceMode get appearanceMode => _appearanceMode;
   bool get isCompactSpacing => _isCompactSpacing;
   bool get reducedMotion => _reducedMotion;
-  Color get currentAccent => availableAccents[_accentIndex.clamp(0, availableAccents.length - 1)];
+  Color get currentAccent =>
+      availableAccents[_accentIndex.clamp(0, availableAccents.length - 1)];
   int get accentIndex => _accentIndex;
 
   ThemeMode get themeMode {
@@ -106,7 +104,9 @@ class ThemeController extends ChangeNotifier {
   }
 
   void setAccentIndex(int index) {
-    if (_accentIndex != index && index >= 0 && index < availableAccents.length) {
+    if (_accentIndex != index &&
+        index >= 0 &&
+        index < availableAccents.length) {
       _accentIndex = index;
       notifyListeners();
       _savePreferences();

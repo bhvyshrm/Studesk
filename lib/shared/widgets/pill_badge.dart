@@ -36,10 +36,7 @@ class PillBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            icon!,
-            const SizedBox(width: 4),
-          ],
+          if (icon != null) ...[icon!, const SizedBox(width: 4)],
           Flexible(
             child: Text(
               label,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/models.dart';
@@ -32,13 +33,16 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
     // Check if there's an existing journal entry for today
     final now = DateTime.now();
     final todayEntry = _repo.journals.cast<JournalEntry?>().firstWhere(
-      (j) => j != null && j.date.year == now.year && j.date.month == now.month && j.date.day == now.day,
+      (j) =>
+          j != null &&
+          j.date.year == now.year &&
+          j.date.month == now.month &&
+          j.date.day == now.day,
       orElse: () => null,
     );
 
     _reflectionController = TextEditingController(
-      text: todayEntry?.learnedText ??
-          'Solid grasp on binary search tree rebalancing and Red-Black tree rotations in CS201. Spent 45 minutes walking through edge cases on node color flipping. Need to review double-black deletion cases tomorrow before office hours.',
+      text: todayEntry?.learnedText ?? 'Solid grasp on binary search tree rebalancing and Red-Black tree rotations in CS201. Spent 45 minutes walking through edge cases on node color flipping. Need to review double-black deletion cases tomorrow before office hours.',
     );
 
     if (todayEntry != null) {
@@ -160,10 +164,7 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                 const SizedBox(width: 4),
                 Text(
                   'Auto-saved',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: stuTheme.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 10, color: stuTheme.textSecondary),
                 ),
               ],
             ),
@@ -176,7 +177,10 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: stuTheme.accent,
                 foregroundColor: stuTheme.onAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(9999),
                 ),
@@ -285,10 +289,7 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
           const SizedBox(height: 10),
           Text(
             'How was your cognitive clarity and study momentum today?',
-            style: TextStyle(
-              fontSize: 13,
-              color: stuTheme.textSecondary,
-            ),
+            style: TextStyle(fontSize: 13, color: stuTheme.textSecondary),
           ),
           const SizedBox(height: 14),
 
@@ -305,7 +306,10 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                   child: GestureDetector(
                     onTap: () => setState(() => _selectedMoodIndex = index),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? stuTheme.accent.withValues(alpha: 0.18)
@@ -318,14 +322,21 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                       ),
                       child: Row(
                         children: [
-                          Text(mood['emoji']!, style: const TextStyle(fontSize: 14)),
+                          Text(
+                            mood['emoji']!,
+                            style: const TextStyle(fontSize: 14),
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             mood['label']!,
                             style: TextStyle(
                               fontSize: 12.5,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? stuTheme.textPrimary : stuTheme.textSecondary,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? stuTheme.textPrimary
+                                  : stuTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -352,7 +363,10 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                 children: [
                   Text(
                     '342 words',
-                    style: TextStyle(fontSize: 11, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -360,22 +374,36 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                     style: TextStyle(fontSize: 11, color: stuTheme.textMuted),
                   ),
                   const SizedBox(width: 6),
-                  Icon(Icons.schedule_rounded, size: 12, color: stuTheme.textSecondary),
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 12,
+                    color: stuTheme.textSecondary,
+                  ),
                   const SizedBox(width: 3),
                   Text(
                     '1 min read',
-                    style: TextStyle(fontSize: 11, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.lock_rounded, size: 12, color: stuTheme.textSecondary),
+                  Icon(
+                    Icons.lock_rounded,
+                    size: 12,
+                    color: stuTheme.textSecondary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     'Private entry',
-                    style: TextStyle(fontSize: 11, color: stuTheme.textSecondary),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: stuTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -433,10 +461,7 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                 const SizedBox(height: 2),
                 Text(
                   'Linked to Semester 5 Track',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: stuTheme.textMuted,
-                  ),
+                  style: TextStyle(fontSize: 11, color: stuTheme.textMuted),
                 ),
               ],
             ),
@@ -655,7 +680,11 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                         ),
                       ),
                       child: isDone
-                          ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                          ? const Icon(
+                              Icons.check_rounded,
+                              size: 13,
+                              color: Colors.white,
+                            )
                           : null,
                     ),
                     const SizedBox(width: 10),
@@ -666,7 +695,9 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
                           fontSize: 13,
                           color: stuTheme.textPrimary,
                           height: 1.3,
-                          decoration: isDone ? null : TextDecoration.lineThrough,
+                          decoration: isDone
+                              ? null
+                              : TextDecoration.lineThrough,
                         ),
                       ),
                     ),
@@ -684,9 +715,7 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
             decoration: BoxDecoration(
               color: stuTheme.errorContainer,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: stuTheme.error.withValues(alpha: 0.3),
-              ),
+              border: Border.all(color: stuTheme.error.withValues(alpha: 0.3)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -769,7 +798,11 @@ class _JournalEditorScreenState extends State<JournalEditorScreen> {
     );
   }
 
-  Widget _buildTagButton(String label, IconData icon, StuDeskThemeExtension stuTheme) {
+  Widget _buildTagButton(
+    String label,
+    IconData icon,
+    StuDeskThemeExtension stuTheme,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(

@@ -35,25 +35,26 @@ class SubjectAttendanceRecord {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'course_code': courseCode,
-        'date': date.toIso8601String(),
-        'is_present': isPresent,
-        'lecture_slot': lectureSlot,
-        'topic_discussed': topicDiscussed,
-      };
+    'id': id,
+    'course_code': courseCode,
+    'date': date.toIso8601String(),
+    'is_present': isPresent,
+    'lecture_slot': lectureSlot,
+    'topic_discussed': topicDiscussed,
+  };
 
-  factory SubjectAttendanceRecord.fromJson(Map<String, dynamic> json) =>
-      SubjectAttendanceRecord(
-        id: json['id'] as String? ?? 'rec_${DateTime.now().microsecondsSinceEpoch}',
-        courseCode: json['course_code'] as String? ?? '',
-        date: json['date'] != null
-            ? DateTime.tryParse(json['date'] as String) ?? DateTime.now()
-            : DateTime.now(),
-        isPresent: json['is_present'] as bool? ?? true,
-        lectureSlot: json['lecture_slot'] as String?,
-        topicDiscussed: json['topic_discussed'] as String?,
-      );
+  factory SubjectAttendanceRecord.fromJson(
+    Map<String, dynamic> json,
+  ) => SubjectAttendanceRecord(
+    id: json['id'] as String? ?? 'rec_${DateTime.now().microsecondsSinceEpoch}',
+    courseCode: json['course_code'] as String? ?? '',
+    date: json['date'] != null
+        ? DateTime.tryParse(json['date'] as String) ?? DateTime.now()
+        : DateTime.now(),
+    isPresent: json['is_present'] as bool? ?? true,
+    lectureSlot: json['lecture_slot'] as String?,
+    topicDiscussed: json['topic_discussed'] as String?,
+  );
 }
 
 /// Separate record for tracking daily college attendance calendar
@@ -85,19 +86,20 @@ class CollegeAttendanceRecord {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date.toIso8601String(),
-        'is_present': isPresent,
-        'remarks': remarks,
-      };
+    'id': id,
+    'date': date.toIso8601String(),
+    'is_present': isPresent,
+    'remarks': remarks,
+  };
 
-  factory CollegeAttendanceRecord.fromJson(Map<String, dynamic> json) =>
-      CollegeAttendanceRecord(
-        id: json['id'] as String? ?? 'col_${DateTime.now().microsecondsSinceEpoch}',
-        date: json['date'] != null
-            ? DateTime.tryParse(json['date'] as String) ?? DateTime.now()
-            : DateTime.now(),
-        isPresent: json['is_present'] as bool? ?? true,
-        remarks: json['remarks'] as String?,
-      );
+  factory CollegeAttendanceRecord.fromJson(
+    Map<String, dynamic> json,
+  ) => CollegeAttendanceRecord(
+    id: json['id'] as String? ?? 'col_${DateTime.now().microsecondsSinceEpoch}',
+    date: json['date'] != null
+        ? DateTime.tryParse(json['date'] as String) ?? DateTime.now()
+        : DateTime.now(),
+    isPresent: json['is_present'] as bool? ?? true,
+    remarks: json['remarks'] as String?,
+  );
 }

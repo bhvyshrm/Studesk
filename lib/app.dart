@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'core/data/studesk_repository.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
@@ -11,6 +12,7 @@ import 'features/auth/presentation/unconfigured_screen.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/library/presentation/library_screen.dart';
 import 'features/profile/presentation/profile_screen.dart';
+import 'shared/dialogs/studesk_forms.dart';
 import 'shared/widgets/app_bottom_nav_bar.dart';
 
 class StuDeskApp extends StatefulWidget {
@@ -45,15 +47,13 @@ class _StuDeskAppState extends State<StuDeskApp> {
       title: 'StuDesk',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: themeCtrl.isAmoled ? AppTheme.amoledDarkTheme : AppTheme.darkTheme,
+      darkTheme: themeCtrl.isAmoled
+          ? AppTheme.amoledDarkTheme
+          : AppTheme.darkTheme,
       themeMode: themeCtrl.themeMode,
       builder: (context, child) {
         return child ??
-            const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
+            const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
       home: const AuthGate(),
     );
@@ -80,8 +80,8 @@ class AuthGate extends StatelessWidget {
           return const UnconfiguredConfigScreen();
         }
 
-        // 3. Authenticated session or Demo / Guest mode
-        if (auth.isAuthenticated || auth.isDemoMode) {
+        // 3. Authenticated session
+        if (auth.isAuthenticated) {
           return ListenableBuilder(
             listenable: StuDeskRepository.instance,
             builder: (context, _) {
@@ -186,7 +186,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     }
   }
 
-  List<Widget> _buildContextualActionTiles(BuildContext ctx, StuDeskThemeExtension stuTheme) {
+  List<Widget> _buildContextualActionTiles(
+    BuildContext ctx,
+    StuDeskThemeExtension stuTheme,
+  ) {
     switch (_currentIndex) {
       case 0: // Home
         return [
@@ -197,7 +200,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Academic task or homework with due date',
             onTap: () {
               Navigator.pop(ctx);
-              _navigateToTab(0);
+              StuDeskForms.showTaskForm(context);
             },
           ),
           _buildActionTile(
@@ -207,7 +210,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Campus meeting, workshop, or event',
             onTap: () {
               Navigator.pop(ctx);
-              _navigateToTab(0);
+              StuDeskForms.showEventForm(context);
             },
           ),
           _buildActionTile(
@@ -217,7 +220,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Scheduled quiz, midterm, or final exam',
             onTap: () {
               Navigator.pop(ctx);
-              _navigateToTab(0);
+              StuDeskForms.showExamForm(context);
             },
           ),
           _buildActionTile(
@@ -227,7 +230,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Timely alert for revision or submission',
             onTap: () {
               Navigator.pop(ctx);
-              _navigateToTab(0);
+              StuDeskForms.showReminderForm(context);
             },
           ),
         ];
@@ -241,6 +244,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Register course code, title, and topic list',
             onTap: () {
               Navigator.pop(ctx);
+              StuDeskForms.showSubjectForm(context);
             },
           ),
           _buildActionTile(
@@ -250,6 +254,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Coursework notes, formulas, and revision text',
             onTap: () {
               Navigator.pop(ctx);
+              StuDeskForms.showNoteForm(context);
             },
           ),
           _buildActionTile(
@@ -259,6 +264,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Schedule weekly lecture, lab, or seminar slot',
             onTap: () {
               Navigator.pop(ctx);
+              StuDeskForms.showTimetableForm(context);
             },
           ),
         ];
@@ -272,6 +278,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Organize resources by topic (e.g. DSA Prep)',
             onTap: () {
               Navigator.pop(ctx);
+              StuDeskForms.showCollectionForm(context);
             },
           ),
           _buildActionTile(
@@ -281,6 +288,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             subtitle: 'Bookmark study playlists, articles, and documentation',
             onTap: () {
               Navigator.pop(ctx);
+              StuDeskForms.showResourceForm(context);
             },
           ),
         ];
@@ -320,10 +328,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(
-          color: stuTheme.textSecondary,
-          fontSize: 12,
-        ),
+        style: TextStyle(color: stuTheme.textSecondary, fontSize: 12),
       ),
       trailing: Icon(
         Icons.chevron_right_rounded,
@@ -337,7 +342,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   @override
   Widget build(BuildContext context) {
     final stuTheme = context.stuTheme;
-    final showFAB = _currentIndex < 3; // Section 3: On profile, hide irrelevant create button
+    final showFAB =
+        _currentIndex <
+        3; // Section 3: On profile, hide irrelevant create button
 
     return Scaffold(
       body: IndexedStack(

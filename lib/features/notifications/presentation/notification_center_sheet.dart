@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/models.dart';
@@ -8,7 +9,10 @@ class NotificationCenterSheet extends StatefulWidget {
 
   const NotificationCenterSheet({super.key, this.onNavigateToTab});
 
-  static Future<void> show(BuildContext context, {void Function(int tabIndex)? onNavigateToTab}) {
+  static Future<void> show(
+    BuildContext context, {
+    void Function(int tabIndex)? onNavigateToTab,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -16,12 +20,14 @@ class NotificationCenterSheet extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => NotificationCenterSheet(onNavigateToTab: onNavigateToTab),
+      builder: (ctx) =>
+          NotificationCenterSheet(onNavigateToTab: onNavigateToTab),
     );
   }
 
   @override
-  State<NotificationCenterSheet> createState() => _NotificationCenterSheetState();
+  State<NotificationCenterSheet> createState() =>
+      _NotificationCenterSheetState();
 }
 
 class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
@@ -32,11 +38,21 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
   Widget build(BuildContext context) {
     final stuTheme = context.stuTheme;
     final notifications = _repo.notifications.where((n) {
-      if (n.isDismissed) return false;
-      if (_selectedFilter == 'All') return true;
-      if (_selectedFilter == 'Exams') return n.type == NotificationType.exam;
-      if (_selectedFilter == 'Tasks') return n.type == NotificationType.task;
-      if (_selectedFilter == 'Reminders') return n.type == NotificationType.reminder;
+      if (n.isDismissed) {
+        return false;
+      }
+      if (_selectedFilter == 'All') {
+        return true;
+      }
+      if (_selectedFilter == 'Exams') {
+        return n.type == NotificationType.exam;
+      }
+      if (_selectedFilter == 'Tasks') {
+        return n.type == NotificationType.task;
+      }
+      if (_selectedFilter == 'Reminders') {
+        return n.type == NotificationType.reminder;
+      }
       return true;
     }).toList();
 
@@ -68,7 +84,10 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
 
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -85,7 +104,10 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                         if (_repo.unreadNotificationsCount > 0) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: stuTheme.accent.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
@@ -124,9 +146,14 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
               // Filter Chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 child: Row(
-                  children: ['All', 'Exams', 'Tasks', 'Reminders'].map((filter) {
+                  children: ['All', 'Exams', 'Tasks', 'Reminders'].map((
+                    filter,
+                  ) {
                     final isSelected = _selectedFilter == filter;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
@@ -136,13 +163,21 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                         selectedColor: stuTheme.accent,
                         backgroundColor: stuTheme.surfaceTier2,
                         labelStyle: TextStyle(
-                          color: isSelected ? stuTheme.onAccent : stuTheme.textSecondary,
+                          color: isSelected
+                              ? stuTheme.onAccent
+                              : stuTheme.textSecondary,
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(color: isSelected ? Colors.transparent : stuTheme.border),
+                          side: BorderSide(
+                            color: isSelected
+                                ? Colors.transparent
+                                : stuTheme.border,
+                          ),
                         ),
                         onSelected: (val) {
                           if (val) setState(() => _selectedFilter = filter);
@@ -160,7 +195,10 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                 child: notifications.isEmpty
                     ? _buildEmptyState(stuTheme)
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         itemCount: notifications.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
@@ -221,7 +259,10 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
     );
   }
 
-  Widget _buildNotificationCard(InAppNotificationItem notif, StuDeskThemeExtension stuTheme) {
+  Widget _buildNotificationCard(
+    InAppNotificationItem notif,
+    StuDeskThemeExtension stuTheme,
+  ) {
     IconData icon;
     Color iconColor;
 
@@ -272,7 +313,8 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
         onTap: () {
           _repo.markNotificationAsRead(notif.id);
           Navigator.pop(context);
-          if (notif.type == NotificationType.exam || notif.type == NotificationType.task) {
+          if (notif.type == NotificationType.exam ||
+              notif.type == NotificationType.task) {
             widget.onNavigateToTab?.call(0); // Home
           } else if (notif.type == NotificationType.timetable) {
             widget.onNavigateToTab?.call(1); // Academics
@@ -284,7 +326,9 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
             color: notif.isRead ? stuTheme.surfaceTier1 : stuTheme.surfaceTier2,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: notif.isRead ? stuTheme.border : stuTheme.accent.withValues(alpha: 0.3),
+              color: notif.isRead
+                  ? stuTheme.border
+                  : stuTheme.accent.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -312,7 +356,9 @@ class _NotificationCenterSheetState extends State<NotificationCenterSheet> {
                             notif.title,
                             style: TextStyle(
                               fontSize: 13.5,
-                              fontWeight: notif.isRead ? FontWeight.w600 : FontWeight.bold,
+                              fontWeight: notif.isRead
+                                  ? FontWeight.w600
+                                  : FontWeight.bold,
                               color: stuTheme.textPrimary,
                             ),
                           ),

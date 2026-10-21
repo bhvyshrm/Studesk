@@ -9,6 +9,7 @@ import 'package:studesk/features/auth/data/auth_service.dart';
 import 'package:studesk/features/auth/presentation/auth_screen.dart';
 import 'package:studesk/features/auth/presentation/onboarding_screen.dart';
 import 'package:studesk/features/profile/presentation/profile_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
   setUp(() async {
@@ -16,21 +17,26 @@ void main() {
     await StuDeskRepository.instance.init();
   });
 
+  const testUser = User(
+    id: '00000000-0000-0000-0000-000000000001',
+    appMetadata: {},
+    userMetadata: {'full_name': 'Jordan Lee'},
+    aud: 'authenticated',
+    createdAt: '2026-10-21T00:00:00Z',
+    email: 'jordan@example.com',
+  );
+
   group('AuthService Tests', () {
-    test('Enters Local Demo Mode and resets state cleanly', () {
+    test('Set authenticated for testing and sign out cleans session', () async {
       final auth = AuthService.instance;
-      auth.enterDemoMode();
+      auth.setAuthenticatedForTesting(testUser);
 
-      expect(auth.isDemoMode, isTrue);
-      expect(auth.status, AuthStatus.offlineDemoMode);
-      expect(auth.currentUser, isNull);
+      expect(auth.isAuthenticated, isTrue);
+      expect(auth.status, AuthStatus.authenticated);
+      expect(auth.currentUser?.email, equals('jordan@example.com'));
       expect(auth.errorMessage, isNull);
-    });
 
-    test('Sign out clears session and sets status to unauthenticated', () async {
-      final auth = AuthService.instance;
       await auth.signOut();
-
       expect(auth.isAuthenticated, isFalse);
       expect(auth.status, AuthStatus.unauthenticated);
       expect(auth.currentUser, isNull);
@@ -46,86 +52,94 @@ void main() {
   });
 
   group('AuthGate & Screen Routing Tests', () {
-    testWidgets('AuthScreen renders branded Google OAuth and Local mode buttons',
-        (WidgetTester tester) async {
+    testWidgets(
+      'AuthScreen renders branded Google OAuth button and no local demo mode',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(theme: AppTheme.darkTheme, home: const AuthScreen()),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('StuDesk'), findsOneWidget);
+        expect(
+          find.text('Your Intelligent Student Workspace & Academic Desk'),
+          findsOneWidget,
+        );
+        expect(find.text('Continue with Google'), findsOneWidget);
+        // Confirmed: No local demo bypass button in Google-only auth mode
+        expect(find.text('Continue in Local Student Mode'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'AuthGate routes to OnboardingScreen when onboarding is pending',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final repo = StuDeskRepository.instance;
+        await repo.updateProfile(
+          repo.profile.copyWith(onboardingCompleted: false),
+        );
+        AuthService.instance.setAuthenticatedForTesting(testUser);
+
+        await tester.pumpWidget(const StuDeskApp());
+        await tester.pumpAndSettle();
+
+        expect(find.byType(OnboardingScreen), findsOneWidget);
+        expect(find.text('Welcome to StuDesk'), findsOneWidget);
+        expect(find.text('Continue'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'AuthGate routes to MainNavigationShell when onboarding is completed',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final repo = StuDeskRepository.instance;
+        await repo.updateProfile(
+          repo.profile.copyWith(name: 'Jordan', onboardingCompleted: true),
+        );
+        AuthService.instance.setAuthenticatedForTesting(testUser);
+
+        await tester.pumpWidget(const StuDeskApp());
+        await tester.pumpAndSettle();
+
+        expect(find.byType(MainNavigationShell), findsOneWidget);
+      },
+    );
+
+    testWidgets('ProfileScreen renders student cards and edit profile action', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: const AuthScreen(),
+      final repo = StuDeskRepository.instance;
+      await repo.updateProfile(
+        repo.profile.copyWith(
+          name: 'Jordan Lee',
+          preferredName: 'Jordan',
+          college: 'Apex Institute',
+          course: 'Computer Science',
         ),
       );
-      await tester.pumpAndSettle();
-
-      expect(find.text('StuDesk'), findsOneWidget);
-      expect(find.text('Academic Companion & Intelligent Desk'), findsOneWidget);
-      expect(find.text('Continue with Google'), findsOneWidget);
-      expect(find.text('Continue in Local Student Mode'), findsOneWidget);
-    });
-
-    testWidgets('AuthGate routes to OnboardingScreen when onboarding is pending',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 3.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final repo = StuDeskRepository.instance;
-      await repo.updateProfile(repo.profile.copyWith(onboardingCompleted: false));
-      AuthService.instance.enterDemoMode();
-
-      await tester.pumpWidget(const StuDeskApp());
-      await tester.pumpAndSettle();
-
-      expect(find.byType(OnboardingScreen), findsOneWidget);
-      expect(find.text('Welcome to StuDesk'), findsOneWidget);
-      expect(find.text('Continue'), findsOneWidget);
-    });
-
-    testWidgets('AuthGate routes to MainNavigationShell when onboarding is completed',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 3.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final repo = StuDeskRepository.instance;
-      await repo.updateProfile(repo.profile.copyWith(
-        name: 'Jordan',
-        onboardingCompleted: true,
-      ));
-      AuthService.instance.enterDemoMode();
-
-      await tester.pumpWidget(const StuDeskApp());
-      await tester.pumpAndSettle();
-
-      expect(find.byType(MainNavigationShell), findsOneWidget);
-    });
-
-    testWidgets('ProfileScreen renders student cards and edit profile action',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 3.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final repo = StuDeskRepository.instance;
-      await repo.updateProfile(repo.profile.copyWith(
-        name: 'Jordan Lee',
-        preferredName: 'Jordan',
-        college: 'Apex Institute',
-        course: 'Computer Science',
-      ));
 
       await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: const ProfileScreen(),
-        ),
+        MaterialApp(theme: AppTheme.darkTheme, home: const ProfileScreen()),
       );
       await tester.pumpAndSettle();
 

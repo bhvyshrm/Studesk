@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:studesk/core/data/studesk_repository.dart';
@@ -68,14 +69,20 @@ class BackupService extends ChangeNotifier {
         if (content != null) {
           try {
             final json = jsonDecode(content) as Map<String, dynamic>;
-            final meta = BackupMetadata.fromJson(json['metadata'] as Map<String, dynamic>);
-            list.add(BackupSnapshotInfo(key: key, metadata: meta, rawJson: content));
+            final meta = BackupMetadata.fromJson(
+              json['metadata'] as Map<String, dynamic>,
+            );
+            list.add(
+              BackupSnapshotInfo(key: key, metadata: meta, rawJson: content),
+            );
           } catch (_) {}
         }
       }
 
       // Sort newest first
-      list.sort((a, b) => b.metadata.exportedAt.compareTo(a.metadata.exportedAt));
+      list.sort(
+        (a, b) => b.metadata.exportedAt.compareTo(a.metadata.exportedAt),
+      );
       _snapshots = list;
       notifyListeners();
     } catch (e) {
@@ -111,7 +118,10 @@ class BackupService extends ChangeNotifier {
     await prefs.setStringList(_prefBackupIndex, existingKeys);
 
     _lastBackupTime = payload.metadata.exportedAt;
-    await prefs.setString(_prefLastBackupTime, _lastBackupTime!.toIso8601String());
+    await prefs.setString(
+      _prefLastBackupTime,
+      _lastBackupTime!.toIso8601String(),
+    );
 
     await refreshSnapshots();
     return payload.metadata;

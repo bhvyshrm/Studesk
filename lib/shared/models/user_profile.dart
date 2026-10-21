@@ -82,7 +82,8 @@ class UserProfile {
       bio: bio ?? this.bio,
       streakDays: streakDays ?? this.streakDays,
       lastActiveDate: lastActiveDate ?? this.lastActiveDate,
-      targetAttendancePercent: targetAttendancePercent ?? this.targetAttendancePercent,
+      targetAttendancePercent:
+          targetAttendancePercent ?? this.targetAttendancePercent,
       weeklyStudyGoalHours: weeklyStudyGoalHours ?? this.weeklyStudyGoalHours,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
@@ -144,10 +145,13 @@ class UserProfile {
       bio: json['bio'] as String? ?? '',
       streakDays: (json['streak_days'] as num?)?.toInt() ?? 0,
       lastActiveDate: json['last_active_date'] != null
-          ? DateTime.tryParse(json['last_active_date'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['last_active_date'] as String) ??
+                DateTime.now()
           : DateTime.now(),
-      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 75.0,
-      weeklyStudyGoalHours: (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
+      targetAttendancePercent:
+          (json['target_attendance_percent'] as num?)?.toDouble() ?? 75.0,
+      weeklyStudyGoalHours:
+          (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
       isDarkMode: json['is_dark_mode'] as bool? ?? true,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
@@ -161,7 +165,9 @@ class UserProfile {
     String? fallbackAvatar,
   }) {
     final rawName = (json['full_name'] as String?)?.trim();
-    final name = (rawName != null && rawName.isNotEmpty) ? rawName : (fallbackName ?? '');
+    final name = (rawName != null && rawName.isNotEmpty)
+        ? rawName
+        : (fallbackName ?? '');
     return UserProfile(
       id: json['id'] as String? ?? '',
       name: name,
@@ -178,10 +184,13 @@ class UserProfile {
       bio: json['bio'] as String? ?? '',
       streakDays: (json['streak_days'] as num?)?.toInt() ?? 0,
       lastActiveDate: json['last_active_date'] != null
-          ? DateTime.tryParse(json['last_active_date'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(json['last_active_date'] as String) ??
+                DateTime.now()
           : DateTime.now(),
-      targetAttendancePercent: (json['target_attendance_percent'] as num?)?.toDouble() ?? 75.0,
-      weeklyStudyGoalHours: (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
+      targetAttendancePercent:
+          (json['target_attendance_percent'] as num?)?.toDouble() ?? 75.0,
+      weeklyStudyGoalHours:
+          (json['weekly_study_goal_hours'] as num?)?.toInt() ?? 20,
       isDarkMode: json['is_dark_mode'] as bool? ?? true,
       notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
@@ -217,8 +226,8 @@ class UserProfile {
   }
 
   static UserProfile defaultProfile() => emptyProfile(
-        id: 'user_current',
-        name: 'Student',
-        email: 'student@university.edu',
-      );
+    id: 'user_current',
+    name: 'Student',
+    email: 'student@university.edu',
+  );
 }

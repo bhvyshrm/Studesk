@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/models.dart';
@@ -39,7 +40,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           children: [
             Text(
               'Log Attendance for ${course.code}',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: stuTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
@@ -55,7 +60,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 hintText: 'e.g. Dynamic Programming or Lab 3',
                 filled: true,
                 fillColor: stuTheme.surfaceTier2,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 18),
@@ -67,15 +74,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       backgroundColor: stuTheme.success,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const Icon(Icons.check_circle_rounded),
-                    label: const Text('Present', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Present',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     onPressed: () async {
                       await _repo.logSubjectAttendance(
                         course.code,
                         isPresent: true,
-                        topic: topicCtrl.text.trim().isNotEmpty ? topicCtrl.text.trim() : null,
+                        topic: topicCtrl.text.trim().isNotEmpty
+                            ? topicCtrl.text.trim()
+                            : null,
                       );
                       if (context.mounted) Navigator.pop(ctx);
                     },
@@ -88,15 +102,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       foregroundColor: stuTheme.error,
                       side: BorderSide(color: stuTheme.error),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const Icon(Icons.cancel_outlined),
-                    label: const Text('Absent', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Absent',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     onPressed: () async {
                       await _repo.logSubjectAttendance(
                         course.code,
                         isPresent: false,
-                        topic: topicCtrl.text.trim().isNotEmpty ? topicCtrl.text.trim() : null,
+                        topic: topicCtrl.text.trim().isNotEmpty
+                            ? topicCtrl.text.trim()
+                            : null,
                       );
                       if (context.mounted) Navigator.pop(ctx);
                     },
@@ -118,8 +139,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       listenable: _repo,
       builder: (context, _) {
         final courses = _repo.courses;
-        final selectedCode = _selectedCourseCode ?? (courses.isNotEmpty ? courses.first.code : null);
-        final history = selectedCode != null ? _repo.getAttendanceHistoryForSubject(selectedCode) : <SubjectAttendanceRecord>[];
+        final selectedCode =
+            _selectedCourseCode ??
+            (courses.isNotEmpty ? courses.first.code : null);
+        final history = selectedCode != null
+            ? _repo.getAttendanceHistoryForSubject(selectedCode)
+            : <SubjectAttendanceRecord>[];
 
         return Scaffold(
           backgroundColor: stuTheme.canvas,
@@ -127,12 +152,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             backgroundColor: stuTheme.canvas,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: stuTheme.textPrimary),
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+                color: stuTheme.textPrimary,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
               'My Attendance',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: stuTheme.textPrimary,
+              ),
             ),
           ),
           body: SafeArea(
@@ -157,7 +190,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           children: [
                             Text(
                               'Overall Attendance Record',
-                              style: TextStyle(fontSize: 13, color: stuTheme.textSecondary, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: stuTheme.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
@@ -172,7 +209,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             const SizedBox(height: 4),
                             Text(
                               _repo.attendanceSummaryDetail,
-                              style: TextStyle(fontSize: 13, color: stuTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: stuTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -182,7 +222,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                       Text(
                         'Enrolled Subjects',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: stuTheme.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 10),
 
@@ -196,17 +240,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.school_outlined, size: 32, color: stuTheme.textMuted),
+                              Icon(
+                                Icons.school_outlined,
+                                size: 32,
+                                color: stuTheme.textMuted,
+                              ),
                               const SizedBox(height: 10),
                               Text(
                                 'No subjects registered',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: stuTheme.textPrimary,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Add a subject from the Academics tab to start tracking your attendance.',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 12.5, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
                             ],
                           ),
@@ -223,7 +278,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             padding: const EdgeInsets.only(bottom: 10),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
-                              onTap: () => setState(() => _selectedCourseCode = c.code),
+                              onTap: () =>
+                                  setState(() => _selectedCourseCode = c.code),
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -232,7 +288,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       : stuTheme.surfaceTier1,
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: isSelected ? stuTheme.accent : stuTheme.border,
+                                    color: isSelected
+                                        ? stuTheme.accent
+                                        : stuTheme.border,
                                     width: isSelected ? 1.5 : 1,
                                   ),
                                 ),
@@ -240,7 +298,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             c.title,
@@ -268,11 +327,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         backgroundColor: stuTheme.accent,
                                         foregroundColor: stuTheme.onAccent,
                                         elevation: 0,
-                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
                                       ),
-                                      onPressed: () => _showMarkAttendanceDialog(c),
-                                      child: const Text('Mark', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      onPressed: () =>
+                                          _showMarkAttendanceDialog(c),
+                                      child: const Text(
+                                        'Mark',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -291,12 +364,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           children: [
                             Text(
                               '$selectedCode Attendance History',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: stuTheme.textPrimary,
+                              ),
                             ),
                             if (history.isNotEmpty)
                               Text(
                                 '${history.length} records',
-                                style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: stuTheme.textSecondary,
+                                ),
                               ),
                           ],
                         ),
@@ -313,7 +393,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             alignment: Alignment.center,
                             child: Text(
                               'No attendance history recorded yet for $selectedCode.',
-                              style: TextStyle(fontSize: 13, color: stuTheme.textMuted),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: stuTheme.textMuted,
+                              ),
                             ),
                           )
                         else
@@ -321,7 +404,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: stuTheme.surfaceTier1,
                                   borderRadius: BorderRadius.circular(14),
@@ -333,22 +419,33 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                       width: 32,
                                       height: 32,
                                       decoration: BoxDecoration(
-                                        color: (rec.isPresent ? stuTheme.success : stuTheme.error).withValues(alpha: 0.12),
+                                        color:
+                                            (rec.isPresent
+                                                    ? stuTheme.success
+                                                    : stuTheme.error)
+                                                .withValues(alpha: 0.12),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
-                                        rec.isPresent ? Icons.check_rounded : Icons.close_rounded,
-                                        color: rec.isPresent ? stuTheme.success : stuTheme.error,
+                                        rec.isPresent
+                                            ? Icons.check_rounded
+                                            : Icons.close_rounded,
+                                        color: rec.isPresent
+                                            ? stuTheme.success
+                                            : stuTheme.error,
                                         size: 18,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            rec.isPresent ? 'Attended Lecture' : 'Absence Recorded',
+                                            rec.isPresent
+                                                ? 'Attended Lecture'
+                                                : 'Absence Recorded',
                                             style: TextStyle(
                                               fontSize: 13.5,
                                               fontWeight: FontWeight.bold,
@@ -356,18 +453,30 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             ),
                                           ),
                                           Text(
-                                            DateFormat('EEE, MMM d, yyyy').format(rec.date) +
-                                                (rec.topicDiscussed != null ? ' • ${rec.topicDiscussed}' : ''),
-                                            style: TextStyle(fontSize: 11.5, color: stuTheme.textSecondary),
+                                            DateFormat('EEE, MMM d, yyyy')
+                                                    .format(rec.date) +
+                                                (rec.topicDiscussed != null
+                                                    ? ' • ${rec.topicDiscussed}'
+                                                    : ''),
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              color: stuTheme.textSecondary,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     // Correction toggle button
                                     TextButton(
-                                      onPressed: () => _repo.correctSubjectAttendanceRecord(rec.id, !rec.isPresent),
+                                      onPressed: () =>
+                                          _repo.correctSubjectAttendanceRecord(
+                                            rec.id,
+                                            !rec.isPresent,
+                                          ),
                                       child: Text(
-                                        rec.isPresent ? 'Change to Absent' : 'Change to Present',
+                                        rec.isPresent
+                                            ? 'Change to Absent'
+                                            : 'Change to Present',
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,

@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../core/config/supabase_config.dart';
 import '../../profile/data/profile_service.dart';
 
@@ -10,10 +12,11 @@ enum AuthStatus {
   unauthenticated,
   authenticating,
   authenticated,
-  offlineDemoMode,
   error,
 }
 
+/// Dedicated Google Authentication Service using Supabase OAuth.
+/// Enforces Google sign-in as the sole supported authentication method.
 class AuthService extends ChangeNotifier {
   AuthService._();
   static final AuthService instance = AuthService._();
@@ -21,22 +24,25 @@ class AuthService extends ChangeNotifier {
   AuthStatus _status = AuthStatus.uninitialized;
   String? _errorMessage;
   User? _currentUser;
-  bool _isDemoMode = false;
   bool _isSupabaseInitialized = false;
   StreamSubscription<AuthState>? _authSubscription;
 
   AuthStatus get status => _status;
   String? get errorMessage => _errorMessage;
   User? get currentUser => _currentUser;
-  bool get isAuthenticated => _status == AuthStatus.authenticated;
-  bool get isDemoMode => _isDemoMode || _status == AuthStatus.offlineDemoMode;
+  bool get isAuthenticated =>
+      _status == AuthStatus.authenticated && _currentUser != null;
   bool get isBackendConfigured => SupabaseConfig.isConfigured;
   bool get isSupabaseInitialized => _isSupabaseInitialized;
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
 
   Future<void> init() async {
     if (!SupabaseConfig.isConfigured) {
       _status = AuthStatus.unconfigured;
-      _isDemoMode = false;
       notifyListeners();
       return;
     }
@@ -51,39 +57,41 @@ class AuthService extends ChangeNotifier {
       }
 
       await _authSubscription?.cancel();
-      _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen(
-        (data) {
-          _handleAuthStateChange(data.event, data.session);
-        },
-        onError: (error) {
-          debugPrint('Supabase Auth error listener: $error');
-          _errorMessage = error.toString();
-          _status = AuthStatus.error;
-          notifyListeners();
-        },
-      );
+      _authSubscription = Supabase.instance.client.auth.onAuthStateChange
+          .listen(
+            (data) {
+              _handleAuthStateChange(data.event, data.session);
+            },
+            onError: (error) {
+              debugPrint('Supabase Auth error listener: $error');
+              _errorMessage = error.toString();
+              _status = AuthStatus.error;
+              notifyListeners();
+            },
+          );
 
       final session = Supabase.instance.client.auth.currentSession;
       if (session != null) {
         _currentUser = session.user;
         _status = AuthStatus.authenticated;
-        _isDemoMode = false;
-        unawaited(ProfileService.instance.fetchAndSyncProfile(user: session.user));
+        unawaited(
+          ProfileService.instance.fetchAndSyncProfile(user: session.user),
+        );
       } else {
         _status = AuthStatus.unauthenticated;
-        _isDemoMode = false;
       }
     } catch (e) {
-      debugPrint('Supabase initialization exception (fallback to demo mode): $e');
-      _errorMessage = e.toString();
-      _status = AuthStatus.offlineDemoMode;
-      _isDemoMode = true;
+      debugPrint('Supabase initialization exception: $e');
+      _errorMessage = 'Unable to connect to Supabase: $e';
+      _status = AuthStatus.unauthenticated;
     }
     notifyListeners();
   }
 
   void _handleAuthStateChange(AuthChangeEvent event, Session? session) {
-    debugPrint('StuDesk AuthChangeEvent: $event (hasSession: ${session != null})');
+    debugPrint(
+      'StuDesk AuthChangeEvent: $event (hasSession: ${session != null})',
+    );
 
     switch (event) {
       case AuthChangeEvent.signedIn:
@@ -92,17 +100,17 @@ class AuthService extends ChangeNotifier {
         if (session != null) {
           _currentUser = session.user;
           _status = AuthStatus.authenticated;
-          _isDemoMode = false;
           _errorMessage = null;
           notifyListeners();
-          unawaited(ProfileService.instance.fetchAndSyncProfile(user: session.user));
+          unawaited(
+            ProfileService.instance.fetchAndSyncProfile(user: session.user),
+          );
         }
         break;
 
       case AuthChangeEvent.signedOut:
         _currentUser = null;
         _status = AuthStatus.unauthenticated;
-        _isDemoMode = false;
         _errorMessage = null;
         notifyListeners();
         break;
@@ -113,10 +121,14 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<bool> signInWithGoogle() async {
+    // Prevent duplicate in-flight login requests
+    if (_status == AuthStatus.authenticating) {
+      return false;
+    }
+
     if (!SupabaseConfig.isConfigured) {
       _status = AuthStatus.unconfigured;
-      _errorMessage =
-          'Supabase backend credentials not configured. Please supply SUPABASE_URL and SUPABASE_ANON_KEY.';
+      _errorMessage = 'Supabase backend credentials not configured. Please supply SUPABASE_URL and SUPABASE_ANON_KEY.';
       notifyListeners();
       return false;
     }
@@ -134,7 +146,9 @@ class AuthService extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final redirect = kIsWeb ? SupabaseConfig.webRedirectUrl : 'studesk://login-callback';
+      final redirect = kIsWeb
+          ? SupabaseConfig.webRedirectUrl
+          : 'studesk://login-callback';
       final result = await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: redirect,
@@ -148,19 +162,11 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _errorMessage = e.toString();
-      _status = AuthStatus.error;
+      _errorMessage = 'Google sign-in could not be completed: $e';
+      _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;
     }
-  }
-
-  void enterDemoMode() {
-    _currentUser = null;
-    _status = AuthStatus.offlineDemoMode;
-    _isDemoMode = true;
-    _errorMessage = null;
-    notifyListeners();
   }
 
   Future<void> signOut() async {
@@ -173,10 +179,17 @@ class AuthService extends ChangeNotifier {
     } finally {
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
-      _isDemoMode = false;
       _errorMessage = null;
       notifyListeners();
     }
+  }
+
+  @visibleForTesting
+  void setAuthenticatedForTesting(User user) {
+    _currentUser = user;
+    _status = AuthStatus.authenticated;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   @override

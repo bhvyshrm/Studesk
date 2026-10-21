@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../core/data/studesk_repository.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -68,7 +69,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               r.reminderTime.day == _selectedDay.day;
         }).toList();
 
-        final hasItems = dayTasks.isNotEmpty || dayExams.isNotEmpty || dayEvents.isNotEmpty || dayReminders.isNotEmpty;
+        final hasItems =
+            dayTasks.isNotEmpty ||
+            dayExams.isNotEmpty ||
+            dayEvents.isNotEmpty ||
+            dayReminders.isNotEmpty;
 
         return Scaffold(
           backgroundColor: stuTheme.canvas,
@@ -76,12 +81,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
             backgroundColor: stuTheme.canvas,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: stuTheme.textPrimary),
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+                color: stuTheme.textPrimary,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
               'My Calendar',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: stuTheme.textPrimary,
+              ),
             ),
           ),
           body: SafeArea(
@@ -98,7 +111,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.chevron_left_rounded, color: stuTheme.textPrimary),
+                            icon: Icon(
+                              Icons.chevron_left_rounded,
+                              color: stuTheme.textPrimary,
+                            ),
                             onPressed: _previousMonth,
                           ),
                           Text(
@@ -110,7 +126,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.chevron_right_rounded, color: stuTheme.textPrimary),
+                            icon: Icon(
+                              Icons.chevron_right_rounded,
+                              color: stuTheme.textPrimary,
+                            ),
                             onPressed: _nextMonth,
                           ),
                         ],
@@ -145,7 +164,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           if (hasItems)
                             Text(
                               '${dayTasks.length + dayExams.length + dayEvents.length + dayReminders.length} items',
-                              style: TextStyle(fontSize: 12, color: stuTheme.textSecondary),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: stuTheme.textSecondary,
+                              ),
                             ),
                         ],
                       ),
@@ -163,39 +185,59 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           alignment: Alignment.center,
                           child: Text(
                             'No scheduled tasks, exams, or events for this date.',
-                            style: TextStyle(fontSize: 13, color: stuTheme.textMuted),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: stuTheme.textMuted,
+                            ),
                           ),
                         )
                       else ...[
-                        ...dayExams.map((e) => _buildItemTile(
-                              icon: Icons.event_available_rounded,
-                              iconColor: stuTheme.error,
-                              title: 'Exam: ${e.title}',
-                              subtitle: '${e.courseCode} • Room ${e.room}',
-                              stuTheme: stuTheme,
-                            )),
-                        ...dayEvents.map((ev) => _buildItemTile(
-                              icon: Icons.calendar_month_rounded,
-                              iconColor: stuTheme.accent,
-                              title: ev.title,
-                              subtitle: ev.location != null ? 'At ${ev.location}' : 'Campus Event',
-                              stuTheme: stuTheme,
-                            )),
-                        ...dayTasks.map((t) => _buildItemTile(
-                              icon: t.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                              iconColor: t.isCompleted ? stuTheme.success : stuTheme.accent,
-                              title: t.title,
-                              subtitle: t.dueTime != null ? 'Due: ${t.dueTime}' : 'Task',
-                              stuTheme: stuTheme,
-                              onTap: () => _repo.toggleTask(t.id),
-                            )),
-                        ...dayReminders.map((r) => _buildItemTile(
-                              icon: Icons.alarm_rounded,
-                              iconColor: stuTheme.warning,
-                              title: r.text,
-                              subtitle: DateFormat('h:mm a').format(r.reminderTime),
-                              stuTheme: stuTheme,
-                            )),
+                        ...dayExams.map(
+                          (e) => _buildItemTile(
+                            icon: Icons.event_available_rounded,
+                            iconColor: stuTheme.error,
+                            title: 'Exam: ${e.title}',
+                            subtitle: '${e.courseCode} • Room ${e.room}',
+                            stuTheme: stuTheme,
+                          ),
+                        ),
+                        ...dayEvents.map(
+                          (ev) => _buildItemTile(
+                            icon: Icons.calendar_month_rounded,
+                            iconColor: stuTheme.accent,
+                            title: ev.title,
+                            subtitle: ev.location != null
+                                ? 'At ${ev.location}'
+                                : 'Campus Event',
+                            stuTheme: stuTheme,
+                          ),
+                        ),
+                        ...dayTasks.map(
+                          (t) => _buildItemTile(
+                            icon: t.isCompleted
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            iconColor: t.isCompleted
+                                ? stuTheme.success
+                                : stuTheme.accent,
+                            title: t.title,
+                            subtitle: t.dueTime != null
+                                ? 'Due: ${t.dueTime}'
+                                : 'Task',
+                            stuTheme: stuTheme,
+                            onTap: () => _repo.toggleTask(t.id),
+                          ),
+                        ),
+                        ...dayReminders.map(
+                          (r) => _buildItemTile(
+                            icon: Icons.alarm_rounded,
+                            iconColor: stuTheme.warning,
+                            title: r.text,
+                            subtitle: DateFormat('h:mm a')
+                                .format(r.reminderTime),
+                            stuTheme: stuTheme,
+                          ),
+                        ),
                       ],
 
                       const SizedBox(height: 24),
@@ -211,7 +253,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildMonthCalendar(StuDeskThemeExtension stuTheme) {
-    final daysInMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
+    final daysInMonth = DateTime(
+      _focusedMonth.year,
+      _focusedMonth.month + 1,
+      0,
+    ).day;
     final firstWeekday = _focusedMonth.weekday; // 1 (Mon) - 7 (Sun)
     final weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -258,33 +304,47 @@ class _CalendarScreenState extends State<CalendarScreen> {
               return const SizedBox();
             }
 
-            final cellDate = DateTime(_focusedMonth.year, _focusedMonth.month, dayNumber);
-            final isSelected = cellDate.year == _selectedDay.year &&
+            final cellDate = DateTime(
+              _focusedMonth.year,
+              _focusedMonth.month,
+              dayNumber,
+            );
+            final isSelected =
+                cellDate.year == _selectedDay.year &&
                 cellDate.month == _selectedDay.month &&
                 cellDate.day == _selectedDay.day;
-            final isToday = cellDate.year == today.year &&
+            final isToday =
+                cellDate.year == today.year &&
                 cellDate.month == today.month &&
                 cellDate.day == today.day;
 
             // Check if day has items
-            final hasTask = _repo.tasks.any((t) =>
-                t.dueDate != null &&
-                t.dueDate!.year == cellDate.year &&
-                t.dueDate!.month == cellDate.month &&
-                t.dueDate!.day == cellDate.day);
-            final hasExam = _repo.exams.any((e) =>
-                e.examDate.year == cellDate.year &&
-                e.examDate.month == cellDate.month &&
-                e.examDate.day == cellDate.day);
+            final hasTask = _repo.tasks.any(
+              (t) =>
+                  t.dueDate != null &&
+                  t.dueDate!.year == cellDate.year &&
+                  t.dueDate!.month == cellDate.month &&
+                  t.dueDate!.day == cellDate.day,
+            );
+            final hasExam = _repo.exams.any(
+              (e) =>
+                  e.examDate.year == cellDate.year &&
+                  e.examDate.month == cellDate.month &&
+                  e.examDate.day == cellDate.day,
+            );
 
             return InkWell(
               onTap: () => setState(() => _selectedDay = cellDate),
               borderRadius: BorderRadius.circular(10),
               child: Container(
                 decoration: BoxDecoration(
-                  color: isSelected ? stuTheme.accent : (isToday ? stuTheme.surfaceTier2 : Colors.transparent),
+                  color: isSelected
+                      ? stuTheme.accent
+                      : (isToday ? stuTheme.surfaceTier2 : Colors.transparent),
                   borderRadius: BorderRadius.circular(10),
-                  border: isToday && !isSelected ? Border.all(color: stuTheme.accent) : null,
+                  border: isToday && !isSelected
+                      ? Border.all(color: stuTheme.accent)
+                      : null,
                 ),
                 child: Stack(
                   alignment: Alignment.center,
@@ -293,8 +353,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       '$dayNumber',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? stuTheme.onAccent : stuTheme.textPrimary,
+                        fontWeight: isSelected || isToday
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? stuTheme.onAccent
+                            : stuTheme.textPrimary,
                       ),
                     ),
                     if (hasTask || hasExam)
@@ -359,11 +423,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: stuTheme.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: stuTheme.textPrimary,
+                      ),
                     ),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 11.5, color: stuTheme.textSecondary),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: stuTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),

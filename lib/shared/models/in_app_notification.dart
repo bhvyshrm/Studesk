@@ -44,15 +44,15 @@ class InAppNotificationItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'body': body,
-        'type': type.name,
-        'record_id': recordId,
-        'is_read': isRead,
-        'is_dismissed': isDismissed,
-        'created_at': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'body': body,
+    'type': type.name,
+    'record_id': recordId,
+    'is_read': isRead,
+    'is_dismissed': isDismissed,
+    'created_at': createdAt.toIso8601String(),
+  };
 
   factory InAppNotificationItem.fromJson(Map<String, dynamic> json) {
     final typeStr = json['type'] as String? ?? 'system';
@@ -61,7 +61,9 @@ class InAppNotificationItem {
       orElse: () => NotificationType.system,
     );
     return InAppNotificationItem(
-      id: json['id'] as String? ?? 'notif_${DateTime.now().microsecondsSinceEpoch}',
+      id:
+          json['id'] as String? ??
+          'notif_${DateTime.now().microsecondsSinceEpoch}',
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
       type: type,

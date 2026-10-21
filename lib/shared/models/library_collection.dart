@@ -13,8 +13,8 @@ class LibraryCollection {
     this.colorHex = '',
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   LibraryCollection copyWith({
     String? id,
@@ -35,24 +35,26 @@ class LibraryCollection {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'color_hex': colorHex,
-        'created_at': createdAt.toIso8601String(),
-        'updated_at': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'description': description,
+    'color_hex': colorHex,
+    'created_at': createdAt.toIso8601String(),
+    'updated_at': updatedAt.toIso8601String(),
+  };
 
-  factory LibraryCollection.fromJson(Map<String, dynamic> json) => LibraryCollection(
-        id: json['id'] as String? ?? 'col_${DateTime.now().microsecondsSinceEpoch}',
-        name: json['name'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        colorHex: json['color_hex'] as String? ?? '',
-        createdAt: json['created_at'] != null
-            ? DateTime.tryParse(json['created_at'] as String)
-            : null,
-        updatedAt: json['updated_at'] != null
-            ? DateTime.tryParse(json['updated_at'] as String)
-            : null,
-      );
+  factory LibraryCollection.fromJson(
+    Map<String, dynamic> json,
+  ) => LibraryCollection(
+    id: json['id'] as String? ?? 'col_${DateTime.now().microsecondsSinceEpoch}',
+    name: json['name'] as String? ?? '',
+    description: json['description'] as String? ?? '',
+    colorHex: json['color_hex'] as String? ?? '',
+    createdAt: json['created_at'] != null
+        ? DateTime.tryParse(json['created_at'] as String)
+        : null,
+    updatedAt: json['updated_at'] != null
+        ? DateTime.tryParse(json['updated_at'] as String)
+        : null,
+  );
 }

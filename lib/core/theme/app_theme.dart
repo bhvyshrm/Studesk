@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'app_colors.dart';
 
 @immutable
@@ -85,7 +86,10 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
   }
 
   @override
-  StuDeskThemeExtension lerp(ThemeExtension<StuDeskThemeExtension>? other, double t) {
+  StuDeskThemeExtension lerp(
+    ThemeExtension<StuDeskThemeExtension>? other,
+    double t,
+  ) {
     if (other is! StuDeskThemeExtension) return this;
     return StuDeskThemeExtension(
       canvas: Color.lerp(canvas, other.canvas, t)!,
@@ -99,9 +103,17 @@ class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
       accent: Color.lerp(accent, other.accent, t)!,
       onAccent: Color.lerp(onAccent, other.onAccent, t)!,
       success: Color.lerp(success, other.success, t)!,
-      successContainer: Color.lerp(successContainer, other.successContainer, t)!,
+      successContainer: Color.lerp(
+        successContainer,
+        other.successContainer,
+        t,
+      )!,
       warning: Color.lerp(warning, other.warning, t)!,
-      warningContainer: Color.lerp(warningContainer, other.warningContainer, t)!,
+      warningContainer: Color.lerp(
+        warningContainer,
+        other.warningContainer,
+        t,
+      )!,
       error: Color.lerp(error, other.error, t)!,
       errorContainer: Color.lerp(errorContainer, other.errorContainer, t)!,
       isAmoled: t < 0.5 ? isAmoled : other.isAmoled,

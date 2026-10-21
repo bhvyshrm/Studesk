@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_theme.dart';
 
 class CustomCard extends StatelessWidget {
@@ -43,16 +44,8 @@ class CustomCard extends StatelessWidget {
         child: Stack(
           children: [
             if (leadingIndicator != null)
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: leadingIndicator!,
-              ),
-            Padding(
-              padding: padding,
-              child: child,
-            ),
+              Positioned(left: 0, top: 0, bottom: 0, child: leadingIndicator!),
+            Padding(padding: padding, child: child),
           ],
         ),
       ),

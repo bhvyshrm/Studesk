@@ -37,6 +37,7 @@ dependencies:
   google_fonts: ^6.2.1
   intl: ^0.20.3
   shared_preferences: ^2.5.6
+  shared_preferences_android: 2.4.28
   url_launcher: ^6.3.3
   uuid: ^4.6.0
   crypto: ^3.0.7

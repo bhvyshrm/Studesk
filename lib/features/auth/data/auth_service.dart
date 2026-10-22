@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/supabase_config.dart';
@@ -17,7 +17,7 @@ enum AuthStatus {
 
 /// Dedicated Google Authentication Service using Supabase OAuth.
 /// Enforces Google sign-in as the sole supported authentication method.
-class AuthService extends ChangeNotifier {
+class AuthService extends ChangeNotifier with WidgetsBindingObserver {
   AuthService._();
   static final AuthService instance = AuthService._();
 
@@ -26,6 +26,7 @@ class AuthService extends ChangeNotifier {
   User? _currentUser;
   bool _isSupabaseInitialized = false;
   StreamSubscription<AuthState>? _authSubscription;
+  Timer? _cancelTimer;
 
   AuthStatus get status => _status;
   String? get errorMessage => _errorMessage;
@@ -41,6 +42,8 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    WidgetsBinding.instance.addObserver(this);
+
     if (!SupabaseConfig.isConfigured) {
       _status = AuthStatus.unconfigured;
       notifyListeners();
@@ -64,7 +67,8 @@ class AuthService extends ChangeNotifier {
             },
             onError: (error) {
               debugPrint('Supabase Auth error listener: $error');
-              _errorMessage = error.toString();
+              _errorMessage =
+                  'Authentication connection interrupted. Please try again.';
               _status = AuthStatus.error;
               notifyListeners();
             },
@@ -88,10 +92,27 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_status == AuthStatus.authenticating) {
+        _cancelTimer?.cancel();
+        _cancelTimer = Timer(const Duration(milliseconds: 1800), () {
+          if (_status == AuthStatus.authenticating && _currentUser == null) {
+            _status = AuthStatus.unauthenticated;
+            _errorMessage = 'Sign-in was cancelled or closed.';
+            notifyListeners();
+          }
+        });
+      }
+    }
+  }
+
   void _handleAuthStateChange(AuthChangeEvent event, Session? session) {
     debugPrint(
       'StuDesk AuthChangeEvent: $event (hasSession: ${session != null})',
     );
+    _cancelTimer?.cancel();
 
     switch (event) {
       case AuthChangeEvent.signedIn:
@@ -112,6 +133,7 @@ class AuthService extends ChangeNotifier {
         _currentUser = null;
         _status = AuthStatus.unauthenticated;
         _errorMessage = null;
+        ProfileService.instance.resetState();
         notifyListeners();
         break;
 
@@ -146,9 +168,7 @@ class AuthService extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final redirect = kIsWeb
-          ? SupabaseConfig.webRedirectUrl
-          : 'studesk://login-callback';
+      final redirect = SupabaseConfig.authRedirectUrl;
       final result = await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: redirect,
@@ -162,7 +182,7 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _errorMessage = 'Google sign-in could not be completed: $e';
+      _errorMessage = 'Google sign-in could not be completed. Please check your network and try again.';
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;
@@ -170,6 +190,7 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _cancelTimer?.cancel();
     try {
       if (_isSupabaseInitialized && SupabaseConfig.isConfigured) {
         await Supabase.instance.client.auth.signOut();
@@ -180,12 +201,14 @@ class AuthService extends ChangeNotifier {
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       _errorMessage = null;
+      ProfileService.instance.resetState();
       notifyListeners();
     }
   }
 
   @visibleForTesting
   void setAuthenticatedForTesting(User user) {
+    _cancelTimer?.cancel();
     _currentUser = user;
     _status = AuthStatus.authenticated;
     _errorMessage = null;
@@ -194,6 +217,8 @@ class AuthService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _cancelTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _authSubscription?.cancel();
     super.dispose();
   }

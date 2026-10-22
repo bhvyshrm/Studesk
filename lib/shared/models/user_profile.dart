@@ -1,5 +1,6 @@
 class UserProfile {
   final String id;
+  final String username;
   final String name;
   final String preferredName;
   final String email;
@@ -20,6 +21,7 @@ class UserProfile {
 
   const UserProfile({
     required this.id,
+    this.username = '',
     required this.name,
     this.preferredName = '',
     required this.email,
@@ -42,6 +44,8 @@ class UserProfile {
   String get institution => college;
   String get fullName => name;
 
+  bool get hasUsername => username.trim().isNotEmpty;
+
   String get effectiveDisplayName {
     if (preferredName.trim().isNotEmpty) return preferredName.trim();
     if (name.trim().isNotEmpty) return name.trim().split(' ').first;
@@ -50,6 +54,7 @@ class UserProfile {
 
   UserProfile copyWith({
     String? id,
+    String? username,
     String? name,
     String? preferredName,
     String? email,
@@ -70,6 +75,7 @@ class UserProfile {
   }) {
     return UserProfile(
       id: id ?? this.id,
+      username: username ?? this.username,
       name: name ?? this.name,
       preferredName: preferredName ?? this.preferredName,
       email: email ?? this.email,
@@ -94,6 +100,7 @@ class UserProfile {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'username': username,
       'name': name,
       'preferred_name': preferredName,
       'email': email,
@@ -117,6 +124,9 @@ class UserProfile {
   Map<String, dynamic> toSupabaseMap() {
     return {
       'id': id,
+      'username': username.trim().isNotEmpty
+          ? username.trim().toLowerCase()
+          : null,
       'full_name': name,
       'preferred_name': preferredName,
       'avatar_url': avatarUrl ?? '',
@@ -133,6 +143,7 @@ class UserProfile {
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: json['id'] as String? ?? 'user-default',
+      username: json['username'] as String? ?? '',
       name: (json['full_name'] ?? json['name']) as String? ?? '',
       preferredName: json['preferred_name'] as String? ?? '',
       email: json['email'] as String? ?? '',
@@ -170,6 +181,7 @@ class UserProfile {
         : (fallbackName ?? '');
     return UserProfile(
       id: json['id'] as String? ?? '',
+      username: json['username'] as String? ?? '',
       name: name,
       preferredName: json['preferred_name'] as String? ?? '',
       email: fallbackEmail,
@@ -199,12 +211,14 @@ class UserProfile {
 
   static UserProfile emptyProfile({
     String id = '',
+    String username = '',
     String email = '',
     String name = '',
     String? avatarUrl,
   }) {
     return UserProfile(
       id: id,
+      username: username,
       name: name,
       preferredName: name.isNotEmpty ? name.split(' ').first : '',
       email: email,
@@ -227,6 +241,7 @@ class UserProfile {
 
   static UserProfile defaultProfile() => emptyProfile(
     id: 'user_current',
+    username: '',
     name: 'Student',
     email: 'student@university.edu',
   );

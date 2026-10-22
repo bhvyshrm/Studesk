@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
 import '../data/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -14,6 +13,14 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final AuthService _authService = AuthService.instance;
+
+  static const Color _bgAmoled = Color(0xFF000000);
+  static const Color _surfaceTier1 = Color(0xFF0E0E11);
+  static const Color _surfaceTier2 = Color(0xFF17171C);
+  static const Color _borderNeutral = Color(0xFF26262F);
+  static const Color _textPrimary = Color(0xFFFFFFFF);
+  static const Color _textSecondary = Color(0xFFA0A0AD);
+  static const Color _textMuted = Color(0xFF6E6E7A);
 
   @override
   void initState() {
@@ -46,8 +53,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            content: Text('Authentication error: $e'),
+            backgroundColor: _surfaceTier2,
+            content: Text(
+              'Sign-in error: $e',
+              style: const TextStyle(color: _textPrimary),
+            ),
           ),
         );
       }
@@ -56,12 +66,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stuTheme = context.stuTheme;
     final isAuthenticating = _authService.status == AuthStatus.authenticating;
     final isConfigured = _authService.isBackendConfigured;
 
     return Scaffold(
-      backgroundColor: stuTheme.canvas,
+      backgroundColor: _bgAmoled,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -78,28 +87,22 @@ class _AuthScreenState extends State<AuthScreen> {
                       width: 88,
                       height: 88,
                       decoration: BoxDecoration(
-                        color: stuTheme.surfaceTier1,
+                        color: _surfaceTier1,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: stuTheme.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        border: Border.all(color: _borderNeutral),
                       ),
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(14),
                         child: Image.asset(
                           'assets/images/studesk_logo.png',
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            Icons.school_rounded,
-                            color: stuTheme.accent,
-                            size: 44,
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.school_rounded,
+                                color: _textPrimary,
+                                size: 40,
+                              ),
                         ),
                       ),
                     ),
@@ -107,85 +110,78 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: 24),
 
-                  Text(
+                  const Text(
                     'StuDesk',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.6,
-                      color: stuTheme.textPrimary,
+                      color: _textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
 
                   const SizedBox(height: 8),
 
-                  Text(
+                  const Text(
                     'Your Intelligent Student Workspace & Academic Desk',
                     style: TextStyle(
-                      fontSize: 14.5,
-                      color: stuTheme.textSecondary,
+                      fontSize: 14,
+                      color: _textSecondary,
                       height: 1.35,
                     ),
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 32),
 
-                  // Supabase Cloud Status Card
+                  // Supabase Cloud Status Card (Monochrome)
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: stuTheme.surfaceTier1,
+                      color: _surfaceTier1,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: stuTheme.border),
+                      border: Border.all(color: _borderNeutral),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color:
-                                (isConfigured
-                                        ? stuTheme.success
-                                        : stuTheme.accent)
-                                    .withValues(alpha: 0.15),
+                            color: _surfaceTier2,
                             shape: BoxShape.circle,
+                            border: Border.all(color: _borderNeutral),
                           ),
-                          child: Icon(
-                            isConfigured
-                                ? Icons.verified_user_rounded
-                                : Icons.settings_ethernet_rounded,
-                            color: isConfigured
-                                ? stuTheme.success
-                                : stuTheme.accent,
-                            size: 18,
+                          child: const Icon(
+                            Icons.lock_outline_rounded,
+                            color: _textPrimary,
+                            size: 16,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 isConfigured
-                                    ? 'Supabase Cloud Authentication'
+                                    ? 'Google OAuth via Supabase Cloud'
                                     : 'Supabase Configuration Missing',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: stuTheme.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  color: _textPrimary,
                                 ),
                               ),
-                              const SizedBox(height: 3),
+                              const SizedBox(height: 4),
                               Text(
                                 isConfigured
                                     ? 'Sign in with your Google account to sync your academic desk, timetable, syllabus, and study resources.'
                                     : 'Supply SUPABASE_URL and SUPABASE_ANON_KEY to enable Google OAuth sign-in.',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  color: stuTheme.textSecondary,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: _textSecondary,
                                   height: 1.35,
                                 ),
                               ),
@@ -196,7 +192,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
 
-                  // Error Banner
+                  // Error Banner (Monochrome)
                   if (_authService.errorMessage != null) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -205,35 +201,33 @@ class _AuthScreenState extends State<AuthScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: stuTheme.errorContainer,
+                        color: _surfaceTier1,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: stuTheme.error.withValues(alpha: 0.35),
-                        ),
+                        border: Border.all(color: const Color(0xFF4A3535)),
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            color: stuTheme.error,
-                            size: 20,
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            color: _textPrimary,
+                            size: 18,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               _authService.errorMessage!,
-                              style: TextStyle(
-                                color: stuTheme.error,
+                              style: const TextStyle(
+                                color: Color(0xFFEEEEEE),
                                 fontSize: 12.5,
                                 height: 1.3,
                               ),
                             ),
                           ),
                           IconButton(
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.close,
                               size: 16,
-                              color: stuTheme.error,
+                              color: _textSecondary,
                             ),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -248,49 +242,42 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   // Continue with Google Button (The Only Supported Method)
                   SizedBox(
-                    height: 54,
+                    height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: stuTheme.surfaceTier2,
-                        foregroundColor: stuTheme.textPrimary,
+                        backgroundColor: _textPrimary,
+                        foregroundColor: const Color(0xFF000000),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
-                          side: BorderSide(
-                            color: isAuthenticating
-                                ? stuTheme.accent
-                                : stuTheme.border,
-                            width: isAuthenticating ? 1.5 : 1.0,
-                          ),
                         ),
-                        disabledBackgroundColor: stuTheme.surfaceTier2
-                            .withValues(alpha: 0.6),
+                        disabledBackgroundColor: const Color(0xFF222228),
                       ),
                       onPressed: (isAuthenticating || !isConfigured)
                           ? null
                           : _handleGoogleSignIn,
                       child: isAuthenticating
-                          ? FittedBox(
+                          ? const FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   SizedBox(
-                                    width: 20,
-                                    height: 20,
+                                    width: 18,
+                                    height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2.2,
-                                      color: stuTheme.accent,
+                                      color: _textMuted,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: 12),
                                   Text(
                                     'Connecting to Google...',
                                     style: TextStyle(
-                                      fontSize: 14.5,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: stuTheme.textSecondary,
+                                      color: _textMuted,
                                     ),
                                   ),
                                 ],
@@ -303,24 +290,19 @@ class _AuthScreenState extends State<AuthScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    width: 26,
-                                    height: 26,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
+                                    width: 24,
+                                    height: 24,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF000000),
                                       shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                      ),
                                     ),
                                     alignment: Alignment.center,
-                                    child: Text(
+                                    child: const Text(
                                       'G',
                                       style: TextStyle(
-                                        color: Colors.blue.shade700,
+                                        color: _textPrimary,
                                         fontWeight: FontWeight.w900,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         height: 1.0,
                                       ),
                                     ),
@@ -331,6 +313,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
+                                      color: Color(0xFF000000),
+                                      letterSpacing: 0.2,
                                     ),
                                   ),
                                 ],
@@ -341,7 +325,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: 24),
 
-                  FittedBox(
+                  const FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -350,15 +334,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         Icon(
                           Icons.shield_outlined,
                           size: 14,
-                          color: stuTheme.textMuted,
+                          color: _textMuted,
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text(
                           'Protected by PostgreSQL Row Level Security (RLS)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: stuTheme.textMuted,
-                          ),
+                          style: TextStyle(fontSize: 11, color: _textMuted),
                         ),
                       ],
                     ),

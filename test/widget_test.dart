@@ -19,6 +19,8 @@ void main() {
     await StuDeskRepository.instance.init();
     await StuDeskRepository.instance.updateProfile(
       StuDeskRepository.instance.profile.copyWith(
+        id: '00000000-0000-0000-0000-000000000001',
+        username: 'jordan_lee',
         name: 'Jordan Lee',
         preferredName: 'Jordan',
         college: 'Apex University',

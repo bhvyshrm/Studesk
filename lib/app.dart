@@ -7,10 +7,11 @@ import 'features/academics/presentation/academics_screen.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/auth/presentation/auth_screen.dart';
 import 'features/auth/presentation/auth_splash_screen.dart';
-import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/unconfigured_screen.dart';
+import 'features/auth/presentation/username_onboarding_screen.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/library/presentation/library_screen.dart';
+import 'features/profile/data/profile_service.dart';
 import 'features/profile/presentation/profile_screen.dart';
 import 'shared/dialogs/studesk_forms.dart';
 import 'shared/widgets/app_bottom_nav_bar.dart';
@@ -83,25 +84,161 @@ class AuthGate extends StatelessWidget {
         // 3. Authenticated session
         if (auth.isAuthenticated) {
           return ListenableBuilder(
-            listenable: StuDeskRepository.instance,
+            listenable: ProfileService.instance,
             builder: (context, _) {
-              final repo = StuDeskRepository.instance;
-              if (!repo.isInitialized) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
+              final profileService = ProfileService.instance;
 
-              // First-time student onboarding check
-              if (!repo.profile.onboardingCompleted) {
-                return OnboardingScreen(
-                  onCompleted: () {
-                    // Navigate into MainNavigationShell
-                  },
-                );
-              }
+              return ListenableBuilder(
+                listenable: StuDeskRepository.instance,
+                builder: (context, _) {
+                  final repo = StuDeskRepository.instance;
+                  if (!repo.isInitialized) {
+                    return const Scaffold(
+                      backgroundColor: Color(0xFF000000),
+                      body: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFFFFFFF),
+                        ),
+                      ),
+                    );
+                  }
 
-              return const MainNavigationShell();
+                  // Loading profile from backend for the first time
+                  if (profileService.isLoading &&
+                      !profileService.hasLoaded &&
+                      !repo.profile.hasUsername) {
+                    return const Scaffold(
+                      backgroundColor: Color(0xFF000000),
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              color: Color(0xFFFFFFFF),
+                              strokeWidth: 2.2,
+                            ),
+                            SizedBox(height: 18),
+                            Text(
+                              'Loading student profile...',
+                              style: TextStyle(
+                                color: Color(0xFFA0A0AD),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Recoverable error if profile fetch failed
+                  // "Do not treat a failed profile lookup as proof that a username is missing."
+                  if (profileService.lastError != null &&
+                      !profileService.hasLoaded &&
+                      !repo.profile.hasUsername) {
+                    return Scaffold(
+                      backgroundColor: const Color(0xFF000000),
+                      body: SafeArea(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 420),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const Icon(
+                                    Icons.cloud_off_rounded,
+                                    size: 48,
+                                    color: Color(0xFFFFFFFF),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  const Text(
+                                    'Unable to Load Profile',
+                                    style: TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    profileService.lastError!,
+                                    style: const TextStyle(
+                                      color: Color(0xFFA0A0AD),
+                                      fontSize: 13,
+                                      height: 1.4,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFFFFFFFF,
+                                        ),
+                                        foregroundColor: const Color(
+                                          0xFF000000,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        final user = auth.currentUser;
+                                        if (user != null) {
+                                          profileService.fetchAndSyncProfile(
+                                            user: user,
+                                          );
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextButton(
+                                    onPressed: () => auth.signOut(),
+                                    child: const Text(
+                                      'Sign Out',
+                                      style: TextStyle(
+                                        color: Color(0xFFA0A0AD),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  // First-time username onboarding check:
+                  // If username is missing, route to dedicated UsernameOnboardingScreen
+                  if (!repo.profile.hasUsername) {
+                    return UsernameOnboardingScreen(
+                      onCompleted: () {
+                        // Profile updated with username; UI will rebuild and route to MainNavigationShell
+                      },
+                    );
+                  }
+
+                  // Returning user with valid username proceeds directly to Home
+                  return const MainNavigationShell();
+                },
+              );
             },
           );
         }

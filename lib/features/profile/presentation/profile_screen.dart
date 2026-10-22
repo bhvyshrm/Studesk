@@ -662,6 +662,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: stuTheme.textPrimary,
                                     ),
                                   ),
+                                  if (profile.hasUsername) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '@${profile.username}',
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: stuTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 2),
                                   Row(
                                     children: [

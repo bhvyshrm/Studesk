@@ -260,6 +260,32 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final msg = AuthService.instance.statusMessage;
+      if (msg != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              msg,
+              style: const TextStyle(color: Color(0xFFFFFFFF)),
+            ),
+            backgroundColor: const Color(0xFF13131A),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: const BorderSide(color: Color(0xFF22222E)),
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        AuthService.instance.clearStatusMessage();
+      }
+    });
+  }
+
   void _navigateToTab(int index) {
     setState(() {
       _currentIndex = index;

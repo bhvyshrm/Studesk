@@ -49,13 +49,49 @@ void main() {
       expect(SupabaseConfig.url, isNotEmpty);
       expect(SupabaseConfig.anonKey, isNotEmpty);
       expect(SupabaseConfig.webRedirectUrl, contains('http'));
+      expect(SupabaseConfig.androidCallbackScheme, equals('studesk'));
+      expect(SupabaseConfig.androidCallbackHost, equals('login-callback'));
       expect(
         SupabaseConfig.androidRedirectUrl,
         equals('studesk://login-callback'),
       );
-      expect(SupabaseConfig.authRedirectUrl, isNotEmpty);
+      expect(
+        SupabaseConfig.authRedirectUrl,
+        equals('studesk://login-callback'),
+      );
       expect(SupabaseConfig.isConfigured, isTrue);
       expect(SupabaseConfig.maskedAnonKey, contains('...'));
+    });
+
+    test('AuthService statusMessage and clearMessages behave as expected', () {
+      final auth = AuthService.instance;
+      expect(auth.statusMessage, isNull);
+
+      auth.clearMessages();
+      expect(auth.errorMessage, isNull);
+      expect(auth.statusMessage, isNull);
+
+      auth.clearStatusMessage();
+      expect(auth.statusMessage, isNull);
+    });
+
+    test('SignUpResult handles verification requirements accurately', () {
+      const resultWithVerification = SignUpResult(
+        success: true,
+        requiresEmailVerification: true,
+        email: 'alex@example.com',
+      );
+      expect(resultWithVerification.success, isTrue);
+      expect(resultWithVerification.requiresEmailVerification, isTrue);
+      expect(resultWithVerification.email, equals('alex@example.com'));
+
+      const failedResult = SignUpResult(
+        success: false,
+        errorMessage: 'Invalid password',
+      );
+      expect(failedResult.success, isFalse);
+      expect(failedResult.requiresEmailVerification, isFalse);
+      expect(failedResult.errorMessage, equals('Invalid password'));
     });
 
     test('Password reset returns safe non-enumerating confirmation', () async {

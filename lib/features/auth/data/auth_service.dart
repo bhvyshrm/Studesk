@@ -40,6 +40,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
   AuthStatus _status = AuthStatus.uninitialized;
   String? _errorMessage;
+  String? _statusMessage;
   User? _currentUser;
   bool _isSupabaseInitialized = false;
   StreamSubscription<AuthState>? _authSubscription;
@@ -47,6 +48,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
   AuthStatus get status => _status;
   String? get errorMessage => _errorMessage;
+  String? get statusMessage => _statusMessage;
   User? get currentUser => _currentUser;
   bool get isAuthenticated =>
       _status == AuthStatus.authenticated && _currentUser != null;
@@ -55,6 +57,17 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
   void clearError() {
     _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearStatusMessage() {
+    _statusMessage = null;
+    notifyListeners();
+  }
+
+  void clearMessages() {
+    _errorMessage = null;
+    _statusMessage = null;
     notifyListeners();
   }
 
@@ -84,9 +97,24 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
             },
             onError: (error) {
               debugPrint('Supabase Auth error listener: $error');
-              _errorMessage =
-                  'Authentication connection interrupted. Please try again.';
-              _status = AuthStatus.error;
+              if (error is AuthException) {
+                final msgLower = error.message.toLowerCase();
+                if (error.statusCode == 'otp_expired' ||
+                    msgLower.contains('expired')) {
+                  _errorMessage = 'Your email verification link has expired or has already been used. Please sign in or request a new confirmation email.';
+                } else if (msgLower.contains('code verifier') ||
+                    error is AuthPKCEGrantCodeExchangeError) {
+                  _errorMessage = 'Email confirmed! Please sign in with your username and password.';
+                } else if (error.message.isNotEmpty) {
+                  _errorMessage = error.message;
+                } else {
+                  _errorMessage = 'Email confirmation failed. Please check your verification link and try again.';
+                }
+              } else {
+                _errorMessage =
+                    'Authentication connection interrupted. Please try again.';
+              }
+              _status = AuthStatus.unauthenticated;
               notifyListeners();
             },
           );
@@ -136,9 +164,14 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       case AuthChangeEvent.tokenRefreshed:
       case AuthChangeEvent.userUpdated:
         if (session != null) {
+          final wasAuthenticating = _status == AuthStatus.authenticating;
           _currentUser = session.user;
           _status = AuthStatus.authenticated;
           _errorMessage = null;
+          if (!wasAuthenticating && event == AuthChangeEvent.signedIn) {
+            _statusMessage =
+                'Email verified successfully. You are now signed in.';
+          }
           notifyListeners();
           unawaited(
             ProfileService.instance.fetchAndSyncProfile(user: session.user),
@@ -150,6 +183,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         _currentUser = null;
         _status = AuthStatus.unauthenticated;
         _errorMessage = null;
+        _statusMessage = null;
         ProfileService.instance.resetState();
         notifyListeners();
         break;
@@ -194,6 +228,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
     _status = AuthStatus.authenticating;
     _errorMessage = null;
+    _statusMessage = null;
     notifyListeners();
 
     try {
@@ -356,6 +391,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
     _status = AuthStatus.authenticating;
     _errorMessage = null;
+    _statusMessage = null;
     notifyListeners();
 
     try {
@@ -379,10 +415,11 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         return SignUpResult(success: false, errorMessage: _errorMessage);
       }
 
-      // 5. Create user in Supabase Auth with metadata for username trigger
+      // 5. Create user in Supabase Auth with metadata and explicit emailRedirectTo
       final response = await Supabase.instance.client.auth.signUp(
         email: normEmail,
         password: trimmedPassword,
+        emailRedirectTo: SupabaseConfig.authRedirectUrl,
         data: {'username': normUsername, 'full_name': normUsername},
       );
 
@@ -504,6 +541,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       _errorMessage = null;
+      _statusMessage = null;
       ProfileService.instance.resetState();
       notifyListeners();
     }

@@ -140,7 +140,17 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _onAuthServiceChanged() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      if (_authService.errorMessage != null &&
+          _pendingVerificationEmail != null) {
+        _pendingVerificationEmail = null;
+      }
+      if (_authService.statusMessage != null) {
+        _successBannerMessage = _authService.statusMessage;
+        _pendingVerificationEmail = null;
+      }
+      setState(() {});
+    }
     if (_authService.isAuthenticated) {
       widget.onAuthenticated?.call();
     }

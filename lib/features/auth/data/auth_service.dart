@@ -15,8 +15,25 @@ enum AuthStatus {
   error,
 }
 
-/// Dedicated Google Authentication Service using Supabase OAuth.
-/// Enforces Google sign-in as the sole supported authentication method.
+/// Result object returned by registration flow to handle both immediate logins
+/// and email-verification required states.
+class SignUpResult {
+  final bool success;
+  final bool requiresEmailVerification;
+  final String? email;
+  final String? errorMessage;
+
+  const SignUpResult({
+    required this.success,
+    this.requiresEmailVerification = false,
+    this.email,
+    this.errorMessage,
+  });
+}
+
+/// Dedicated Authentication Service for StuDesk.
+/// Supports secure username-and-password login, registration with uniqueness constraints,
+/// password recovery, and session persistence using Supabase Auth backend.
 class AuthService extends ChangeNotifier with WidgetsBindingObserver {
   AuthService._();
   static final AuthService instance = AuthService._();
@@ -26,7 +43,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
   User? _currentUser;
   bool _isSupabaseInitialized = false;
   StreamSubscription<AuthState>? _authSubscription;
-  Timer? _cancelTimer;
+  Timer? _oauthCancelTimer;
 
   AuthStatus get status => _status;
   String? get errorMessage => _errorMessage;
@@ -86,7 +103,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e) {
       debugPrint('Supabase initialization exception: $e');
-      _errorMessage = 'Unable to connect to Supabase: $e';
+      _errorMessage = 'Unable to connect to authentication server. Please check your network connection.';
       _status = AuthStatus.unauthenticated;
     }
     notifyListeners();
@@ -94,17 +111,16 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (_status == AuthStatus.authenticating) {
-        _cancelTimer?.cancel();
-        _cancelTimer = Timer(const Duration(milliseconds: 1800), () {
-          if (_status == AuthStatus.authenticating && _currentUser == null) {
-            _status = AuthStatus.unauthenticated;
-            _errorMessage = 'Sign-in was cancelled or closed.';
-            notifyListeners();
-          }
-        });
-      }
+    if (state == AppLifecycleState.resumed && _oauthCancelTimer != null) {
+      _oauthCancelTimer?.cancel();
+      _oauthCancelTimer = Timer(const Duration(milliseconds: 1800), () {
+        if (_status == AuthStatus.authenticating && _currentUser == null) {
+          _status = AuthStatus.unauthenticated;
+          _errorMessage = 'Sign-in was cancelled or closed.';
+          _oauthCancelTimer = null;
+          notifyListeners();
+        }
+      });
     }
   }
 
@@ -112,7 +128,8 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
     debugPrint(
       'StuDesk AuthChangeEvent: $event (hasSession: ${session != null})',
     );
-    _cancelTimer?.cancel();
+    _oauthCancelTimer?.cancel();
+    _oauthCancelTimer = null;
 
     switch (event) {
       case AuthChangeEvent.signedIn:
@@ -142,15 +159,365 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<bool> signInWithGoogle() async {
-    // Prevent duplicate in-flight login requests
+  /// Authenticates using a student username (or registered email) and password.
+  /// Safely resolves the username to internal auth email using server-side RPC
+  /// without exposing user email or profile data to the client.
+  Future<bool> signInWithUsernameAndPassword({
+    required String username,
+    required String password,
+  }) async {
     if (_status == AuthStatus.authenticating) {
+      return false;
+    }
+
+    final trimmedInput = username.trim();
+    final trimmedPassword = password.trim();
+
+    if (trimmedInput.isEmpty) {
+      _errorMessage = 'Please enter your username.';
+      notifyListeners();
+      return false;
+    }
+
+    if (trimmedPassword.isEmpty) {
+      _errorMessage = 'Please enter your password.';
+      notifyListeners();
       return false;
     }
 
     if (!SupabaseConfig.isConfigured) {
       _status = AuthStatus.unconfigured;
+      _errorMessage = 'Authentication service is not configured. Please check your application environment settings.';
+      notifyListeners();
+      return false;
+    }
+
+    _status = AuthStatus.authenticating;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (!_isSupabaseInitialized) {
+        await Supabase.initialize(
+          url: SupabaseConfig.url,
+          publishableKey: SupabaseConfig.anonKey,
+        );
+        _isSupabaseInitialized = true;
+      }
+
+      String targetEmail;
+
+      if (trimmedInput.contains('@')) {
+        // Direct email login for existing users or students using email
+        targetEmail = trimmedInput.toLowerCase();
+      } else {
+        final normalizedUsername = trimmedInput.toLowerCase();
+
+        // Basic format check before lookup
+        final formatError = ProfileService.instance.validateUsername(
+          normalizedUsername,
+        );
+        if (formatError != null) {
+          _status = AuthStatus.unauthenticated;
+          _errorMessage =
+              'Invalid username or password. Please check your credentials.';
+          notifyListeners();
+          return false;
+        }
+
+        // Backend-safe RPC lookup: resolves username -> email without exposing profile data
+        String? resolvedEmail;
+        try {
+          final res = await Supabase.instance.client.rpc(
+            'get_auth_email_for_username',
+            params: {'p_username': normalizedUsername},
+          );
+          if (res is String && res.trim().isNotEmpty) {
+            resolvedEmail = res.trim();
+          }
+        } catch (rpcErr) {
+          debugPrint('Username lookup RPC error: $rpcErr');
+        }
+
+        if (resolvedEmail == null || resolvedEmail.isEmpty) {
+          // If username is not found in database, trigger a failed authentication attempt
+          // with a consistent synthetic identifier to preserve timing and prevent username enumeration
+          final safeTag = normalizedUsername.replaceAll(
+            RegExp(r'[^a-z0-9]'),
+            '',
+          );
+          targetEmail = 'lookup_not_found_$safeTag@studesk.internal';
+        } else {
+          targetEmail = resolvedEmail;
+        }
+      }
+
+      // Execute authentication with Supabase Auth
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: targetEmail,
+        password: trimmedPassword,
+      );
+
+      if (response.user != null) {
+        _currentUser = response.user;
+        _status = AuthStatus.authenticated;
+        _errorMessage = null;
+        notifyListeners();
+        unawaited(
+          ProfileService.instance.fetchAndSyncProfile(user: response.user!),
+        );
+        return true;
+      }
+
+      _status = AuthStatus.unauthenticated;
+      _errorMessage =
+          'Invalid username or password. Please check your credentials.';
+      notifyListeners();
+      return false;
+    } on AuthException catch (e) {
+      debugPrint(
+        'AuthException during signIn: ${e.message} (code: ${e.statusCode})',
+      );
+      _status = AuthStatus.unauthenticated;
+
+      if (e.message.toLowerCase().contains('email not confirmed')) {
+        _errorMessage = 'Your email address is not yet verified. Please click the confirmation link sent to your email.';
+      } else {
+        // Safe, generic message to avoid exposing whether username exists or password failed
+        _errorMessage =
+            'Invalid username or password. Please check your credentials.';
+      }
+      notifyListeners();
+      return false;
+    } catch (e) {
+      debugPrint('General exception during signIn: $e');
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = 'Unable to sign in. Please verify your network connection and try again.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Registers a new student account with username, email, and password.
+  /// Enforces unique constraint check, format normalization, and profile linking.
+  Future<SignUpResult> signUpWithUsernameAndPassword({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    if (_status == AuthStatus.authenticating) {
+      return const SignUpResult(
+        success: false,
+        errorMessage: 'An account creation is already in progress.',
+      );
+    }
+
+    final normUsername = username.trim().toLowerCase();
+    final normEmail = email.trim().toLowerCase();
+    final trimmedPassword = password.trim();
+
+    // 1. Validate username format
+    final usernameError = ProfileService.instance.validateUsername(
+      normUsername,
+    );
+    if (usernameError != null) {
+      _errorMessage = usernameError;
+      notifyListeners();
+      return SignUpResult(success: false, errorMessage: usernameError);
+    }
+
+    // 2. Validate email format
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(normEmail)) {
+      _errorMessage = 'Please enter a valid email address.';
+      notifyListeners();
+      return const SignUpResult(
+        success: false,
+        errorMessage: 'Please enter a valid email address.',
+      );
+    }
+
+    // 3. Validate password strength
+    if (trimmedPassword.length < 6) {
+      _errorMessage = 'Password must be at least 6 characters.';
+      notifyListeners();
+      return const SignUpResult(
+        success: false,
+        errorMessage: 'Password must be at least 6 characters.',
+      );
+    }
+
+    if (!SupabaseConfig.isConfigured) {
+      _status = AuthStatus.unconfigured;
       _errorMessage = 'Supabase backend credentials not configured. Please supply SUPABASE_URL and SUPABASE_ANON_KEY.';
+      notifyListeners();
+      return SignUpResult(success: false, errorMessage: _errorMessage);
+    }
+
+    _status = AuthStatus.authenticating;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (!_isSupabaseInitialized) {
+        await Supabase.initialize(
+          url: SupabaseConfig.url,
+          publishableKey: SupabaseConfig.anonKey,
+        );
+        _isSupabaseInitialized = true;
+      }
+
+      // 4. Pre-check username availability in database
+      final isAvailable = await ProfileService.instance.checkUsernameAvailable(
+        normUsername,
+      );
+      if (!isAvailable) {
+        _status = AuthStatus.unauthenticated;
+        _errorMessage =
+            'Username @$normUsername is already taken by another student.';
+        notifyListeners();
+        return SignUpResult(success: false, errorMessage: _errorMessage);
+      }
+
+      // 5. Create user in Supabase Auth with metadata for username trigger
+      final response = await Supabase.instance.client.auth.signUp(
+        email: normEmail,
+        password: trimmedPassword,
+        data: {'username': normUsername, 'full_name': normUsername},
+      );
+
+      final user = response.user;
+      final session = response.session;
+
+      if (user == null) {
+        _status = AuthStatus.unauthenticated;
+        _errorMessage = 'Account creation could not be completed.';
+        notifyListeners();
+        return SignUpResult(success: false, errorMessage: _errorMessage);
+      }
+
+      // Check if email verification is required by Supabase project settings
+      if (session == null) {
+        _status = AuthStatus.unauthenticated;
+        _errorMessage = null;
+        notifyListeners();
+        return SignUpResult(
+          success: true,
+          requiresEmailVerification: true,
+          email: normEmail,
+        );
+      }
+
+      // Immediate session granted (Email verification is disabled in project)
+      _currentUser = user;
+      _status = AuthStatus.authenticated;
+      _errorMessage = null;
+
+      // Ensure profile row claims the username explicitly
+      try {
+        await ProfileService.instance.claimUsername(normUsername);
+      } catch (claimErr) {
+        debugPrint('Post-signup claimUsername note: $claimErr');
+      }
+
+      notifyListeners();
+      return const SignUpResult(
+        success: true,
+        requiresEmailVerification: false,
+      );
+    } on AuthException catch (e) {
+      debugPrint('AuthException during signUp: ${e.message}');
+      _status = AuthStatus.unauthenticated;
+
+      if (e.message.toLowerCase().contains('already registered') ||
+          e.message.toLowerCase().contains('already exists')) {
+        _errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else {
+        _errorMessage = e.message;
+      }
+      notifyListeners();
+      return SignUpResult(success: false, errorMessage: _errorMessage);
+    } catch (e) {
+      debugPrint('General exception during signUp: $e');
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = 'Registration could not be completed. Please check your network connection and try again.';
+      notifyListeners();
+      return SignUpResult(success: false, errorMessage: _errorMessage);
+    }
+  }
+
+  /// Sends a password recovery email for a username or email identifier.
+  /// Uses a generic confirmation response to prevent account enumeration.
+  Future<String> sendPasswordResetEmail({required String identifier}) async {
+    final trimmed = identifier.trim().toLowerCase();
+    if (trimmed.isEmpty) {
+      throw const FormatException('Please enter your username or email.');
+    }
+
+    if (!SupabaseConfig.isConfigured || !_isSupabaseInitialized) {
+      return 'If an account exists for this username or email, a password reset link has been sent.';
+    }
+
+    try {
+      String? targetEmail;
+      if (trimmed.contains('@')) {
+        targetEmail = trimmed;
+      } else {
+        // Resolve username to email via server-side function
+        try {
+          final res = await Supabase.instance.client.rpc(
+            'get_auth_email_for_username',
+            params: {'p_username': trimmed},
+          );
+          if (res is String && res.trim().isNotEmpty) {
+            targetEmail = res.trim();
+          }
+        } catch (_) {}
+      }
+
+      if (targetEmail != null && targetEmail.isNotEmpty) {
+        await Supabase.instance.client.auth.resetPasswordForEmail(
+          targetEmail,
+          redirectTo: SupabaseConfig.authRedirectUrl,
+        );
+      }
+    } catch (e) {
+      debugPrint('sendPasswordResetEmail exception: $e');
+    }
+
+    // Generic response regardless of whether user exists
+    return 'If an account matches that username or email, a password reset link has been sent.';
+  }
+
+  /// Signs out the currently authenticated user, clears local user state,
+  /// and returns to unauthenticated state.
+  Future<void> signOut() async {
+    _oauthCancelTimer?.cancel();
+    _oauthCancelTimer = null;
+    try {
+      if (_isSupabaseInitialized && SupabaseConfig.isConfigured) {
+        await Supabase.instance.client.auth.signOut();
+      }
+    } catch (e) {
+      debugPrint('SignOut exception: $e');
+    } finally {
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = null;
+      ProfileService.instance.resetState();
+      notifyListeners();
+    }
+  }
+
+  /// Preserved for future optional Google login re-enablement.
+  @Deprecated(
+    'Google sign-in is temporarily disabled in favor of username authentication.',
+  )
+  Future<bool> signInWithGoogle() async {
+    if (_status == AuthStatus.authenticating) return false;
+    if (!SupabaseConfig.isConfigured) {
+      _status = AuthStatus.unconfigured;
+      _errorMessage = 'Authentication service is not configured. Please check your application environment settings.';
       notifyListeners();
       return false;
     }
@@ -166,6 +533,13 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
       _status = AuthStatus.authenticating;
       _errorMessage = null;
+      _oauthCancelTimer?.cancel();
+      _oauthCancelTimer = Timer(const Duration(seconds: 120), () {
+        if (_status == AuthStatus.authenticating) {
+          _status = AuthStatus.unauthenticated;
+          notifyListeners();
+        }
+      });
       notifyListeners();
 
       final redirect = SupabaseConfig.authRedirectUrl;
@@ -189,26 +563,10 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<void> signOut() async {
-    _cancelTimer?.cancel();
-    try {
-      if (_isSupabaseInitialized && SupabaseConfig.isConfigured) {
-        await Supabase.instance.client.auth.signOut();
-      }
-    } catch (e) {
-      debugPrint('SignOut exception: $e');
-    } finally {
-      _currentUser = null;
-      _status = AuthStatus.unauthenticated;
-      _errorMessage = null;
-      ProfileService.instance.resetState();
-      notifyListeners();
-    }
-  }
-
   @visibleForTesting
   void setAuthenticatedForTesting(User user) {
-    _cancelTimer?.cancel();
+    _oauthCancelTimer?.cancel();
+    _oauthCancelTimer = null;
     _currentUser = user;
     _status = AuthStatus.authenticated;
     _errorMessage = null;
@@ -217,7 +575,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    _cancelTimer?.cancel();
+    _oauthCancelTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _authSubscription?.cancel();
     super.dispose();

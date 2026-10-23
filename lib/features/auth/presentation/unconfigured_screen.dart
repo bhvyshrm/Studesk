@@ -68,7 +68,7 @@ class UnconfiguredConfigScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     const Text(
-                      'Supabase Configuration Required',
+                      'Connection Configuration Required',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -81,7 +81,7 @@ class UnconfiguredConfigScreen extends StatelessWidget {
                     const SizedBox(height: 10),
 
                     const Text(
-                      'StuDesk requires your Supabase project credentials to enable Google OAuth and encrypted student profile synchronization.',
+                      'StuDesk requires your server connection credentials to enable student authentication and encrypted profile synchronization.',
                       style: TextStyle(
                         fontSize: 13.5,
                         color: _textSecondary,

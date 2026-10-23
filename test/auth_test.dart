@@ -10,6 +10,7 @@ import 'package:studesk/features/auth/presentation/auth_screen.dart';
 import 'package:studesk/features/auth/presentation/username_onboarding_screen.dart';
 import 'package:studesk/features/profile/data/profile_service.dart';
 import 'package:studesk/features/profile/presentation/profile_screen.dart';
+import 'package:studesk/shared/widgets/studesk_wordmark.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
   const testUser = User(
     id: '00000000-0000-0000-0000-000000000001',
     appMetadata: {},
-    userMetadata: {'full_name': 'Jordan Lee'},
+    userMetadata: {'full_name': 'Jordan Lee', 'username': 'jordan_lee'},
     aud: 'authenticated',
     createdAt: '2026-10-21T00:00:00Z',
     email: 'jordan@example.com',
@@ -55,6 +56,12 @@ void main() {
       expect(SupabaseConfig.authRedirectUrl, isNotEmpty);
       expect(SupabaseConfig.isConfigured, isTrue);
       expect(SupabaseConfig.maskedAnonKey, contains('...'));
+    });
+
+    test('Password reset returns safe non-enumerating confirmation', () async {
+      final auth = AuthService.instance;
+      final msg = await auth.sendPasswordResetEmail(identifier: 'student_alex');
+      expect(msg, contains('password reset link has been sent'));
     });
   });
 
@@ -106,9 +113,9 @@ void main() {
     );
   });
 
-  group('AuthGate & Screen Routing Tests', () {
+  group('AuthScreen UI & Interaction Tests', () {
     testWidgets(
-      'AuthScreen renders strict monochrome layout and Google OAuth button',
+      'AuthScreen renders AMOLED monochrome login view without Google login button',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 3.0;
@@ -120,16 +127,149 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('StuDesk'), findsOneWidget);
+        // Branding
+        expect(find.byType(StuDeskWordmark), findsOneWidget);
         expect(
           find.text('Your Intelligent Student Workspace & Academic Desk'),
           findsOneWidget,
         );
-        expect(find.text('Continue with Google'), findsOneWidget);
-        expect(find.text('Continue in Local Student Mode'), findsNothing);
+
+        // Login Controls
+        expect(find.text('Sign In'), findsNWidgets(2)); // Title and Button
+        expect(find.text('STUDENT USERNAME'), findsOneWidget);
+        expect(find.text('PASSWORD'), findsOneWidget);
+        expect(find.text('Forgot password?'), findsOneWidget);
+        expect(find.text('Create Account'), findsOneWidget);
+
+        // CRITICAL: Ensure Google sign-in is NOT present
+        expect(find.text('Continue with Google'), findsNothing);
+        expect(find.text('Connecting to Google...'), findsNothing);
       },
     );
 
+    testWidgets('AuthScreen validates blank inputs on sign in', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(theme: AppTheme.darkTheme, home: const AuthScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap Sign In button without typing
+      final signInBtn = find.widgetWithText(ElevatedButton, 'Sign In');
+      await tester.tap(signInBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Please enter your username.'), findsOneWidget);
+
+      // Enter username only
+      final textFields = find.byType(TextField);
+      await tester.enterText(textFields.first, 'alex_chen');
+      await tester.tap(signInBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Please enter your password.'), findsOneWidget);
+    });
+
+    testWidgets(
+      'AuthScreen navigates to Create Account, validates fields, and supports switching back',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(theme: AppTheme.darkTheme, home: const AuthScreen()),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch to Create Account
+        final createAccountLink = find.text('Create Account');
+        await tester.tap(createAccountLink);
+        await tester.pumpAndSettle();
+
+        expect(find.text('CHOOSE USERNAME'), findsOneWidget);
+        expect(find.text('EMAIL ADDRESS'), findsOneWidget);
+        expect(find.text('CONFIRM PASSWORD'), findsOneWidget);
+        expect(
+          find.widgetWithText(ElevatedButton, 'Create Account'),
+          findsOneWidget,
+        );
+
+        // Submit blank registration
+        final createBtn = find.widgetWithText(ElevatedButton, 'Create Account');
+        await tester.tap(createBtn);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Username cannot be blank.'), findsOneWidget);
+
+        // Switch back to Sign In
+        final signInLink = find.text('Sign In');
+        await tester.ensureVisible(signInLink);
+        await tester.tap(signInLink);
+        await tester.pumpAndSettle();
+
+        expect(find.text('STUDENT USERNAME'), findsOneWidget);
+      },
+    );
+
+    testWidgets('AuthScreen switches to Forgot Password and validates inputs', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(theme: AppTheme.darkTheme, home: const AuthScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      final forgotLink = find.text('Forgot password?');
+      await tester.tap(forgotLink);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reset Password'), findsOneWidget);
+      expect(find.text('USERNAME OR EMAIL'), findsOneWidget);
+
+      // Tap Send Reset Link with empty input
+      final sendBtn = find.widgetWithText(ElevatedButton, 'Send Reset Link');
+      await tester.tap(sendBtn);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Please enter your username or email address.'),
+        findsOneWidget,
+      );
+
+      // Enter identifier and submit
+      final inputField = find.byType(TextField);
+      await tester.enterText(inputField, 'alex_chen');
+      await tester.tap(sendBtn);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('password reset link has been sent'),
+        findsOneWidget,
+      );
+
+      // Back to Sign In
+      final backBtn = find.text('Back to Sign In');
+      await tester.tap(backBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('STUDENT USERNAME'), findsOneWidget);
+    });
+  });
+
+  group('AuthGate & Screen Routing Tests', () {
     testWidgets(
       'AuthGate routes new user to UsernameOnboardingScreen when username is missing',
       (WidgetTester tester) async {

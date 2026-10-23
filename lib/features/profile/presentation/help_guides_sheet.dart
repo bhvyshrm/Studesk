@@ -20,7 +20,7 @@ class HelpGuidesSheet extends StatelessWidget {
   static const List<Map<String, String>> _guides = [
     {
       'title': '1. Setting up your student profile',
-      'content': 'Open the Profile tab. Your Google account provides your verified email. You can customize your preferred display name, bio, college/institution, degree program, academic year, and current semester at any time.',
+      'content': 'Open the Profile tab. Your StuDesk account provides your student username and email. You can customize your preferred display name, bio, college/institution, degree program, academic year, and current semester at any time.',
     },
     {
       'title': '2. Creating tasks, events, exams, and reminders',
@@ -64,7 +64,7 @@ class HelpGuidesSheet extends StatelessWidget {
     },
     {
       'title': '12. Understanding cloud storage and account data',
-      'content': 'Your profile, courses, and tasks synchronize securely with Supabase PostgreSQL using Row Level Security (RLS). You can also export a complete JSON backup of your desk from Profile → Privacy & Data Controls.',
+      'content': 'Your profile, courses, and tasks synchronize securely with encrypted cloud storage. You can also export a complete JSON backup of your desk from Profile → Privacy & Data Controls.',
     },
   ];
 

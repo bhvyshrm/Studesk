@@ -174,14 +174,19 @@ class UserProfile {
     required String fallbackEmail,
     String? fallbackName,
     String? fallbackAvatar,
+    String? fallbackUsername,
   }) {
     final rawName = (json['full_name'] as String?)?.trim();
     final name = (rawName != null && rawName.isNotEmpty)
         ? rawName
         : (fallbackName ?? '');
+    final rawUsername = (json['username'] as String?)?.trim();
+    final username = (rawUsername != null && rawUsername.isNotEmpty)
+        ? rawUsername
+        : (fallbackUsername?.trim() ?? '');
     return UserProfile(
       id: json['id'] as String? ?? '',
-      username: json['username'] as String? ?? '',
+      username: username,
       name: name,
       preferredName: json['preferred_name'] as String? ?? '',
       email: fallbackEmail,

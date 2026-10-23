@@ -1,13 +1,13 @@
-# StuDesk Backend & Google Authentication Setup Guide
+# StuDesk Backend & Authentication Setup Guide
 
-This document provides instructions for setting up the Supabase PostgreSQL backend and Google OAuth for StuDesk.
+This document provides instructions for setting up the Supabase PostgreSQL backend, username-and-password authentication, Row Level Security (RLS) policies, and database functions for StuDesk.
 
 ---
 
 ## 1. Quick Start (Offline / Local Student Mode)
 
-By default, StuDesk runs in **Local Student Mode** without requiring any external credentials.
-- All student data (courses, attendance, tasks, notes, journals, streaks) persists locally via encrypted SharedPreferences.
+By default, StuDesk runs in **Local Student Mode** without requiring external credentials:
+- All student records (courses, timetable, syllabus topics, attendance, tasks, academic notes, library resources) persist locally via encrypted storage.
 - Full UI and features are completely testable and functional offline.
 
 ---
@@ -19,88 +19,66 @@ By default, StuDesk runs in **Local Student Mode** without requiring any externa
 2. Click **New Project**, choose your organization, and name your database `studesk`.
 3. Choose your closest region and set a strong database password.
 
-### Step 2: Apply the Database Schema & RLS Policies
-1. In your Supabase dashboard, navigate to the **SQL Editor**.
-2. Open the migration file: `supabase/migrations/20261019000000_studesk_initial_schema.sql`.
-3. Paste the contents into the SQL Editor and click **Run**.
-4. This sets up all tables:
-   - `profiles`
-   - `courses`
-   - `course_units`
-   - `unit_topics`
-   - `subject_attendance`
-   - `college_attendance`
-   - `tasks`
-   - `library_resources`
-   - `journal_entries`
-   - `timetable_entries`
-   - `exams`
-5. **Row Level Security (RLS)** is enabled on all tables, ensuring each student can only read, write, update, and delete their own private academic records.
+### Step 2: Apply Database Migrations (in Order)
+In your Supabase dashboard, navigate to the **SQL Editor**:
+1. Run `supabase/migrations/20261019000000_studesk_initial_schema.sql` (Creates core tables: `courses`, `tasks`, `exams`, `attendance`, etc.).
+2. Run `supabase/migrations/20261020000000_create_profiles_table.sql` (Creates `public.profiles` table and trigger).
+3. Run `supabase/migrations/20261020000001_complete_schema_and_onboarding.sql` (Adds events, reminders, library collections, notes).
+4. Run `supabase/migrations/20261022000000_add_username_onboarding_and_security.sql` (Adds username constraints, `check_username_available` and `claim_username` RPCs).
+5. Run `supabase/migrations/20261023000000_username_password_auth.sql` (Adds `get_auth_email_for_username` RPC resolver and updates user signup trigger).
 
 ---
 
-## 3. Google OAuth Configuration
+## 3. Username and Password Authentication Architecture
 
-### Step 1: Google Cloud Console Credentials
-1. Go to [Google Cloud Console](https://console.cloud.google.com).
-2. Create an OAuth 2.0 Client ID:
-   - **Application type**: Web application (for Supabase callback)
-   - **Authorized redirect URIs**: `https://<YOUR-PROJECT-ID>.supabase.co/auth/v1/callback`
-3. Copy the **Client ID** and **Client Secret**.
+StuDesk uses Supabase Auth with a backend-safe username lookup mechanism:
 
-### Step 2: Configure Supabase Auth Provider
-1. In Supabase Dashboard, navigate to **Authentication -> Providers -> Google**.
-2. Enable Google.
-3. Paste your Google **Client ID** and **Client Secret**.
-4. Save changes.
-
-### Step 3: Platform Deep Linking (Android & iOS)
-
-#### Android Deep Linking
-In `android/app/src/main/AndroidManifest.xml`, inside `<activity android:name=".MainActivity">`:
-```xml
-<intent-filter>
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data android:scheme="studesk" android:host="login-callback" />
-</intent-filter>
-```
-
-#### iOS Deep Linking
-In `ios/Runner/Info.plist`:
-```xml
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>studesk</string>
-        </array>
-    </dict>
-</array>
-```
+### Security Principles:
+- **Client Least-Privilege**: The Flutter client never queries `auth.users` directly and never holds a service-role key. Only the public Anonymous Key (`anonKey`) is used.
+- **Data Protection**: Unauthenticated clients cannot browse or read arbitrary records from `public.profiles`. RLS is strictly enforced (`auth.uid() = id`).
+- **Trusted Username Resolution**: When a student enters their username and password, the app calls the trusted PostgreSQL `SECURITY DEFINER` function `public.get_auth_email_for_username(p_username TEXT)`. This function checks the username format and returns the internal auth email exclusively for authentication with Supabase Auth (`signInWithPassword`).
+- **Enumeration Defense**: If a username does not exist or password fails, generic error messaging and consistent handling ensure attackers cannot easily enumerate usernames.
+- **Username Uniqueness & Constraints**: Enforced at the database level with a case-insensitive unique index (`lower(username)`) and format check (`^[a-z0-9_]{3,20}$`).
 
 ---
 
-## 4. Running the Flutter App with Supabase Credentials
+## 4. Auth Provider Settings in Supabase Dashboard
 
-Pass the environment variables securely at compile/run time via `--dart-define`:
+1. Navigate to **Authentication -> Providers -> Email**:
+   - Ensure **Enable Email provider** is turned **ON**.
+   - Optional: Toggle **Confirm email** based on whether you require student email confirmation before first login.
+     - *If enabled*: StuDesk shows a clear "Verification link sent to your email" screen.
+     - *If disabled*: StuDesk logs the student in immediately upon registration.
+2. In **Authentication -> URL Configuration**:
+   - Set **Site URL** to your web origin (e.g., `http://localhost:5001`).
+   - Add redirect URLs:
+     - `studesk://login-callback` (for native Android deep linking)
+     - `http://localhost:5001` (for Flutter web)
 
+---
+
+## 5. Google OAuth (Preserved for Future Re-Enablement)
+
+Google OAuth configuration is preserved in code and can be re-enabled if needed:
+- Credentials in Google Cloud Console redirect to `https://<YOUR-PROJECT-ID>.supabase.co/auth/v1/callback`.
+- Deep links are configured in `android/app/src/main/AndroidManifest.xml` (`studesk://login-callback`).
+
+---
+
+## 6. Running and Building the Flutter App
+
+Pass the environment variables securely at compile or run time via `--dart-define`:
+
+### Run in Debug / Development
 ```bash
 flutter run \
   --dart-define=SUPABASE_URL=https://your-project.supabase.co \
   --dart-define=SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Or for release build:
-
+### Build Production Release APK
 ```bash
 flutter build apk --release \
   --dart-define=SUPABASE_URL=https://your-project.supabase.co \
   --dart-define=SUPABASE_ANON_KEY=your-anon-key
 ```
-
-> [!SECURITY] Never commit service-role keys or private API secrets to the repository. The client application only requires the public Anonymous Key (`anonKey`), protected by Row Level Security on the PostgreSQL database.

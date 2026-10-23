@@ -209,10 +209,17 @@ class ProfileService extends ChangeNotifier {
     notifyListeners();
 
     final fallbackEmail = user.email ?? '';
+    final fallbackUsername = (user.userMetadata?['username'] as String?)
+        ?.trim()
+        .toLowerCase();
     final fallbackName =
         (user.userMetadata?['full_name'] as String?) ??
         (user.userMetadata?['name'] as String?) ??
-        (fallbackEmail.isNotEmpty ? fallbackEmail.split('@').first : 'Student');
+        (fallbackUsername != null && fallbackUsername.isNotEmpty
+            ? fallbackUsername
+            : (fallbackEmail.isNotEmpty
+                  ? fallbackEmail.split('@').first
+                  : 'Student'));
     final fallbackAvatar =
         (user.userMetadata?['avatar_url'] as String?) ??
         (user.userMetadata?['picture'] as String?);
@@ -234,10 +241,12 @@ class ProfileService extends ChangeNotifier {
 
       if (response == null) {
         // Safe profile creation on first login with zero fake seed data
-        // Username remains NULL/empty until the user explicitly selects one
+        // Uses metadata username if present from registration
+        final hasUsername =
+            fallbackUsername != null && fallbackUsername.isNotEmpty;
         final initialMap = {
           'id': user.id,
-          'username': null,
+          'username': hasUsername ? fallbackUsername : null,
           'full_name': fallbackName,
           'preferred_name': fallbackName.isNotEmpty
               ? fallbackName.split(' ').first
@@ -248,7 +257,7 @@ class ProfileService extends ChangeNotifier {
           'academic_year': '',
           'semester': '',
           'bio': '',
-          'onboarding_completed': false,
+          'onboarding_completed': hasUsername,
         };
 
         try {
@@ -262,6 +271,7 @@ class ProfileService extends ChangeNotifier {
           fallbackEmail: fallbackEmail,
           fallbackName: fallbackName,
           fallbackAvatar: fallbackAvatar,
+          fallbackUsername: fallbackUsername,
         );
         await StuDeskRepository.instance.updateProfile(newProfile);
         unawaited(
@@ -281,6 +291,7 @@ class ProfileService extends ChangeNotifier {
         fallbackEmail: fallbackEmail,
         fallbackName: fallbackName,
         fallbackAvatar: fallbackAvatar,
+        fallbackUsername: fallbackUsername,
       );
 
       await StuDeskRepository.instance.updateProfile(profile);

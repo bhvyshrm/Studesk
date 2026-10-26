@@ -164,13 +164,27 @@ class ProfileService extends ChangeNotifier {
         }
 
         if (!rpcSucceeded) {
-          // Fallback direct profile table update
-          await Supabase.instance.client.from('profiles').upsert({
-            'id': currentUserId,
-            'username': normalized,
-            'onboarding_completed': true,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          });
+          // Direct profile table update with fallback if optional columns are missing
+          try {
+            await Supabase.instance.client.from('profiles').upsert({
+              'id': currentUserId,
+              'username': normalized,
+              'onboarding_completed': true,
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            });
+          } catch (e) {
+            final errStr = e.toString().toLowerCase();
+            if (errStr.contains('onboarding_completed') ||
+                errStr.contains('column') && errStr.contains('does not exist')) {
+              await Supabase.instance.client.from('profiles').upsert({
+                'id': currentUserId,
+                'username': normalized,
+                'updated_at': DateTime.now().toUtc().toIso8601String(),
+              });
+            } else {
+              rethrow;
+            }
+          }
         }
       }
 
@@ -264,6 +278,22 @@ class ProfileService extends ChangeNotifier {
           await Supabase.instance.client.from('profiles').upsert(initialMap);
         } catch (err) {
           debugPrint('Error inserting initial profile row: $err');
+          // If schema is missing extended columns, fallback to base columns
+          try {
+            await Supabase.instance.client.from('profiles').upsert({
+              'id': user.id,
+              'username': hasUsername ? fallbackUsername : null,
+              'full_name': fallbackName,
+              'avatar_url': fallbackAvatar ?? '',
+              'institution': '',
+              'course': '',
+              'academic_year': '',
+              'semester': '',
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            });
+          } catch (fallbackErr) {
+            debugPrint('Error inserting initial profile base row: $fallbackErr');
+          }
         }
 
         final newProfile = UserProfile.fromSupabase(
@@ -322,9 +352,32 @@ class ProfileService extends ChangeNotifier {
       if (SupabaseConfig.isConfigured &&
           AuthService.instance.isSupabaseInitialized &&
           Supabase.instance.client.auth.currentSession != null) {
-        await Supabase.instance.client
-            .from('profiles')
-            .upsert(profile.toSupabaseMap());
+        try {
+          await Supabase.instance.client
+              .from('profiles')
+              .upsert(profile.toSupabaseMap());
+        } catch (e) {
+          final errStr = e.toString().toLowerCase();
+          if (errStr.contains('column') && errStr.contains('does not exist')) {
+            // Fallback for older profiles table without optional extended columns
+            final baseMap = {
+              'id': profile.id,
+              'username': profile.username.trim().isNotEmpty
+                  ? profile.username.trim().toLowerCase()
+                  : null,
+              'full_name': profile.name,
+              'avatar_url': profile.avatarUrl ?? '',
+              'institution': profile.college,
+              'course': profile.course,
+              'academic_year': profile.academicYear,
+              'semester': profile.semester,
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            };
+            await Supabase.instance.client.from('profiles').upsert(baseMap);
+          } else {
+            rethrow;
+          }
+        }
       }
 
       await StuDeskRepository.instance.updateProfile(profile);

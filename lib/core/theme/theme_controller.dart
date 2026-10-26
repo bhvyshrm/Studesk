@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app_colors.dart';
-
 enum AppAppearanceMode { light, dark, amoled }
 
 class ThemeController extends ChangeNotifier {
@@ -19,18 +17,16 @@ class ThemeController extends ChangeNotifier {
   bool _reducedMotion = false;
   int _accentIndex = 0;
 
+  // Strict monochrome accent definition (Pure White)
   static const List<Color> availableAccents = [
-    AppColors.goldLight,
-    AppColors.accentAmber,
-    AppColors.accentSun,
-    AppColors.accentHoney,
+    Color(0xFFFFFFFF),
+    Color(0xFFE5E5E5),
   ];
 
   AppAppearanceMode get appearanceMode => _appearanceMode;
   bool get isCompactSpacing => _isCompactSpacing;
   bool get reducedMotion => _reducedMotion;
-  Color get currentAccent =>
-      availableAccents[_accentIndex.clamp(0, availableAccents.length - 1)];
+  Color get currentAccent => const Color(0xFFFFFFFF);
   int get accentIndex => _accentIndex;
 
   ThemeMode get themeMode {

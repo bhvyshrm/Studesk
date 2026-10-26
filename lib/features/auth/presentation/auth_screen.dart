@@ -71,7 +71,6 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isSubmitting = false;
   String? _localErrorMessage;
   String? _successBannerMessage;
-  String? _pendingVerificationEmail;
 
   // Refined AMOLED Monochrome Palette
   static const Color _bgAmoled = Color(0xFF000000);
@@ -141,13 +140,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _onAuthServiceChanged() {
     if (mounted) {
-      if (_authService.errorMessage != null &&
-          _pendingVerificationEmail != null) {
-        _pendingVerificationEmail = null;
-      }
       if (_authService.statusMessage != null) {
         _successBannerMessage = _authService.statusMessage;
-        _pendingVerificationEmail = null;
       }
       setState(() {});
     }
@@ -161,7 +155,6 @@ class _AuthScreenState extends State<AuthScreen> {
       _mode = newMode;
       _localErrorMessage = null;
       _successBannerMessage = null;
-      _pendingVerificationEmail = null;
       _authService.clearError();
     });
   }
@@ -322,15 +315,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
 
       if (result.success) {
-        if (result.requiresEmailVerification) {
-          setState(() {
-            _pendingVerificationEmail = result.email ?? email;
-            _successBannerMessage =
-                'Verification email sent to ${_pendingVerificationEmail!}. Please confirm your email before signing in.';
-          });
-        } else {
-          widget.onAuthenticated?.call();
-        }
+        widget.onAuthenticated?.call();
       } else {
         setState(() {
           _localErrorMessage =
@@ -450,30 +435,27 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
 
                       // Main Authentication Card
-                      if (_pendingVerificationEmail != null)
-                        _buildEmailVerificationNotice()
-                      else
-                        _buildCardContainer(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            switchInCurve: Curves.easeOut,
-                            switchOutCurve: Curves.easeIn,
-                            child: switch (_mode) {
-                              _AuthMode.login => KeyedSubtree(
-                                key: const ValueKey('login_form_view'),
-                                child: _buildLoginForm(),
-                              ),
-                              _AuthMode.register => KeyedSubtree(
-                                key: const ValueKey('register_form_view'),
-                                child: _buildRegisterForm(),
-                              ),
-                              _AuthMode.forgotPassword => KeyedSubtree(
-                                key: const ValueKey('forgot_password_view'),
-                                child: _buildForgotPasswordForm(),
-                              ),
-                            },
-                          ),
+                      _buildCardContainer(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          switchInCurve: Curves.easeOut,
+                          switchOutCurve: Curves.easeIn,
+                          child: switch (_mode) {
+                            _AuthMode.login => KeyedSubtree(
+                              key: const ValueKey('login_form_view'),
+                              child: _buildLoginForm(),
+                            ),
+                            _AuthMode.register => KeyedSubtree(
+                              key: const ValueKey('register_form_view'),
+                              child: _buildRegisterForm(),
+                            ),
+                            _AuthMode.forgotPassword => KeyedSubtree(
+                              key: const ValueKey('forgot_password_view'),
+                              child: _buildForgotPasswordForm(),
+                            ),
+                          },
                         ),
+                      ),
 
                       const SizedBox(height: 24),
 
@@ -1047,63 +1029,6 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // View 4: Email Verification Notice
-  // ---------------------------------------------------------------------------
-
-  Widget _buildEmailVerificationNotice() {
-    return _buildCardContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: _surfaceInput,
-                shape: BoxShape.circle,
-                border: Border.all(color: _borderNeutral, width: 1.2),
-              ),
-              child: const Icon(
-                Icons.mark_email_unread_outlined,
-                color: _textPrimary,
-                size: 30,
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            'Verify Your Email Address',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: _textPrimary,
-              letterSpacing: -0.3,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'We sent a confirmation link to ${_pendingVerificationEmail ?? 'your email'}. Please check your inbox and verify your email before signing in.',
-            style: const TextStyle(
-              fontSize: 13.5,
-              color: _textSecondary,
-              height: 1.45,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          _buildPrimaryButton(
-            label: 'Return to Sign In',
-            isLoading: false,
-            onPressed: () => _switchMode(_AuthMode.login),
-          ),
-        ],
-      ),
     );
   }
 

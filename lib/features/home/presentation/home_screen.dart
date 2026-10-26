@@ -77,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 14),
               _buildAddTile(
                 icon: Icons.check_circle_outline_rounded,
-                color: stuTheme.accent,
                 title: 'New Task',
                 subtitle: 'Assignment or study task with due date',
                 onTap: () {
@@ -87,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               _buildAddTile(
                 icon: Icons.calendar_today_rounded,
-                color: stuTheme.accent,
                 title: 'New Event',
                 subtitle: 'Campus meeting, workshop, or event',
                 onTap: () {
@@ -97,7 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               _buildAddTile(
                 icon: Icons.event_available_rounded,
-                color: stuTheme.error,
                 title: 'Upcoming Exam',
                 subtitle: 'Midterm, quiz, or final exam date',
                 onTap: () {
@@ -107,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               _buildAddTile(
                 icon: Icons.alarm_rounded,
-                color: stuTheme.warning,
                 title: 'Quick Reminder',
                 subtitle: 'Reminder for submission or preparation',
                 onTap: () {
@@ -124,7 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAddTile({
     required IconData icon,
-    required Color color,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
@@ -136,10 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
+          color: stuTheme.surfaceTier2,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: stuTheme.border),
         ),
-        child: Icon(icon, color: color, size: 20),
+        child: Icon(icon, color: stuTheme.textPrimary, size: 20),
       ),
       title: Text(
         title,
@@ -179,6 +175,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final todayEvents = _repo.todayEvents;
         final todayReminders = _repo.todayReminders;
 
+        final pendingTasksCount = todayTasks.where((t) => !t.isCompleted).length;
+
         final hasTodayItems =
             todayClasses.isNotEmpty ||
             todayTasks.isNotEmpty ||
@@ -207,6 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
             upcomingTasks.isNotEmpty ||
             upcomingEvents.isNotEmpty;
 
+        final formattedDate = DateFormat('EEEE, MMM d')
+            .format(DateTime.now())
+            .toUpperCase();
+
+        final initials = displayName.isNotEmpty
+            ? displayName.substring(0, 1).toUpperCase()
+            : 'S';
+
         return Scaffold(
           backgroundColor: stuTheme.canvas,
           appBar: AppTopBar(
@@ -226,30 +232,170 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Section 7.1: Main Greeting below header
-                      const SizedBox(height: 4),
+                      // Section 5.1: Contextual Date
                       Text(
-                        'Good day, $displayName',
+                        formattedDate,
                         style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: stuTheme.textPrimary,
-                          letterSpacing: -0.6,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: stuTheme.textMuted,
+                          letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
+
+                      // Section 5.2: Header with Greeting & Avatar
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Good day, $displayName',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    color: stuTheme.textPrimary,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  profile.course.isNotEmpty
+                                      ? '${profile.course}${profile.college.isNotEmpty ? ' • ${profile.college}' : ''}'
+                                      : _getMotivationalPhrase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: stuTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Tooltip(
+                            message: 'View Profile',
+                            child: InkWell(
+                              onTap: widget.onNavigateToProfile,
+                              borderRadius: BorderRadius.circular(24),
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: stuTheme.surfaceTier2,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: stuTheme.border,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  initials,
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: stuTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      // Section 5.3: Today's Overview Metrics Row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildMetricCard(
+                              label: 'Classes Today',
+                              count: todayClasses.length,
+                              icon: Icons.schedule_rounded,
+                              stuTheme: stuTheme,
+                              onTap: widget.onNavigateToAcademics,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildMetricCard(
+                              label: 'Pending Tasks',
+                              count: pendingTasksCount,
+                              icon: Icons.check_circle_outline_rounded,
+                              stuTheme: stuTheme,
+                              onTap: _showAddPlanItemSheet,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildMetricCard(
+                              label: 'Radar Exams',
+                              count: upcomingExams.length,
+                              icon: Icons.event_available_rounded,
+                              stuTheme: stuTheme,
+                              onTap: () => StuDeskForms.showExamForm(context),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Section 5.4: Shortcuts Bar
                       Text(
-                        _getMotivationalPhrase(),
+                        'Shortcuts',
                         style: TextStyle(
-                          fontSize: 13.5,
-                          color: stuTheme.textSecondary,
-                          height: 1.35,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: stuTheme.textMuted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildQuickActionButton(
+                              icon: Icons.add_task_rounded,
+                              label: '+ Task',
+                              stuTheme: stuTheme,
+                              onTap: () => StuDeskForms.showTaskForm(context),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickActionButton(
+                              icon: Icons.school_outlined,
+                              label: '+ Subject',
+                              stuTheme: stuTheme,
+                              onTap: () => StuDeskForms.showSubjectForm(context),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickActionButton(
+                              icon: Icons.description_outlined,
+                              label: '+ Note',
+                              stuTheme: stuTheme,
+                              onTap: () => StuDeskForms.showNoteForm(context),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickActionButton(
+                              icon: Icons.event_outlined,
+                              label: '+ Event',
+                              stuTheme: stuTheme,
+                              onTap: () => StuDeskForms.showEventForm(context),
+                            ),
+                          ],
                         ),
                       ),
 
                       const SizedBox(height: 24),
 
-                      // Section 7.2: Today's Plan
+                      // Section 5.5: Today's Plan
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -267,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               '+ Add',
                               style: TextStyle(
-                                color: stuTheme.accent,
+                                color: stuTheme.textPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -281,7 +427,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildEmptySection(
                           icon: Icons.check_circle_outline_rounded,
                           title: 'Your day is clear',
-                          subtitle: 'Nothing scheduled for today yet. Add a class, task, or reminder to stay organized.',
+                          subtitle:
+                              'Nothing scheduled for today yet. Add a class, task, or reminder to stay organized.',
                           actionText: 'Add to Plan',
                           onAction: _showAddPlanItemSheet,
                           stuTheme: stuTheme,
@@ -307,7 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 28),
 
-                      // Section 7.3: Coming Up
+                      // Section 5.6: Coming Up
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -336,7 +483,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildEmptySection(
                           icon: Icons.event_note_rounded,
                           title: 'No upcoming deadlines',
-                          subtitle: 'No exams or scheduled assignments in the near horizon. All caught up!',
+                          subtitle:
+                              'No exams or scheduled assignments in the near horizon. All caught up!',
                           actionText: 'Schedule Exam / Event',
                           onAction: () => StuDeskForms.showExamForm(context),
                           stuTheme: stuTheme,
@@ -355,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 28),
 
-                      // Section 7.4: Quick Attendance Glance (Counts only - NO percentages!)
+                      // Section 5.7: Quick Attendance Glance (Counts only - NO percentages!)
                       CustomCard(
                         padding: const EdgeInsets.all(18),
                         child: Row(
@@ -364,12 +512,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: stuTheme.accent.withValues(alpha: 0.15),
+                                color: stuTheme.surfaceTier2,
                                 borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: stuTheme.border),
                               ),
                               child: Icon(
                                 Icons.how_to_reg_rounded,
-                                color: stuTheme.accent,
+                                color: stuTheme.textPrimary,
                                 size: 22,
                               ),
                             ),
@@ -404,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: stuTheme.accent,
+                                  color: stuTheme.textPrimary,
                                 ),
                               ),
                             ),
@@ -421,6 +570,95 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String label,
+    required int count,
+    required IconData icon,
+    required StuDeskThemeExtension stuTheme,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: stuTheme.surfaceTier1,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: stuTheme.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, size: 16, color: stuTheme.textSecondary),
+                Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: stuTheme.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: stuTheme.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required StuDeskThemeExtension stuTheme,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: stuTheme.surfaceTier1,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: stuTheme.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: stuTheme.textPrimary),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: stuTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -448,8 +686,9 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: stuTheme.surfaceTier2,
               shape: BoxShape.circle,
+              border: Border.all(color: stuTheme.border),
             ),
-            child: Icon(icon, color: stuTheme.textMuted, size: 22),
+            child: Icon(icon, color: stuTheme.textSecondary, size: 22),
           ),
           const SizedBox(height: 12),
           Text(
@@ -505,16 +744,20 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: stuTheme.success.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                color: stuTheme.surfaceTier2,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: stuTheme.border),
               ),
-              child: Icon(
-                Icons.schedule_rounded,
-                color: stuTheme.success,
-                size: 20,
+              child: Text(
+                'CLASS',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: stuTheme.textPrimary,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -548,6 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: stuTheme.surfaceTier2,
                 borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: stuTheme.border),
               ),
               child: Text(
                 c.courseCode,
@@ -586,7 +830,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     t.isCompleted
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
-                    color: t.isCompleted ? stuTheme.success : stuTheme.accent,
+                    color: t.isCompleted ? stuTheme.textMuted : stuTheme.textPrimary,
                     size: 22,
                   ),
                   onPressed: () => _repo.toggleTask(t.id),
@@ -661,7 +905,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: stuTheme.error.withValues(alpha: 0.08),
+        color: stuTheme.surfaceTier1,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -670,14 +914,26 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: stuTheme.error.withValues(alpha: 0.3)),
+              border: Border.all(color: stuTheme.border),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.event_available_rounded,
-                  color: stuTheme.error,
-                  size: 22,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: stuTheme.surfaceTier2,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: stuTheme.border),
+                  ),
+                  child: Text(
+                    'EXAM TODAY',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: stuTheme.textPrimary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -685,11 +941,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'EXAM TODAY: ${e.title}',
+                        e.title,
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
-                          color: stuTheme.error,
+                          color: stuTheme.textPrimary,
                         ),
                       ),
                       Text(
@@ -707,7 +963,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icon(
                     Icons.delete_outline_rounded,
                     size: 18,
-                    color: stuTheme.error,
+                    color: stuTheme.textMuted,
                   ),
                   onPressed: () => StuDeskForms.confirmDelete(
                     context,
@@ -743,16 +999,20 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 38,
-                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: stuTheme.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    color: stuTheme.surfaceTier2,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: stuTheme.border),
                   ),
-                  child: Icon(
-                    Icons.calendar_month_rounded,
-                    color: stuTheme.accent,
-                    size: 20,
+                  child: Text(
+                    'EVENT',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: stuTheme.textPrimary,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -820,7 +1080,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.alarm_rounded, color: stuTheme.warning, size: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: stuTheme.surfaceTier2,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: stuTheme.border),
+                  ),
+                  child: Text(
+                    'REMINDER',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: stuTheme.textPrimary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -882,15 +1158,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: stuTheme.error.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    color: stuTheme.surfaceTier2,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: stuTheme.border),
                   ),
                   child: Text(
-                    countdown,
+                    countdown.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: stuTheme.error,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: stuTheme.textPrimary,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ),

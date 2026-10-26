@@ -329,7 +329,7 @@ class _GlobalSearchSheetState extends State<GlobalSearchSheet> {
         break;
       case 'Library':
         icon = Icons.video_library_rounded;
-        iconColor = Colors.red.shade400;
+        iconColor = stuTheme.textPrimary;
         break;
       case 'Class':
         icon = Icons.schedule_rounded;

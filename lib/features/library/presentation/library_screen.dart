@@ -209,14 +209,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                                   Navigator.pop(ctx, 'edit'),
                                             ),
                                             ListTile(
-                                              leading: const Icon(
+                                              leading: Icon(
                                                 Icons.delete_outline,
-                                                color: Colors.red,
+                                                color: stuTheme.textPrimary,
                                               ),
                                               title: Text(
                                                 'Delete "${col.name}"',
-                                                style: const TextStyle(
-                                                  color: Colors.red,
+                                                style: TextStyle(
+                                                  color: stuTheme.textPrimary,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                               onTap: () =>
@@ -386,20 +387,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                       width: 40,
                                       height: 40,
                                       decoration: BoxDecoration(
-                                        color: res.isYouTube
-                                            ? Colors.red.withValues(alpha: 0.12)
-                                            : stuTheme.accent.withValues(
-                                                alpha: 0.12,
-                                              ),
+                                        color: stuTheme.surfaceTier2,
                                         borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: stuTheme.border),
                                       ),
                                       child: Icon(
                                         res.isYouTube
                                             ? Icons.play_circle_fill_rounded
                                             : Icons.link_rounded,
-                                        color: res.isYouTube
-                                            ? Colors.red.shade400
-                                            : stuTheme.accent,
+                                        color: stuTheme.textPrimary,
                                         size: 22,
                                       ),
                                     ),

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/supabase_config.dart';
+import '../../../core/data/studesk_repository.dart';
 import '../../profile/data/profile_service.dart';
 
 enum AuthStatus {
@@ -15,8 +16,7 @@ enum AuthStatus {
   error,
 }
 
-/// Result object returned by registration flow to handle both immediate logins
-/// and email-verification required states.
+/// Result object returned by registration flow.
 class SignUpResult {
   final bool success;
   final bool requiresEmailVerification;
@@ -98,18 +98,9 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
             onError: (error) {
               debugPrint('Supabase Auth error listener: $error');
               if (error is AuthException) {
-                final msgLower = error.message.toLowerCase();
-                if (error.statusCode == 'otp_expired' ||
-                    msgLower.contains('expired')) {
-                  _errorMessage = 'Your email verification link has expired or has already been used. Please sign in or request a new confirmation email.';
-                } else if (msgLower.contains('code verifier') ||
-                    error is AuthPKCEGrantCodeExchangeError) {
-                  _errorMessage = 'Email confirmed! Please sign in with your username and password.';
-                } else if (error.message.isNotEmpty) {
-                  _errorMessage = error.message;
-                } else {
-                  _errorMessage = 'Email confirmation failed. Please check your verification link and try again.';
-                }
+                _errorMessage = error.message.isNotEmpty
+                    ? error.message
+                    : 'Authentication connection error. Please try again.';
               } else {
                 _errorMessage =
                     'Authentication connection interrupted. Please try again.';
@@ -164,14 +155,9 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       case AuthChangeEvent.tokenRefreshed:
       case AuthChangeEvent.userUpdated:
         if (session != null) {
-          final wasAuthenticating = _status == AuthStatus.authenticating;
           _currentUser = session.user;
           _status = AuthStatus.authenticated;
           _errorMessage = null;
-          if (!wasAuthenticating && event == AuthChangeEvent.signedIn) {
-            _statusMessage =
-                'Email verified successfully. You are now signed in.';
-          }
           notifyListeners();
           unawaited(
             ProfileService.instance.fetchAndSyncProfile(user: session.user),
@@ -316,7 +302,8 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       _status = AuthStatus.unauthenticated;
 
       if (e.message.toLowerCase().contains('email not confirmed')) {
-        _errorMessage = 'Your email address is not yet verified. Please click the confirmation link sent to your email.';
+        _errorMessage =
+            'Email confirmation is enabled in your Supabase project. To enable immediate login without email verification, disable "Confirm email" under Authentication -> Providers -> Email in your Supabase dashboard.';
       } else {
         // Safe, generic message to avoid exposing whether username exists or password failed
         _errorMessage =
@@ -410,21 +397,20 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       if (!isAvailable) {
         _status = AuthStatus.unauthenticated;
         _errorMessage =
-            'Username @$normUsername is already taken by another student.';
+            'Username @$normUsername is already taken by another student. Please pick a different username.';
         notifyListeners();
         return SignUpResult(success: false, errorMessage: _errorMessage);
       }
 
-      // 5. Create user in Supabase Auth with metadata and explicit emailRedirectTo
+      // 5. Create user in Supabase Auth with metadata (immediate creation without emailRedirectTo)
       final response = await Supabase.instance.client.auth.signUp(
         email: normEmail,
         password: trimmedPassword,
-        emailRedirectTo: SupabaseConfig.authRedirectUrl,
         data: {'username': normUsername, 'full_name': normUsername},
       );
 
       final user = response.user;
-      final session = response.session;
+      Session? session = response.session;
 
       if (user == null) {
         _status = AuthStatus.unauthenticated;
@@ -433,29 +419,65 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         return SignUpResult(success: false, errorMessage: _errorMessage);
       }
 
-      // Check if email verification is required by Supabase project settings
+      // If Supabase returned no session, attempt immediate sign-in with credentials
+      if (session == null) {
+        try {
+          final signInRes = await Supabase.instance.client.auth.signInWithPassword(
+            email: normEmail,
+            password: trimmedPassword,
+          );
+          session = signInRes.session;
+        } catch (_) {
+          // If signInWithPassword fails or email is unconfirmed, session remains null
+        }
+      }
+
+      // Handle cases where Supabase returns no session instead of assuming signup succeeded
       if (session == null) {
         _status = AuthStatus.unauthenticated;
-        _errorMessage = null;
+        _errorMessage =
+            'Account created, but no active session was returned by Supabase. Immediate account creation requires "Confirm email" to be disabled in the Supabase Dashboard under Authentication -> Providers -> Email.';
         notifyListeners();
         return SignUpResult(
-          success: true,
-          requiresEmailVerification: true,
-          email: normEmail,
+          success: false,
+          errorMessage: _errorMessage,
         );
       }
 
-      // Immediate session granted (Email verification is disabled in project)
-      _currentUser = user;
+      // Immediate session granted
+      _currentUser = session.user;
       _status = AuthStatus.authenticated;
       _errorMessage = null;
 
-      // Ensure profile row claims the username explicitly
+      // Immediately establish local profile with authenticated user UUID and username
+      // so routing proceeds directly to the home screen without intermediate onboarding
+      final initialProfile = StuDeskRepository.instance.profile.copyWith(
+        id: session.user.id,
+        username: normUsername,
+        name: normUsername,
+        email: normEmail,
+        onboardingCompleted: true,
+      );
+      await StuDeskRepository.instance.updateProfile(initialProfile);
+
+      // Persist username to public.profiles
       try {
         await ProfileService.instance.claimUsername(normUsername);
       } catch (claimErr) {
         debugPrint('Post-signup claimUsername note: $claimErr');
+        final errLower = claimErr.toString().toLowerCase();
+        if (errLower.contains('already taken') || errLower.contains('unique')) {
+          _status = AuthStatus.unauthenticated;
+          _errorMessage =
+              'Username @$normUsername is already taken by another student. Please pick a different username.';
+          notifyListeners();
+          return SignUpResult(success: false, errorMessage: _errorMessage);
+        }
       }
+
+      unawaited(
+        ProfileService.instance.fetchAndSyncProfile(user: session.user),
+      );
 
       notifyListeners();
       return const SignUpResult(
@@ -466,9 +488,16 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       debugPrint('AuthException during signUp: ${e.message}');
       _status = AuthStatus.unauthenticated;
 
-      if (e.message.toLowerCase().contains('already registered') ||
-          e.message.toLowerCase().contains('already exists')) {
-        _errorMessage = 'An account with this email already exists. Please sign in instead.';
+      final msgLower = e.message.toLowerCase();
+      if (msgLower.contains('already registered') ||
+          msgLower.contains('already exists')) {
+        _errorMessage =
+            'An account with this email already exists. Please sign in instead.';
+      } else if (msgLower.contains('unique') ||
+          msgLower.contains('duplicate') ||
+          msgLower.contains('username')) {
+        _errorMessage =
+            'Username @$normUsername is already taken by another student. Please pick a different username.';
       } else {
         _errorMessage = e.message;
       }

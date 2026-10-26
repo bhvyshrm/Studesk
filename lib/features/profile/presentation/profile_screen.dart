@@ -365,53 +365,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  'Accent Palette',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: stuTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: List.generate(
-                    ThemeController.availableAccents.length,
-                    (idx) {
-                      final color = ThemeController.availableAccents[idx];
-                      final isSelected = _themeCtrl.accentIndex == idx;
-                      return GestureDetector(
-                        onTap: () {
-                          _themeCtrl.setAccentIndex(idx);
-                          setModalState(() {});
-                        },
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.transparent,
-                              width: 2.5,
-                            ),
-                          ),
-                          child: isSelected
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 20,
-                                  color: Colors.black,
-                                )
-                              : null,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
@@ -559,31 +512,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleSignOut() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: context.stuTheme.surfaceTier1,
-        title: Text(
-          'Sign Out',
-          style: TextStyle(color: context.stuTheme.textPrimary),
-        ),
-        content: Text(
-          'Are you sure you want to end your session on this device?',
-          style: TextStyle(color: context.stuTheme.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+      builder: (ctx) {
+        final stuTheme = ctx.stuTheme;
+        return AlertDialog(
+          backgroundColor: stuTheme.surfaceTier1,
+          title: Text(
+            'Sign Out',
+            style: TextStyle(color: stuTheme.textPrimary),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.stuTheme.error,
-              foregroundColor: Colors.white,
+          content: Text(
+            'Are you sure you want to end your session on this device?',
+            style: TextStyle(color: stuTheme.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: stuTheme.textSecondary),
+              ),
             ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sign Out'),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: stuTheme.accent,
+                foregroundColor: stuTheme.onAccent,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Sign Out'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirm == true && mounted) {
@@ -925,7 +884,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                               subtitle: Text(
-                                'Light, Dark, and AMOLED modes with gold accent choice',
+                                'Light, Dark, and AMOLED monochrome display modes',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: stuTheme.textSecondary,

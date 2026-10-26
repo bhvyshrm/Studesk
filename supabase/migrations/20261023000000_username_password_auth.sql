@@ -231,6 +231,7 @@ DECLARE
     extracted_name TEXT;
     extracted_avatar TEXT;
     extracted_username TEXT;
+    extracted_preferred TEXT;
 BEGIN
     extracted_name := COALESCE(
         new.raw_user_meta_data->>'full_name',
@@ -248,43 +249,133 @@ BEGIN
         extracted_username := NULL;
     END IF;
 
-    INSERT INTO public.profiles (
-        id,
-        username,
-        full_name,
-        avatar_url,
-        institution,
-        course,
-        academic_year,
-        semester,
-        created_at,
-        updated_at
-    )
-    VALUES (
-        new.id,
-        extracted_username,
-        extracted_name,
-        extracted_avatar,
-        'Dept of Computer Science',
-        'B.Tech Computer Science',
-        'Year 2',
-        'Semester 4',
-        timezone('utc'::text, now()),
-        timezone('utc'::text, now())
-    )
-    ON CONFLICT (id) DO UPDATE SET
-        username = COALESCE(public.profiles.username, EXCLUDED.username),
-        full_name = CASE
-            WHEN public.profiles.full_name IS NULL OR public.profiles.full_name = '' OR public.profiles.full_name = 'StuDesk Student'
-            THEN EXCLUDED.full_name
-            ELSE public.profiles.full_name
-        END,
-        avatar_url = CASE
-            WHEN EXCLUDED.avatar_url IS NOT NULL AND EXCLUDED.avatar_url <> ''
-            THEN EXCLUDED.avatar_url
-            ELSE public.profiles.avatar_url
-        END,
-        updated_at = timezone('utc'::text, now());
+    extracted_preferred := COALESCE(
+        new.raw_user_meta_data->>'preferred_name',
+        split_part(extracted_name, ' ', 1),
+        ''
+    );
+
+    BEGIN
+        INSERT INTO public.profiles (
+            id,
+            username,
+            full_name,
+            preferred_name,
+            avatar_url,
+            institution,
+            course,
+            academic_year,
+            semester,
+            bio,
+            onboarding_completed,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            new.id,
+            extracted_username,
+            extracted_name,
+            extracted_preferred,
+            extracted_avatar,
+            COALESCE(new.raw_user_meta_data->>'institution', ''),
+            COALESCE(new.raw_user_meta_data->>'course', ''),
+            COALESCE(new.raw_user_meta_data->>'academic_year', ''),
+            COALESCE(new.raw_user_meta_data->>'semester', ''),
+            COALESCE(new.raw_user_meta_data->>'bio', ''),
+            (extracted_username IS NOT NULL),
+            timezone('utc'::text, now()),
+            timezone('utc'::text, now())
+        )
+        ON CONFLICT (id) DO UPDATE SET
+            username = COALESCE(public.profiles.username, EXCLUDED.username),
+            full_name = CASE
+                WHEN public.profiles.full_name IS NULL OR public.profiles.full_name = '' OR public.profiles.full_name = 'StuDesk Student'
+                THEN EXCLUDED.full_name
+                ELSE public.profiles.full_name
+            END,
+            avatar_url = CASE
+                WHEN EXCLUDED.avatar_url IS NOT NULL AND EXCLUDED.avatar_url <> ''
+                THEN EXCLUDED.avatar_url
+                ELSE public.profiles.avatar_url
+            END,
+            onboarding_completed = CASE
+                WHEN EXCLUDED.username IS NOT NULL THEN true
+                ELSE public.profiles.onboarding_completed
+            END,
+            updated_at = timezone('utc'::text, now());
+    EXCEPTION
+        WHEN unique_violation THEN
+            BEGIN
+                INSERT INTO public.profiles (
+                    id,
+                    username,
+                    full_name,
+                    preferred_name,
+                    avatar_url,
+                    institution,
+                    course,
+                    academic_year,
+                    semester,
+                    bio,
+                    onboarding_completed,
+                    created_at,
+                    updated_at
+                )
+                VALUES (
+                    new.id,
+                    NULL,
+                    extracted_name,
+                    extracted_preferred,
+                    extracted_avatar,
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    false,
+                    timezone('utc'::text, now()),
+                    timezone('utc'::text, now())
+                )
+                ON CONFLICT (id) DO NOTHING;
+            EXCEPTION
+                WHEN OTHERS THEN
+                    RAISE WARNING 'handle_new_user fallback after unique_violation: %', SQLERRM;
+            END;
+        WHEN OTHERS THEN
+            BEGIN
+                INSERT INTO public.profiles (
+                    id,
+                    username,
+                    full_name,
+                    avatar_url,
+                    institution,
+                    course,
+                    academic_year,
+                    semester,
+                    created_at,
+                    updated_at
+                )
+                VALUES (
+                    new.id,
+                    extracted_username,
+                    extracted_name,
+                    extracted_avatar,
+                    '',
+                    '',
+                    '',
+                    '',
+                    timezone('utc'::text, now()),
+                    timezone('utc'::text, now())
+                )
+                ON CONFLICT (id) DO UPDATE SET
+                    username = COALESCE(public.profiles.username, EXCLUDED.username),
+                    full_name = EXCLUDED.full_name,
+                    updated_at = timezone('utc'::text, now());
+            EXCEPTION
+                WHEN OTHERS THEN
+                    RAISE WARNING 'handle_new_user base insert error: %', SQLERRM;
+            END;
+    END;
 
     RETURN new;
 END;

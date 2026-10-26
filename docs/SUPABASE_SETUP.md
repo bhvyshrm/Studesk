@@ -25,7 +25,8 @@ In your Supabase dashboard, navigate to the **SQL Editor**:
 2. Run `supabase/migrations/20261020000000_create_profiles_table.sql` (Creates `public.profiles` table and trigger).
 3. Run `supabase/migrations/20261020000001_complete_schema_and_onboarding.sql` (Adds events, reminders, library collections, notes).
 4. Run `supabase/migrations/20261022000000_add_username_onboarding_and_security.sql` (Adds username constraints, `check_username_available` and `claim_username` RPCs).
-5. Run `supabase/migrations/20261023000000_username_password_auth.sql` (Adds `get_auth_email_for_username` RPC resolver and updates user signup trigger).
+5. Run `supabase/migrations/20261023000000_username_password_auth.sql` (Adds `get_auth_email_for_username` RPC resolver).
+6. Run `supabase/migrations/20261026000000_immediate_signup_auth.sql` (Enforces zero fake academic details, exception-safe trigger, format constraint, and RPCs for immediate signup).
 
 ---
 
@@ -78,8 +79,8 @@ Follow these exact steps in your [Supabase Dashboard](https://supabase.com/dashb
 1. Navigate to **Authentication** -> **Providers** -> **Email**:
    - Ensure **Enable Email provider** is turned **ON**.
    - **Confirm email**:
-     - *If enabled*: Users must click the confirmation link sent to their email before their account is fully active. StuDesk presents a dedicated "Verify Your Email Address" screen until the link is clicked.
-     - *If disabled*: Users are immediately authenticated upon form submission.
+     - **Turn OFF (Disabled)**: Required for StuDesk's immediate account creation. Students are immediately authenticated and enter StuDesk upon form submission without waiting for email verification or opening Gmail.
+     - *(Note)*: If this remains enabled in the Supabase Dashboard, Supabase will not issue an authenticated session upon signup, and the app will guide the user/admin to disable this setting.
    - **Secure email change** and **Mailer OTP expiry**: Set as desired (default: 3600 seconds / 1 hour).
 
 ---

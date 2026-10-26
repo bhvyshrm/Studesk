@@ -358,7 +358,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         return [
           _buildActionTile(
             icon: Icons.check_circle_outline_rounded,
-            iconColor: stuTheme.accent,
             title: 'New Task',
             subtitle: 'Academic task or homework with due date',
             onTap: () {
@@ -368,7 +367,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           _buildActionTile(
             icon: Icons.calendar_month_rounded,
-            iconColor: stuTheme.accent,
             title: 'New Event',
             subtitle: 'Campus meeting, workshop, or event',
             onTap: () {
@@ -378,7 +376,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           _buildActionTile(
             icon: Icons.event_available_rounded,
-            iconColor: stuTheme.error,
             title: 'Upcoming Exam',
             subtitle: 'Scheduled quiz, midterm, or final exam',
             onTap: () {
@@ -388,7 +385,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           _buildActionTile(
             icon: Icons.alarm_rounded,
-            iconColor: stuTheme.warning,
             title: 'Quick Reminder',
             subtitle: 'Timely alert for revision or submission',
             onTap: () {
@@ -402,7 +398,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         return [
           _buildActionTile(
             icon: Icons.school_rounded,
-            iconColor: stuTheme.accent,
             title: 'Add Syllabus / Subject',
             subtitle: 'Register course code, title, and topic list',
             onTap: () {
@@ -412,7 +407,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           _buildActionTile(
             icon: Icons.description_outlined,
-            iconColor: stuTheme.warning,
             title: 'Create Academic Note',
             subtitle: 'Coursework notes, formulas, and revision text',
             onTap: () {
@@ -422,7 +416,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           _buildActionTile(
             icon: Icons.schedule_rounded,
-            iconColor: stuTheme.success,
             title: 'Add Timetable Class',
             subtitle: 'Schedule weekly lecture, lab, or seminar slot',
             onTap: () {
@@ -436,7 +429,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         return [
           _buildActionTile(
             icon: Icons.create_new_folder_outlined,
-            iconColor: stuTheme.accent,
             title: 'Create Collection',
             subtitle: 'Organize resources by topic (e.g. DSA Prep)',
             onTap: () {
@@ -446,7 +438,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
           _buildActionTile(
             icon: Icons.add_link_rounded,
-            iconColor: Colors.red.shade400,
             title: 'Save YouTube / Web Resource',
             subtitle: 'Bookmark study playlists, articles, and documentation',
             onTap: () {
@@ -463,7 +454,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   Widget _buildActionTile({
     required IconData icon,
-    required Color iconColor,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
@@ -471,15 +461,16 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final stuTheme = context.stuTheme;
 
     return ListTile(
-      contentPadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       leading: Container(
-        width: 42,
-        height: 42,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.15),
+          color: stuTheme.surfaceTier2,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: stuTheme.border),
         ),
-        child: Icon(icon, color: iconColor, size: 22),
+        child: Icon(icon, color: stuTheme.textPrimary, size: 22),
       ),
       title: Text(
         title,
@@ -495,7 +486,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       ),
       trailing: Icon(
         Icons.chevron_right_rounded,
-        color: stuTheme.textSecondary,
+        color: stuTheme.textMuted,
         size: 18,
       ),
       onTap: onTap,
@@ -526,9 +517,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       floatingActionButton: showFAB
           ? FloatingActionButton(
               onPressed: _openContextualActionSheet,
-              backgroundColor: stuTheme.accent,
-              foregroundColor: stuTheme.onAccent,
-              elevation: 3,
+              backgroundColor: stuTheme.textPrimary,
+              foregroundColor: stuTheme.canvas,
+              elevation: 4,
               shape: const CircleBorder(),
               tooltip: 'Quick Add (+)',
               child: const Icon(Icons.add_rounded, size: 28),

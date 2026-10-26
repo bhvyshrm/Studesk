@@ -27,7 +27,7 @@ class AppBootstrap {
 
   static Widget buildErrorWidget(FlutterErrorDetails details) {
     return Material(
-      color: const Color(0xFF0A0A0C),
+      color: const Color(0xFF000000),
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: SafeArea(
@@ -41,12 +41,13 @@ class AppBootstrap {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD43B).withValues(alpha: 0.15),
+                      color: const Color(0xFF171717),
                       shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF292929)),
                     ),
                     child: const Icon(
                       Icons.warning_amber_rounded,
-                      color: Color(0xFFFFD43B),
+                      color: Color(0xFFFFFFFF),
                       size: 36,
                     ),
                   ),
@@ -54,7 +55,7 @@ class AppBootstrap {
                   const Text(
                     'StuDesk Interface Error',
                     style: TextStyle(
-                      color: Color(0xFFF5F5F7),
+                      color: Color(0xFFFFFFFF),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -64,7 +65,7 @@ class AppBootstrap {
                   Text(
                     kDebugMode ? details.exceptionAsString() : 'A temporary rendering issue occurred. Tap below to refresh.',
                     style: const TextStyle(
-                      color: Color(0xFFA1A1AA),
+                      color: Color(0xFFB3B3B3),
                       fontSize: 13,
                     ),
                     textAlign: TextAlign.center,
@@ -74,8 +75,9 @@ class AppBootstrap {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFD43B),
-                      foregroundColor: Colors.black,
+                      backgroundColor: const Color(0xFFFFFFFF),
+                      foregroundColor: const Color(0xFF000000),
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

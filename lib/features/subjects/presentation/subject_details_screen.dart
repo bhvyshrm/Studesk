@@ -178,7 +178,6 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                                     content: Text(
                                       'Topic added to ${course.code}',
                                     ),
-                                    backgroundColor: const Color(0xFF10B981),
                                   ),
                                 );
                               }

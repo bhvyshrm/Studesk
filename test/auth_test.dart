@@ -10,6 +10,7 @@ import 'package:studesk/features/auth/presentation/auth_screen.dart';
 import 'package:studesk/features/auth/presentation/username_onboarding_screen.dart';
 import 'package:studesk/features/profile/data/profile_service.dart';
 import 'package:studesk/features/profile/presentation/profile_screen.dart';
+import 'package:studesk/shared/models/user_profile.dart';
 import 'package:studesk/shared/widgets/studesk_wordmark.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -497,6 +498,131 @@ void main() {
 
         final textFieldWidget = tester.widget<TextField>(inputField);
         expect(textFieldWidget.controller?.text, equals('alex_chen_2026'));
+      },
+    );
+  });
+
+  group('Immediate Account Creation & Profile Integrity Tests', () {
+    test('SignUpResult defaults to immediate account creation without email verification', () {
+      const immediateResult = SignUpResult(
+        success: true,
+      );
+      expect(immediateResult.success, isTrue);
+      expect(immediateResult.requiresEmailVerification, isFalse);
+      expect(immediateResult.errorMessage, isNull);
+
+      const noSessionResult = SignUpResult(
+        success: false,
+        errorMessage: 'Account created, but no active session was returned by Supabase. Immediate account creation requires "Confirm email" to be disabled in the Supabase Dashboard under Authentication -> Providers -> Email.',
+      );
+      expect(noSessionResult.success, isFalse);
+      expect(noSessionResult.errorMessage, contains('no active session'));
+      expect(noSessionResult.errorMessage, contains('Confirm email'));
+    });
+
+    test('UserProfile creation preserves authenticated user UUID, username, and empty academic fields', () {
+      final profile = UserProfile(
+        id: '11111111-2222-3333-4444-555555555555',
+        username: 'student_dev',
+        name: 'Student Dev',
+        email: 'dev@student.edu',
+        college: '',
+        course: '',
+        rollNo: '',
+        academicYear: '',
+        semester: '',
+        lastActiveDate: DateTime(2026, 10, 26),
+        onboardingCompleted: true,
+      );
+
+      expect(profile.id, equals('11111111-2222-3333-4444-555555555555'));
+      expect(profile.username, equals('student_dev'));
+      expect(profile.hasUsername, isTrue);
+      // Zero fake academic defaults
+      expect(profile.college, equals(''));
+      expect(profile.course, equals(''));
+      expect(profile.academicYear, equals(''));
+      expect(profile.semester, equals(''));
+
+      // Supabase serialization does not inject fake details
+      final supabaseMap = profile.toSupabaseMap();
+      expect(supabaseMap['id'], equals('11111111-2222-3333-4444-555555555555'));
+      expect(supabaseMap['username'], equals('student_dev'));
+      expect(supabaseMap['institution'], equals(''));
+      expect(supabaseMap['course'], equals(''));
+      expect(supabaseMap['academic_year'], equals(''));
+      expect(supabaseMap['semester'], equals(''));
+    });
+
+    testWidgets(
+      'AuthScreen Create Account form renders unique username, email, and password fields without verification screens',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(theme: AppTheme.darkTheme, home: const AuthScreen()),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch to Create Account
+        await tester.tap(find.text('Create Account'));
+        await tester.pumpAndSettle();
+
+        // Required fields present
+        expect(find.text('CHOOSE USERNAME'), findsOneWidget);
+        expect(find.text('EMAIL ADDRESS'), findsOneWidget);
+        expect(find.text('PASSWORD'), findsOneWidget);
+        expect(find.text('CONFIRM PASSWORD'), findsOneWidget);
+
+        // Verification-waiting messages/screens must NOT exist
+        expect(find.text('Verify Your Email Address'), findsNothing);
+        expect(find.textContaining('We sent a confirmation link'), findsNothing);
+        expect(find.textContaining('check your inbox'), findsNothing);
+        expect(find.text('Return to Sign In'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'AuthGate navigates immediately to MainNavigationShell when user signs up with username',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final repo = StuDeskRepository.instance;
+        await repo.updateProfile(
+          repo.profile.copyWith(
+            id: '22222222-3333-4444-5555-666666666666',
+            username: 'sam_wilson',
+            name: 'Sam Wilson',
+            email: 'sam@example.com',
+            onboardingCompleted: true,
+          ),
+        );
+
+        const newUser = User(
+          id: '22222222-3333-4444-5555-666666666666',
+          appMetadata: {},
+          userMetadata: {'full_name': 'Sam Wilson', 'username': 'sam_wilson'},
+          aud: 'authenticated',
+          createdAt: '2026-10-26T00:00:00Z',
+          email: 'sam@example.com',
+        );
+
+        AuthService.instance.setAuthenticatedForTesting(newUser);
+
+        await tester.pumpWidget(const StuDeskApp());
+        await tester.pumpAndSettle();
+
+        // Direct home screen navigation
+        expect(find.byType(MainNavigationShell), findsOneWidget);
+        // No waiting screen or onboarding roadblock
+        expect(find.byType(UsernameOnboardingScreen), findsNothing);
+        expect(find.text('Verify Your Email Address'), findsNothing);
       },
     );
   });

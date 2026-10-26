@@ -200,7 +200,6 @@ class _AcademicsScreenState extends State<AcademicsScreen>
                                     content: Text(
                                       'Topic added to ${course.code}',
                                     ),
-                                    backgroundColor: const Color(0xFF10B981),
                                   ),
                                 );
                               }
@@ -447,11 +446,14 @@ class _AcademicsScreenState extends State<AcademicsScreen>
                     value: 'add_topic',
                     child: Text('Add Topic'),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Text(
                       'Delete Subject',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: stuTheme.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],

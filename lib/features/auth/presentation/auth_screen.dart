@@ -221,6 +221,8 @@ class _AuthScreenState extends State<AuthScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _handleLogin() async {
+    if (_isSubmitting) return;
+
     final username = _loginUsernameController.text.trim();
     final password = _loginPasswordController.text.trim();
 
@@ -263,6 +265,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _handleRegister() async {
+    if (_isSubmitting) return;
+
     final username = _registerUsernameController.text.trim().toLowerCase();
     final email = _registerEmailController.text.trim().toLowerCase();
     final password = _registerPasswordController.text.trim();
@@ -315,7 +319,15 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
 
       if (result.success) {
-        widget.onAuthenticated?.call();
+        if (result.requiresEmailVerification) {
+          _switchMode(_AuthMode.login);
+          setState(() {
+            _successBannerMessage =
+                'Account created! We sent a confirmation link to ${result.email ?? email}. Please check your inbox and verify your email before signing in.';
+          });
+        } else {
+          widget.onAuthenticated?.call();
+        }
       } else {
         setState(() {
           _localErrorMessage =

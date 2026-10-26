@@ -114,9 +114,11 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       if (session != null) {
         _currentUser = session.user;
         _status = AuthStatus.authenticated;
-        unawaited(
-          ProfileService.instance.fetchAndSyncProfile(user: session.user),
-        );
+        try {
+          await ProfileService.instance.fetchAndSyncProfile(user: session.user);
+        } catch (e) {
+          debugPrint('Profile restore error during init: $e');
+        }
       } else {
         _status = AuthStatus.unauthenticated;
       }
@@ -258,6 +260,17 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
           }
         } catch (rpcErr) {
           debugPrint('Username lookup RPC error: $rpcErr');
+          final errStr = rpcErr.toString().toLowerCase();
+          if (errStr.contains('socket') ||
+              errStr.contains('network') ||
+              errStr.contains('failed host lookup') ||
+              errStr.contains('clientexception')) {
+            _status = AuthStatus.unauthenticated;
+            _errorMessage =
+                'Network error. Please check your connection and try again.';
+            notifyListeners();
+            return false;
+          }
         }
 
         if (resolvedEmail == null || resolvedEmail.isEmpty) {
@@ -281,12 +294,19 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
       if (response.user != null) {
         _currentUser = response.user;
+
+        // Wait for profile loading before declaring authenticated and navigating
+        try {
+          await ProfileService.instance.fetchAndSyncProfile(
+            user: response.user!,
+          );
+        } catch (profileErr) {
+          debugPrint('Profile loading during signIn note: $profileErr');
+        }
+
         _status = AuthStatus.authenticated;
         _errorMessage = null;
         notifyListeners();
-        unawaited(
-          ProfileService.instance.fetchAndSyncProfile(user: response.user!),
-        );
         return true;
       }
 
@@ -301,20 +321,31 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       );
       _status = AuthStatus.unauthenticated;
 
-      if (e.message.toLowerCase().contains('email not confirmed')) {
-        _errorMessage =
-            'Email confirmation is enabled in your Supabase project. To enable immediate login without email verification, disable "Confirm email" under Authentication -> Providers -> Email in your Supabase dashboard.';
-      } else {
-        // Safe, generic message to avoid exposing whether username exists or password failed
+      final msgLower = e.message.toLowerCase();
+      if (msgLower.contains('email not confirmed')) {
+        _errorMessage = 'Your email address is not yet confirmed. Please check your inbox and verify your email to activate your account.';
+      } else if (msgLower.contains('invalid login credentials') ||
+          msgLower.contains('invalid grant') ||
+          msgLower.contains('user not found')) {
         _errorMessage =
             'Invalid username or password. Please check your credentials.';
+      } else {
+        _errorMessage = e.message;
       }
       notifyListeners();
       return false;
     } catch (e) {
       debugPrint('General exception during signIn: $e');
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Unable to sign in. Please verify your network connection and try again.';
+      final eStr = e.toString().toLowerCase();
+      if (eStr.contains('socket') ||
+          eStr.contains('network') ||
+          eStr.contains('failed host lookup') ||
+          eStr.contains('clientexception')) {
+        _errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else {
+        _errorMessage = 'Unable to sign in. Please verify your credentials and network connection.';
+      }
       notifyListeners();
       return false;
     }
@@ -402,10 +433,11 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         return SignUpResult(success: false, errorMessage: _errorMessage);
       }
 
-      // 5. Create user in Supabase Auth with metadata (immediate creation without emailRedirectTo)
+      // 5. Create user in Supabase Auth with metadata and explicit redirect callback
       final response = await Supabase.instance.client.auth.signUp(
         email: normEmail,
         password: trimmedPassword,
+        emailRedirectTo: SupabaseConfig.authRedirectUrl,
         data: {'username': normUsername, 'full_name': normUsername},
       );
 
@@ -419,38 +451,54 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         return SignUpResult(success: false, errorMessage: _errorMessage);
       }
 
-      // If Supabase returned no session, attempt immediate sign-in with credentials
+      // If Supabase returned no session, check if email confirmation is required or try immediate sign-in
       if (session == null) {
         try {
-          final signInRes = await Supabase.instance.client.auth.signInWithPassword(
-            email: normEmail,
-            password: trimmedPassword,
-          );
+          final signInRes = await Supabase.instance.client.auth
+              .signInWithPassword(email: normEmail, password: trimmedPassword);
           session = signInRes.session;
         } catch (_) {
           // If signInWithPassword fails or email is unconfirmed, session remains null
         }
       }
 
-      // Handle cases where Supabase returns no session instead of assuming signup succeeded
+      // Respect the project's actual email-confirmation setting
       if (session == null) {
+        // Confirmation is enabled: account was successfully created, but requires email verification
         _status = AuthStatus.unauthenticated;
-        _errorMessage =
-            'Account created, but no active session was returned by Supabase. Immediate account creation requires "Confirm email" to be disabled in the Supabase Dashboard under Authentication -> Providers -> Email.';
+        _currentUser = null;
+        _errorMessage = null;
+        _statusMessage =
+            'Account created! We sent a confirmation link to $normEmail. Please check your inbox and verify your email before signing in.';
         notifyListeners();
         return SignUpResult(
-          success: false,
-          errorMessage: _errorMessage,
+          success: true,
+          requiresEmailVerification: true,
+          email: normEmail,
         );
       }
 
-      // Immediate session granted
+      // If confirmation is disabled, an authenticated session exists!
       _currentUser = session.user;
-      _status = AuthStatus.authenticated;
-      _errorMessage = null;
+
+      // Claim the username using the existing claim_username RPC with exact parameter ('new_username')
+      try {
+        await ProfileService.instance.claimUsername(normUsername);
+      } catch (claimErr) {
+        debugPrint('claim_username failed during signup: $claimErr');
+        final claimErrMsg = claimErr.toString().replaceFirst('Exception: ', '');
+
+        // Account exists, but claiming username failed (e.g. collision or RPC failure).
+        // Safely set unauthenticated state so the user isn't stuck with an uncompleted profile,
+        // and return the exact error message with recovery instructions.
+        _status = AuthStatus.unauthenticated;
+        _errorMessage =
+            'Account was created, but claiming @$normUsername failed: $claimErrMsg. Please sign in to choose an available username.';
+        notifyListeners();
+        return SignUpResult(success: false, errorMessage: _errorMessage);
+      }
 
       // Immediately establish local profile with authenticated user UUID and username
-      // so routing proceeds directly to the home screen without intermediate onboarding
       final initialProfile = StuDeskRepository.instance.profile.copyWith(
         id: session.user.id,
         username: normUsername,
@@ -460,26 +508,17 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       );
       await StuDeskRepository.instance.updateProfile(initialProfile);
 
-      // Persist username to public.profiles
+      // Load and sync profile from backend
       try {
-        await ProfileService.instance.claimUsername(normUsername);
-      } catch (claimErr) {
-        debugPrint('Post-signup claimUsername note: $claimErr');
-        final errLower = claimErr.toString().toLowerCase();
-        if (errLower.contains('already taken') || errLower.contains('unique')) {
-          _status = AuthStatus.unauthenticated;
-          _errorMessage =
-              'Username @$normUsername is already taken by another student. Please pick a different username.';
-          notifyListeners();
-          return SignUpResult(success: false, errorMessage: _errorMessage);
-        }
+        await ProfileService.instance.fetchAndSyncProfile(user: session.user);
+      } catch (e) {
+        debugPrint('Profile sync error after signup: $e');
       }
 
-      unawaited(
-        ProfileService.instance.fetchAndSyncProfile(user: session.user),
-      );
-
+      _status = AuthStatus.authenticated;
+      _errorMessage = null;
       notifyListeners();
+
       return const SignUpResult(
         success: true,
         requiresEmailVerification: false,
@@ -491,8 +530,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       final msgLower = e.message.toLowerCase();
       if (msgLower.contains('already registered') ||
           msgLower.contains('already exists')) {
-        _errorMessage =
-            'An account with this email already exists. Please sign in instead.';
+        _errorMessage = 'An account with this email already exists. Please sign in instead.';
       } else if (msgLower.contains('unique') ||
           msgLower.contains('duplicate') ||
           msgLower.contains('username')) {
@@ -506,7 +544,15 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('General exception during signUp: $e');
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Registration could not be completed. Please check your network connection and try again.';
+      final eStr = e.toString().toLowerCase();
+      if (eStr.contains('socket') ||
+          eStr.contains('network') ||
+          eStr.contains('failed host lookup') ||
+          eStr.contains('clientexception')) {
+        _errorMessage = 'Network error. Please verify your internet connection and try again.';
+      } else {
+        _errorMessage = 'Registration could not be completed. Please check your network connection and try again.';
+      }
       notifyListeners();
       return SignUpResult(success: false, errorMessage: _errorMessage);
     }

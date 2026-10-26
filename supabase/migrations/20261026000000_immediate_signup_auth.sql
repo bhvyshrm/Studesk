@@ -296,8 +296,9 @@ BEGIN
 
     SELECT u.email INTO found_email
     FROM auth.users u
-    INNER JOIN public.profiles p ON p.id = u.id
+    LEFT JOIN public.profiles p ON p.id = u.id
     WHERE lower(p.username) = normalized
+       OR lower(trim(COALESCE(u.raw_user_meta_data->>'username', ''))) = normalized
     LIMIT 1;
 
     RETURN found_email;

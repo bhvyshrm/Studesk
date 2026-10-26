@@ -131,14 +131,16 @@ class ProfileService extends ChangeNotifier {
 
     try {
       final user = AuthService.instance.currentUser;
+      final isInitialized =
+          SupabaseConfig.isConfigured &&
+          AuthService.instance.isSupabaseInitialized;
+      final session = isInitialized
+          ? Supabase.instance.client.auth.currentSession
+          : null;
       final currentUserId =
-          user?.id ??
-          Supabase.instance.client.auth.currentSession?.user.id ??
-          StuDeskRepository.instance.profile.id;
+          user?.id ?? session?.user.id ?? StuDeskRepository.instance.profile.id;
 
-      if (SupabaseConfig.isConfigured &&
-          AuthService.instance.isSupabaseInitialized &&
-          Supabase.instance.client.auth.currentSession != null) {
+      if (isInitialized && session != null) {
         bool rpcSucceeded = false;
         try {
           final rpcRes = await Supabase.instance.client.rpc(
@@ -146,25 +148,28 @@ class ProfileService extends ChangeNotifier {
             params: {'new_username': normalized},
           );
           if (rpcRes is Map) {
-            if (rpcRes['success'] == false) {
-              throw Exception(
-                rpcRes['error']?.toString() ?? 'Failed to claim username.',
-              );
+            if (rpcRes['success'] != true) {
+              final rpcErr =
+                  rpcRes['error']?.toString() ?? 'Failed to claim username.';
+              throw Exception(rpcErr);
             }
             rpcSucceeded = true;
           }
         } catch (rpcErr) {
-          debugPrint(
-            'claim_username RPC error, falling back to direct update: $rpcErr',
-          );
-          if (rpcErr.toString().contains('already taken') ||
-              rpcErr.toString().contains('reserved')) {
+          debugPrint('claim_username RPC error: $rpcErr');
+          // If RPC returned an explicit business failure or error, rethrow immediately
+          final errStr = rpcErr.toString();
+          if (errStr.contains('already taken') ||
+              errStr.contains('reserved') ||
+              errStr.contains('characters') ||
+              errStr.contains('Unauthenticated') ||
+              rpcErr is Exception) {
             rethrow;
           }
         }
 
         if (!rpcSucceeded) {
-          // Direct profile table update with fallback if optional columns are missing
+          // Direct profile table update fallback for environments where RPC is missing
           try {
             await Supabase.instance.client.from('profiles').upsert({
               'id': currentUserId,
@@ -175,7 +180,8 @@ class ProfileService extends ChangeNotifier {
           } catch (e) {
             final errStr = e.toString().toLowerCase();
             if (errStr.contains('onboarding_completed') ||
-                errStr.contains('column') && errStr.contains('does not exist')) {
+                errStr.contains('column') &&
+                    errStr.contains('does not exist')) {
               await Supabase.instance.client.from('profiles').upsert({
                 'id': currentUserId,
                 'username': normalized,
@@ -292,7 +298,9 @@ class ProfileService extends ChangeNotifier {
               'updated_at': DateTime.now().toUtc().toIso8601String(),
             });
           } catch (fallbackErr) {
-            debugPrint('Error inserting initial profile base row: $fallbackErr');
+            debugPrint(
+              'Error inserting initial profile base row: $fallbackErr',
+            );
           }
         }
 
@@ -323,6 +331,25 @@ class ProfileService extends ChangeNotifier {
         fallbackAvatar: fallbackAvatar,
         fallbackUsername: fallbackUsername,
       );
+
+      // Backfill database username if metadata had it but profile table row missed it
+      final rowUsername = (response['username'] as String?)?.trim();
+      if ((rowUsername == null || rowUsername.isEmpty) &&
+          fallbackUsername != null &&
+          fallbackUsername.isNotEmpty) {
+        try {
+          await Supabase.instance.client
+              .from('profiles')
+              .update({
+                'username': fallbackUsername,
+                'onboarding_completed': true,
+                'updated_at': DateTime.now().toUtc().toIso8601String(),
+              })
+              .eq('id', user.id);
+        } catch (backfillErr) {
+          debugPrint('Username backfill note: $backfillErr');
+        }
+      }
 
       await StuDeskRepository.instance.updateProfile(profile);
       unawaited(

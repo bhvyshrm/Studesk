@@ -504,9 +504,7 @@ void main() {
 
   group('Immediate Account Creation & Profile Integrity Tests', () {
     test('SignUpResult defaults to immediate account creation without email verification', () {
-      const immediateResult = SignUpResult(
-        success: true,
-      );
+      const immediateResult = SignUpResult(success: true);
       expect(immediateResult.success, isTrue);
       expect(immediateResult.requiresEmailVerification, isFalse);
       expect(immediateResult.errorMessage, isNull);
@@ -579,7 +577,10 @@ void main() {
 
         // Verification-waiting messages/screens must NOT exist
         expect(find.text('Verify Your Email Address'), findsNothing);
-        expect(find.textContaining('We sent a confirmation link'), findsNothing);
+        expect(
+          find.textContaining('We sent a confirmation link'),
+          findsNothing,
+        );
         expect(find.textContaining('check your inbox'), findsNothing);
         expect(find.text('Return to Sign In'), findsNothing);
       },
@@ -623,6 +624,38 @@ void main() {
         // No waiting screen or onboarding roadblock
         expect(find.byType(UsernameOnboardingScreen), findsNothing);
         expect(find.text('Verify Your Email Address'), findsNothing);
+      },
+    );
+
+    test(
+      'SignUpResult handles verification requirements accurately and cleanly',
+      () {
+        const emailResult = SignUpResult(
+          success: true,
+          requiresEmailVerification: true,
+          email: 'student@example.edu',
+        );
+        expect(emailResult.success, isTrue);
+        expect(emailResult.requiresEmailVerification, isTrue);
+        expect(emailResult.email, equals('student@example.edu'));
+        expect(emailResult.errorMessage, isNull);
+
+        const immediateResult = SignUpResult(
+          success: true,
+          requiresEmailVerification: false,
+        );
+        expect(immediateResult.success, isTrue);
+        expect(immediateResult.requiresEmailVerification, isFalse);
+
+        const failedClaimResult = SignUpResult(
+          success: false,
+          errorMessage: 'Account was created, but claiming @alex_chen failed: Username is already taken by another student.',
+        );
+        expect(failedClaimResult.success, isFalse);
+        expect(
+          failedClaimResult.errorMessage,
+          contains('claiming @alex_chen failed'),
+        );
       },
     );
   });

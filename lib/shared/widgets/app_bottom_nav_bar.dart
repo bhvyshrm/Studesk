@@ -123,9 +123,7 @@ class AppBottomNavBar extends StatelessWidget {
             curve: Curves.easeOutCubic,
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? stuTheme.surfaceTier2
-                  : Colors.transparent,
+              color: isSelected ? stuTheme.surfaceTier2 : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: isSelected
                   ? Border.all(color: stuTheme.border, width: 0.8)
@@ -138,9 +136,7 @@ class AppBottomNavBar extends StatelessWidget {
                 Icon(
                   isSelected ? selectedIcon : icon,
                   size: 21,
-                  color: isSelected
-                      ? stuTheme.textPrimary
-                      : stuTheme.textMuted,
+                  color: isSelected ? stuTheme.textPrimary : stuTheme.textMuted,
                 ),
                 const SizedBox(height: 3),
                 Text(

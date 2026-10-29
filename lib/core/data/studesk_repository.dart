@@ -1328,7 +1328,30 @@ class StuDeskRepository extends ChangeNotifier {
       final client = _supabaseClient;
       final user = client?.auth.currentUser;
       if (client != null && user != null) {
-        await client.from('profiles').upsert(_profile.toSupabaseMap());
+        try {
+          await client.from('profiles').upsert(_profile.toSupabaseMap());
+        } catch (e) {
+          final errStr = e.toString().toLowerCase();
+          if (errStr.contains('column') && errStr.contains('does not exist')) {
+            // Fallback for database schema lacking optional extended columns
+            final baseMap = {
+              'id': _profile.id,
+              'username': _profile.username.trim().isNotEmpty
+                  ? _profile.username.trim().toLowerCase()
+                  : null,
+              'full_name': _profile.name,
+              'avatar_url': _profile.avatarUrl ?? '',
+              'institution': _profile.college,
+              'course': _profile.course,
+              'academic_year': _profile.academicYear,
+              'semester': _profile.semester,
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            };
+            await client.from('profiles').upsert(baseMap);
+          } else {
+            debugPrint('Sync profile error: $e');
+          }
+        }
       }
     } catch (e) {
       debugPrint('Sync profile error: $e');

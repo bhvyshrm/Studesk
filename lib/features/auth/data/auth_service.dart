@@ -161,9 +161,11 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
           _status = AuthStatus.authenticated;
           _errorMessage = null;
           notifyListeners();
-          unawaited(
-            ProfileService.instance.fetchAndSyncProfile(user: session.user),
-          );
+          if (!ProfileService.instance.isLoading) {
+            unawaited(
+              ProfileService.instance.fetchAndSyncProfile(user: session.user),
+            );
+          }
         }
         break;
 
@@ -172,6 +174,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         _status = AuthStatus.unauthenticated;
         _errorMessage = null;
         _statusMessage = null;
+        unawaited(StuDeskRepository.instance.clearUserSessionData());
         ProfileService.instance.resetState();
         notifyListeners();
         break;
@@ -196,7 +199,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
     final trimmedPassword = password.trim();
 
     if (trimmedInput.isEmpty) {
-      _errorMessage = 'Please enter your username.';
+      _errorMessage = 'Please enter your username or email.';
       notifyListeners();
       return false;
     }
@@ -250,32 +253,53 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
         // Backend-safe RPC lookup: resolves username -> email without exposing profile data
         String? resolvedEmail;
-        try {
-          final res = await Supabase.instance.client.rpc(
-            'get_auth_email_for_username',
-            params: {'p_username': normalizedUsername},
-          );
-          if (res is String && res.trim().isNotEmpty) {
-            resolvedEmail = res.trim();
-          }
-        } catch (rpcErr) {
-          debugPrint('Username lookup RPC error: $rpcErr');
-          final errStr = rpcErr.toString().toLowerCase();
-          if (errStr.contains('socket') ||
-              errStr.contains('network') ||
-              errStr.contains('failed host lookup') ||
-              errStr.contains('clientexception')) {
-            _status = AuthStatus.unauthenticated;
-            _errorMessage =
-                'Network error. Please check your connection and try again.';
-            notifyListeners();
-            return false;
+        bool rpcMissing = false;
+
+        for (final paramKey in [
+          'p_username',
+          'requested_username',
+          'username',
+        ]) {
+          try {
+            final res = await Supabase.instance.client.rpc(
+              'get_auth_email_for_username',
+              params: {paramKey: normalizedUsername},
+            );
+            if (res is String && res.trim().isNotEmpty) {
+              resolvedEmail = res.trim();
+              break;
+            } else if (res == null) {
+              // RPC ran and confirmed no email exists for that username
+              break;
+            }
+          } catch (rpcErr) {
+            debugPrint('Username lookup RPC error ($paramKey): $rpcErr');
+            final errStr = rpcErr.toString().toLowerCase();
+            if (errStr.contains('socket') ||
+                errStr.contains('network') ||
+                errStr.contains('failed host lookup') ||
+                errStr.contains('clientexception')) {
+              _status = AuthStatus.unauthenticated;
+              _errorMessage =
+                  'Network error. Please check your connection and try again.';
+              notifyListeners();
+              return false;
+            }
+            if (errStr.contains('not find the function') ||
+                errStr.contains('pgrst202')) {
+              rpcMissing = true;
+            }
           }
         }
 
         if (resolvedEmail == null || resolvedEmail.isEmpty) {
-          // If username is not found in database, trigger a failed authentication attempt
-          // with a consistent synthetic identifier to preserve timing and prevent username enumeration
+          if (rpcMissing) {
+            _status = AuthStatus.unauthenticated;
+            _errorMessage = 'Username login function is not yet deployed on the Supabase database. Please log in using your registered email address.';
+            notifyListeners();
+            return false;
+          }
+          // Synthetic non-existent identifier to prevent user enumeration
           final safeTag = normalizedUsername.replaceAll(
             RegExp(r'[^a-z0-9]'),
             '',
@@ -294,8 +318,9 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
 
       if (response.user != null) {
         _currentUser = response.user;
+        _errorMessage = null;
 
-        // Wait for profile loading before declaring authenticated and navigating
+        // Fetch and link profile before declaring authenticated
         try {
           await ProfileService.instance.fetchAndSyncProfile(
             user: response.user!,
@@ -305,7 +330,6 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         }
 
         _status = AuthStatus.authenticated;
-        _errorMessage = null;
         notifyListeners();
         return true;
       }
@@ -348,6 +372,11 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       }
       notifyListeners();
       return false;
+    } finally {
+      if (_status == AuthStatus.authenticating && _currentUser == null) {
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+      }
     }
   }
 
@@ -481,23 +510,6 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       // If confirmation is disabled, an authenticated session exists!
       _currentUser = session.user;
 
-      // Claim the username using the existing claim_username RPC with exact parameter ('new_username')
-      try {
-        await ProfileService.instance.claimUsername(normUsername);
-      } catch (claimErr) {
-        debugPrint('claim_username failed during signup: $claimErr');
-        final claimErrMsg = claimErr.toString().replaceFirst('Exception: ', '');
-
-        // Account exists, but claiming username failed (e.g. collision or RPC failure).
-        // Safely set unauthenticated state so the user isn't stuck with an uncompleted profile,
-        // and return the exact error message with recovery instructions.
-        _status = AuthStatus.unauthenticated;
-        _errorMessage =
-            'Account was created, but claiming @$normUsername failed: $claimErrMsg. Please sign in to choose an available username.';
-        notifyListeners();
-        return SignUpResult(success: false, errorMessage: _errorMessage);
-      }
-
       // Immediately establish local profile with authenticated user UUID and username
       final initialProfile = StuDeskRepository.instance.profile.copyWith(
         id: session.user.id,
@@ -507,6 +519,14 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         onboardingCompleted: true,
       );
       await StuDeskRepository.instance.updateProfile(initialProfile);
+
+      // Attempt to claim username on backend (with resilient fallback)
+      try {
+        await ProfileService.instance.claimUsername(normUsername);
+      } catch (claimErr) {
+        debugPrint('claim_username non-fatal note during signup: $claimErr');
+        // Do NOT revert authenticated state; local profile & session already possess the username
+      }
 
       // Load and sync profile from backend
       try {
@@ -555,6 +575,11 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       }
       notifyListeners();
       return SignUpResult(success: false, errorMessage: _errorMessage);
+    } finally {
+      if (_status == AuthStatus.authenticating && _currentUser == null) {
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+      }
     }
   }
 
@@ -576,15 +601,22 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
         targetEmail = trimmed;
       } else {
         // Resolve username to email via server-side function
-        try {
-          final res = await Supabase.instance.client.rpc(
-            'get_auth_email_for_username',
-            params: {'p_username': trimmed},
-          );
-          if (res is String && res.trim().isNotEmpty) {
-            targetEmail = res.trim();
-          }
-        } catch (_) {}
+        for (final paramKey in [
+          'p_username',
+          'requested_username',
+          'username',
+        ]) {
+          try {
+            final res = await Supabase.instance.client.rpc(
+              'get_auth_email_for_username',
+              params: {paramKey: trimmed},
+            );
+            if (res is String && res.trim().isNotEmpty) {
+              targetEmail = res.trim();
+              break;
+            }
+          } catch (_) {}
+        }
       }
 
       if (targetEmail != null && targetEmail.isNotEmpty) {
@@ -617,6 +649,7 @@ class AuthService extends ChangeNotifier with WidgetsBindingObserver {
       _status = AuthStatus.unauthenticated;
       _errorMessage = null;
       _statusMessage = null;
+      await StuDeskRepository.instance.clearUserSessionData();
       ProfileService.instance.resetState();
       notifyListeners();
     }

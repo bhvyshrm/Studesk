@@ -83,35 +83,40 @@ class ProfileService extends ChangeNotifier {
       return true;
     }
 
-    try {
-      final result = await Supabase.instance.client.rpc(
-        'check_username_available',
-        params: {'requested_username': normalized},
-      );
-      if (result is bool) {
-        return result;
-      }
-    } catch (_) {
-      // Fallback check against profiles table if RPC is not yet registered
+    // Try RPC check_username_available with both parameter variants
+    for (final paramKey in ['requested_username', 'p_username']) {
       try {
-        final currentUserId =
-            Supabase.instance.client.auth.currentSession?.user.id;
-        final query = Supabase.instance.client
-            .from('profiles')
-            .select('id')
-            .eq('username', normalized);
-        final response = await query;
-        if (response.isNotEmpty) {
-          final first = response.first;
-          if (first['id'] == currentUserId) {
-            return true;
-          }
-          return false;
+        final result = await Supabase.instance.client.rpc(
+          'check_username_available',
+          params: {paramKey: normalized},
+        );
+        if (result is bool) {
+          return result;
         }
-        return true;
-      } catch (err) {
-        debugPrint('Fallback username availability check failed: $err');
+      } catch (rpcErr) {
+        debugPrint('check_username_available RPC note ($paramKey): $rpcErr');
       }
+    }
+
+    // Fallback check directly against profiles table if RPC is not registered
+    try {
+      final currentUserId =
+          Supabase.instance.client.auth.currentSession?.user.id;
+      final query = Supabase.instance.client
+          .from('profiles')
+          .select('id')
+          .eq('username', normalized);
+      final response = await query;
+      if (response.isNotEmpty) {
+        final first = response.first;
+        if (first['id'] == currentUserId) {
+          return true;
+        }
+        return false;
+      }
+      return true;
+    } catch (err) {
+      debugPrint('Fallback username availability check note: $err');
     }
 
     return true;
@@ -142,34 +147,40 @@ class ProfileService extends ChangeNotifier {
 
       if (isInitialized && session != null) {
         bool rpcSucceeded = false;
-        try {
-          final rpcRes = await Supabase.instance.client.rpc(
-            'claim_username',
-            params: {'new_username': normalized},
-          );
-          if (rpcRes is Map) {
-            if (rpcRes['success'] != true) {
-              final rpcErr =
-                  rpcRes['error']?.toString() ?? 'Failed to claim username.';
-              throw Exception(rpcErr);
+
+        // Try RPC claim_username with both parameter variants ('new_username', then 'p_username')
+        for (final paramKey in ['new_username', 'p_username']) {
+          try {
+            final rpcRes = await Supabase.instance.client.rpc(
+              'claim_username',
+              params: {paramKey: normalized},
+            );
+            if (rpcRes is Map) {
+              if (rpcRes['success'] != true) {
+                final rpcErr =
+                    rpcRes['error']?.toString() ?? 'Failed to claim username.';
+                // If it's a domain validation or concurrency error, throw business exception
+                throw Exception(rpcErr);
+              }
+              rpcSucceeded = true;
+              break;
             }
-            rpcSucceeded = true;
-          }
-        } catch (rpcErr) {
-          debugPrint('claim_username RPC error: $rpcErr');
-          // If RPC returned an explicit business failure or error, rethrow immediately
-          final errStr = rpcErr.toString();
-          if (errStr.contains('already taken') ||
-              errStr.contains('reserved') ||
-              errStr.contains('characters') ||
-              errStr.contains('Unauthenticated') ||
-              rpcErr is Exception) {
-            rethrow;
+          } catch (rpcErr) {
+            debugPrint('claim_username RPC error ($paramKey): $rpcErr');
+            final errStr = rpcErr.toString();
+            // If explicit business failure, rethrow immediately
+            if (errStr.contains('already taken') ||
+                errStr.contains('reserved') ||
+                errStr.contains('characters') ||
+                errStr.contains('Unauthenticated')) {
+              rethrow;
+            }
+            // For function not found or parameter mismatch errors, proceed to next variant or table fallback
           }
         }
 
         if (!rpcSucceeded) {
-          // Direct profile table update fallback for environments where RPC is missing
+          // Direct profile table update fallback for environments where RPC is missing or parameter differs
           try {
             await Supabase.instance.client.from('profiles').upsert({
               'id': currentUserId,
@@ -180,15 +191,19 @@ class ProfileService extends ChangeNotifier {
           } catch (e) {
             final errStr = e.toString().toLowerCase();
             if (errStr.contains('onboarding_completed') ||
-                errStr.contains('column') &&
-                    errStr.contains('does not exist')) {
-              await Supabase.instance.client.from('profiles').upsert({
-                'id': currentUserId,
-                'username': normalized,
-                'updated_at': DateTime.now().toUtc().toIso8601String(),
-              });
+                (errStr.contains('column') &&
+                    errStr.contains('does not exist'))) {
+              try {
+                await Supabase.instance.client.from('profiles').upsert({
+                  'id': currentUserId,
+                  'username': normalized,
+                  'updated_at': DateTime.now().toUtc().toIso8601String(),
+                });
+              } catch (fallbackE) {
+                debugPrint('Direct table upsert fallback note: $fallbackE');
+              }
             } else {
-              rethrow;
+              debugPrint('Direct table upsert note: $e');
             }
           }
         }
@@ -197,6 +212,7 @@ class ProfileService extends ChangeNotifier {
       // Update local repository profile
       final currentProfile = StuDeskRepository.instance.profile;
       final updatedProfile = currentProfile.copyWith(
+        id: currentUserId.isNotEmpty ? currentUserId : currentProfile.id,
         username: normalized,
         onboardingCompleted: true,
       );
@@ -338,14 +354,24 @@ class ProfileService extends ChangeNotifier {
           fallbackUsername != null &&
           fallbackUsername.isNotEmpty) {
         try {
-          await Supabase.instance.client
-              .from('profiles')
-              .update({
-                'username': fallbackUsername,
-                'onboarding_completed': true,
-                'updated_at': DateTime.now().toUtc().toIso8601String(),
-              })
-              .eq('id', user.id);
+          try {
+            await Supabase.instance.client
+                .from('profiles')
+                .update({
+                  'username': fallbackUsername,
+                  'onboarding_completed': true,
+                  'updated_at': DateTime.now().toUtc().toIso8601String(),
+                })
+                .eq('id', user.id);
+          } catch (e) {
+            await Supabase.instance.client
+                .from('profiles')
+                .update({
+                  'username': fallbackUsername,
+                  'updated_at': DateTime.now().toUtc().toIso8601String(),
+                })
+                .eq('id', user.id);
+          }
         } catch (backfillErr) {
           debugPrint('Username backfill note: $backfillErr');
         }
@@ -362,6 +388,26 @@ class ProfileService extends ChangeNotifier {
       return profile;
     } catch (e) {
       debugPrint('ProfileService fetchAndSyncProfile error: $e');
+      final hasFallback =
+          fallbackUsername != null && fallbackUsername.isNotEmpty;
+      if (hasFallback || StuDeskRepository.instance.profile.hasUsername) {
+        if (!StuDeskRepository.instance.profile.hasUsername && hasFallback) {
+          final fallbackProfile = StuDeskRepository.instance.profile.copyWith(
+            id: user.id,
+            username: fallbackUsername,
+            name: fallbackName,
+            email: fallbackEmail,
+            avatarUrl: fallbackAvatar,
+            onboardingCompleted: true,
+          );
+          await StuDeskRepository.instance.updateProfile(fallbackProfile);
+        }
+        _isLoading = false;
+        _hasLoaded = true;
+        _lastError = null;
+        notifyListeners();
+        return StuDeskRepository.instance.profile;
+      }
       _lastError = 'Unable to connect to your profile. Please check your network connection.';
       _isLoading = false;
       notifyListeners();

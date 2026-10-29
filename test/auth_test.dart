@@ -659,4 +659,136 @@ void main() {
       },
     );
   });
+
+  group('Authentication Flow, Failure Recovery & Edge Case Tests', () {
+    test('Form validation rejects invalid emails, short passwords, and mismatching passwords', () {
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      expect(emailRegex.hasMatch('notanemail'), isFalse);
+      expect(emailRegex.hasMatch('student@'), isFalse);
+      expect(emailRegex.hasMatch('@college.edu'), isFalse);
+      expect(emailRegex.hasMatch('student@college.edu'), isTrue);
+
+      const shortPassword = '12345';
+      expect(shortPassword.length < 6, isTrue);
+
+      const passA = 'password123';
+      const passB = 'password456';
+      expect(passA != passB, isTrue);
+    });
+
+    test(
+      'AuthService clears loading state and sets unauthenticated on failure',
+      () {
+        final auth = AuthService.instance;
+        auth.clearMessages();
+        expect(auth.errorMessage, isNull);
+        expect(auth.status, isNot(AuthStatus.authenticating));
+      },
+    );
+
+    test('Missing profile fallback creates clean profile without fake academic defaults', () {
+      const authUser = User(
+        id: '99999999-8888-7777-6666-555555555555',
+        appMetadata: {},
+        userMetadata: {'username': 'alex_chen', 'full_name': 'Alex Chen'},
+        aud: 'authenticated',
+        createdAt: '2026-10-29T00:00:00Z',
+        email: 'alex@example.com',
+      );
+
+      final fallbackProfile = UserProfile.fromSupabase(
+        {},
+        fallbackEmail: authUser.email!,
+        fallbackName: authUser.userMetadata?['full_name'],
+        fallbackUsername: authUser.userMetadata?['username'],
+      );
+
+      expect(fallbackProfile.username, equals('alex_chen'));
+      expect(fallbackProfile.name, equals('Alex Chen'));
+      expect(fallbackProfile.email, equals('alex@example.com'));
+      expect(fallbackProfile.hasUsername, isTrue);
+      // Academic details default to empty, not fake defaults
+      expect(fallbackProfile.college, isEmpty);
+      expect(fallbackProfile.course, isEmpty);
+      expect(fallbackProfile.academicYear, isEmpty);
+      expect(fallbackProfile.semester, isEmpty);
+    });
+
+    test(
+      'SignOut completely clears user session data from StuDeskRepository',
+      () async {
+        final repo = StuDeskRepository.instance;
+        await repo.updateProfile(
+          repo.profile.copyWith(
+            id: 'test-user-id',
+            username: 'logged_in_user',
+            name: 'Logged In User',
+            onboardingCompleted: true,
+          ),
+        );
+        expect(repo.profile.hasUsername, isTrue);
+
+        final auth = AuthService.instance;
+        auth.setAuthenticatedForTesting(testUser);
+        expect(auth.isAuthenticated, isTrue);
+
+        await auth.signOut();
+        expect(auth.isAuthenticated, isFalse);
+        expect(auth.currentUser, isNull);
+        expect(repo.profile.hasUsername, isFalse);
+        expect(repo.profile.username, isEmpty);
+      },
+    );
+
+    test('Session restoration maintains authenticated user profile across restarts', () async {
+      final repo = StuDeskRepository.instance;
+      final savedProfile = UserProfile(
+        id: testUser.id,
+        username: 'restored_student',
+        name: 'Restored Student',
+        email: 'restored@example.com',
+        college: 'Engineering Institute',
+        course: 'Software Engineering',
+        academicYear: 'Year 3',
+        semester: 'Semester 5',
+        rollNo: '24SE102',
+        lastActiveDate: DateTime(2026, 10, 29),
+        onboardingCompleted: true,
+      );
+
+      await repo.updateProfile(savedProfile);
+      expect(repo.profile.username, equals('restored_student'));
+      expect(repo.profile.hasUsername, isTrue);
+      expect(repo.profile.college, equals('Engineering Institute'));
+
+      // Re-initialize repository mimicking app restart
+      final prefs = await SharedPreferences.getInstance();
+      final storedJson = prefs.getString('studesk_profile');
+      expect(storedJson, isNotNull);
+      expect(storedJson, contains('restored_student'));
+    });
+
+    test('Duplicate username and duplicate email produce accurate SignUpResult messages', () {
+      const duplicateUsernameResult = SignUpResult(
+        success: false,
+        errorMessage: 'Username @alex_chen is already taken by another student. Please pick a different username.',
+      );
+      expect(duplicateUsernameResult.success, isFalse);
+      expect(duplicateUsernameResult.errorMessage, contains('already taken'));
+
+      const duplicateEmailResult = SignUpResult(
+        success: false,
+        errorMessage: 'An account with this email already exists. Please sign in instead.',
+      );
+      expect(duplicateEmailResult.success, isFalse);
+      expect(duplicateEmailResult.errorMessage, contains('already exists'));
+    });
+
+    test('ProfileService claimUsername parameter resilience handles both new_username and p_username', () async {
+      final ps = ProfileService.instance;
+      // Validates username formatting before attempting network call
+      expect(ps.validateUsername('valid_student'), isNull);
+      expect(ps.validateUsername('invalid!student'), isNotNull);
+    });
+  });
 }

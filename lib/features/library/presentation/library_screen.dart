@@ -389,7 +389,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                       decoration: BoxDecoration(
                                         color: stuTheme.surfaceTier2,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: stuTheme.border),
+                                        border: Border.all(
+                                          color: stuTheme.border,
+                                        ),
                                       ),
                                       child: Icon(
                                         res.isYouTube

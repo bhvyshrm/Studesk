@@ -175,7 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
         final todayEvents = _repo.todayEvents;
         final todayReminders = _repo.todayReminders;
 
-        final pendingTasksCount = todayTasks.where((t) => !t.isCompleted).length;
+        final pendingTasksCount = todayTasks
+            .where((t) => !t.isCompleted)
+            .length;
 
         final hasTodayItems =
             todayClasses.isNotEmpty ||
@@ -373,7 +375,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.school_outlined,
                               label: '+ Subject',
                               stuTheme: stuTheme,
-                              onTap: () => StuDeskForms.showSubjectForm(context),
+                              onTap: () =>
+                                  StuDeskForms.showSubjectForm(context),
                             ),
                             const SizedBox(width: 8),
                             _buildQuickActionButton(
@@ -427,8 +430,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildEmptySection(
                           icon: Icons.check_circle_outline_rounded,
                           title: 'Your day is clear',
-                          subtitle:
-                              'Nothing scheduled for today yet. Add a class, task, or reminder to stay organized.',
+                          subtitle: 'Nothing scheduled for today yet. Add a class, task, or reminder to stay organized.',
                           actionText: 'Add to Plan',
                           onAction: _showAddPlanItemSheet,
                           stuTheme: stuTheme,
@@ -483,8 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildEmptySection(
                           icon: Icons.event_note_rounded,
                           title: 'No upcoming deadlines',
-                          subtitle:
-                              'No exams or scheduled assignments in the near horizon. All caught up!',
+                          subtitle: 'No exams or scheduled assignments in the near horizon. All caught up!',
                           actionText: 'Schedule Exam / Event',
                           onAction: () => StuDeskForms.showExamForm(context),
                           stuTheme: stuTheme,
@@ -830,7 +831,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     t.isCompleted
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
-                    color: t.isCompleted ? stuTheme.textMuted : stuTheme.textPrimary,
+                    color: t.isCompleted
+                        ? stuTheme.textMuted
+                        : stuTheme.textPrimary,
                     size: 22,
                   ),
                   onPressed: () => _repo.toggleTask(t.id),
@@ -919,7 +922,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
                     borderRadius: BorderRadius.circular(6),
@@ -999,7 +1005,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
                     borderRadius: BorderRadius.circular(6),
@@ -1081,7 +1090,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
                     borderRadius: BorderRadius.circular(6),

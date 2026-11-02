@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
+export 'app_colors.dart';
+
 @immutable
 class StuDeskThemeExtension extends ThemeExtension<StuDeskThemeExtension> {
   final Color canvas;

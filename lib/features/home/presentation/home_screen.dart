@@ -239,12 +239,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         formattedDate,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: stuTheme.textMuted,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.1,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
 
                       // Section 5.2: Header with Greeting & Avatar
                       Row(
@@ -257,10 +257,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Text(
                                   'Good day, $displayName',
                                   style: TextStyle(
-                                    fontSize: 24,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.w800,
                                     color: stuTheme.textPrimary,
-                                    letterSpacing: -0.5,
+                                    letterSpacing: -0.4,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -271,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 12.5,
                                     color: stuTheme.textSecondary,
                                   ),
                                 ),
@@ -283,23 +283,23 @@ class _HomeScreenState extends State<HomeScreen> {
                             message: 'View Profile',
                             child: InkWell(
                               onTap: widget.onNavigateToProfile,
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(20),
                               child: Container(
-                                width: 44,
-                                height: 44,
+                                width: 40,
+                                height: 40,
                                 decoration: BoxDecoration(
                                   color: stuTheme.surfaceTier2,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: stuTheme.border,
-                                    width: 1.5,
+                                    width: 1.0,
                                   ),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
                                   initials,
                                   style: TextStyle(
-                                    fontSize: 17,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                     color: stuTheme.textPrimary,
                                   ),
@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
 
                       // Section 5.3: Today's Overview Metrics Row
                       Row(
@@ -324,7 +324,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: widget.onNavigateToAcademics,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: _buildMetricCard(
                               label: 'Pending Tasks',
@@ -334,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: _showAddPlanItemSheet,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: _buildMetricCard(
                               label: 'Radar Exams',
@@ -347,16 +347,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
 
                       // Section 5.4: Shortcuts Bar
                       Text(
                         'Shortcuts',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: stuTheme.textMuted,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.4,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -583,12 +583,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadii.md),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: stuTheme.surfaceTier1,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           border: Border.all(color: stuTheme.border),
         ),
         child: Column(
@@ -597,12 +597,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, size: 16, color: stuTheme.textSecondary),
+                Icon(icon, size: 15, color: stuTheme.textMuted),
                 Text(
                   '$count',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
                     color: stuTheme.textPrimary,
                   ),
                 ),
@@ -614,9 +614,9 @@ class _HomeScreenState extends State<HomeScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w600,
-                color: stuTheme.textMuted,
+                color: stuTheme.textSecondary,
               ),
             ),
           ],
@@ -633,26 +633,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Material(
       color: stuTheme.surfaceTier1,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadii.md),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadii.md),
             border: Border.all(color: stuTheme.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: stuTheme.textPrimary),
-              const SizedBox(width: 6),
+              Icon(icon, size: 15, color: stuTheme.textPrimary),
+              const SizedBox(width: 5),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                   color: stuTheme.textPrimary,
                 ),
               ),

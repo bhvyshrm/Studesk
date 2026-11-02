@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'core/data/studesk_repository.dart';
 import 'core/theme/app_theme.dart';
@@ -53,8 +54,21 @@ class _StuDeskAppState extends State<StuDeskApp> {
           : AppTheme.darkTheme,
       themeMode: themeCtrl.themeMode,
       builder: (context, child) {
-        return child ??
-            const Scaffold(body: Center(child: CircularProgressIndicator()));
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarDividerColor: Colors.transparent,
+            systemNavigationBarIconBrightness:
+                isDark ? Brightness.light : Brightness.dark,
+            systemNavigationBarContrastEnforced: false,
+          ),
+          child: child ??
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+        );
       },
       home: const AuthGate(),
     );

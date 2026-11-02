@@ -711,12 +711,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Material(
                         color: stuTheme.surfaceTier1,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(AppRadii.lg),
                           side: BorderSide(color: stuTheme.border),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           child: Column(
                             children: [
                               _buildInfoRow(
@@ -726,7 +729,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     : 'Not configured',
                                 stuTheme,
                               ),
-                              const Divider(height: 16),
                               _buildInfoRow(
                                 'Course / Program',
                                 profile.course.isNotEmpty
@@ -734,7 +736,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     : 'Not configured',
                                 stuTheme,
                               ),
-                              const Divider(height: 16),
                               _buildInfoRow(
                                 'Academic Year',
                                 profile.academicYear.isNotEmpty
@@ -742,7 +743,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     : 'Year 1',
                                 stuTheme,
                               ),
-                              const Divider(height: 16),
                               _buildInfoRow(
                                 'Semester',
                                 profile.semester.isNotEmpty
@@ -750,21 +750,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     : 'Semester 1',
                                 stuTheme,
                               ),
-                              const Divider(height: 16),
+                              const SizedBox(height: 8),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 leading: Container(
                                   width: 36,
                                   height: 36,
                                   decoration: BoxDecoration(
-                                    color: stuTheme.accent.withValues(
-                                      alpha: 0.12,
-                                    ),
+                                    color: stuTheme.surfaceTier2,
                                     borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: stuTheme.border,
+                                      width: 0.8,
+                                    ),
                                   ),
                                   child: Icon(
                                     Icons.how_to_reg_rounded,
-                                    color: stuTheme.accent,
+                                    color: stuTheme.textPrimary,
                                     size: 20,
                                   ),
                                 ),
@@ -881,16 +883,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Material(
                         color: stuTheme.surfaceTier1,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(AppRadii.lg),
                           side: BorderSide(color: stuTheme.border),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Column(
                           children: [
                             ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
                               leading: Icon(
                                 Icons.palette_outlined,
-                                color: stuTheme.accent,
+                                color: stuTheme.textPrimary,
                                 size: 22,
                               ),
                               title: Text(
@@ -910,15 +916,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               trailing: Icon(
                                 Icons.chevron_right_rounded,
-                                color: stuTheme.textSecondary,
+                                color: stuTheme.textMuted,
                               ),
                               onTap: _showAppearanceCustomizationDialog,
                             ),
-                            const Divider(height: 1),
                             ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
                               leading: Icon(
                                 Icons.help_outline_rounded,
-                                color: stuTheme.accent,
+                                color: stuTheme.textPrimary,
                                 size: 22,
                               ),
                               title: Text(
@@ -938,15 +947,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               trailing: Icon(
                                 Icons.chevron_right_rounded,
-                                color: stuTheme.textSecondary,
+                                color: stuTheme.textMuted,
                               ),
                               onTap: () => HelpGuidesSheet.show(context),
                             ),
-                            const Divider(height: 1),
                             ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
                               leading: Icon(
                                 Icons.file_download_outlined,
-                                color: stuTheme.accent,
+                                color: stuTheme.textPrimary,
                                 size: 22,
                               ),
                               title: Text(
@@ -966,15 +978,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               trailing: Icon(
                                 Icons.chevron_right_rounded,
-                                color: stuTheme.textSecondary,
+                                color: stuTheme.textMuted,
                               ),
                               onTap: _exportDeskData,
                             ),
-                            const Divider(height: 1),
                             ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
                               leading: Icon(
                                 Icons.restart_alt_rounded,
-                                color: stuTheme.warning,
+                                color: stuTheme.textSecondary,
                                 size: 22,
                               ),
                               title: Text(
@@ -1005,19 +1020,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 }
                               },
                             ),
-                            const Divider(height: 1),
                             ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 2,
+                              ),
                               leading: Icon(
                                 Icons.logout_rounded,
-                                color: stuTheme.error,
+                                color: stuTheme.textPrimary,
                                 size: 22,
                               ),
                               title: Text(
                                 'Sign Out',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: stuTheme.error,
+                                  fontWeight: FontWeight.w600,
+                                  color: stuTheme.textPrimary,
                                 ),
                               ),
                               onTap: _handleSignOut,
@@ -1043,25 +1061,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String value,
     StuDeskThemeExtension stuTheme,
   ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 13, color: stuTheme.textSecondary),
-        ),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.bold,
-              color: stuTheme.textPrimary,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 13, color: stuTheme.textSecondary),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: stuTheme.textPrimary,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

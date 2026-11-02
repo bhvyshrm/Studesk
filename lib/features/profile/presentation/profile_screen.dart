@@ -579,65 +579,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       // Section 10.1: Personal Identity Card
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 18,
+                        ),
                         decoration: BoxDecoration(
                           color: stuTheme.surfaceTier1,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(AppRadii.lg),
                           border: Border.all(color: stuTheme.border),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              width: 60,
-                              height: 60,
+                              width: 54,
+                              height: 54,
                               decoration: BoxDecoration(
-                                color: stuTheme.accent.withValues(alpha: 0.15),
+                                color: stuTheme.surfaceTier2,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: stuTheme.accent,
-                                  width: 2,
+                                  color: stuTheme.border,
+                                  width: 1.2,
                                 ),
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 initials,
                                 style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: stuTheme.accent,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: stuTheme.textPrimary,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
                                     profile.effectiveDisplayName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
                                       color: stuTheme.textPrimary,
+                                      letterSpacing: -0.3,
                                     ),
                                   ),
                                   if (profile.hasUsername) ...[
                                     const SizedBox(height: 2),
                                     Text(
                                       '@${profile.username}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 12.5,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                         color: stuTheme.textSecondary,
                                       ),
                                     ),
                                   ],
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 3),
                                   Row(
                                     children: [
                                       Icon(
-                                        Icons.lock_outline_rounded,
-                                        size: 12,
+                                        Icons.mail_outline_rounded,
+                                        size: 13,
                                         color: stuTheme.textMuted,
                                       ),
                                       const SizedBox(width: 4),
@@ -648,50 +658,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               : 'student@university.edu',
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 12,
-                                            color: stuTheme.textSecondary,
+                                            fontSize: 11.5,
+                                            color: stuTheme.textMuted,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
                                   if (profile.bio.isNotEmpty) ...[
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 3),
                                     Text(
                                       profile.bio,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: stuTheme.textMuted,
+                                        fontSize: 11.5,
+                                        color: stuTheme.textSecondary,
                                       ),
                                     ),
                                   ],
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 8),
                             IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              color: stuTheme.accent,
+                              icon: const Icon(Icons.edit_outlined, size: 20),
+                              color: stuTheme.textSecondary,
                               tooltip: 'Edit Profile',
                               onPressed: _showEditProfileDialog,
+                              style: IconButton.styleFrom(
+                                shape: const CircleBorder(),
+                                padding: const EdgeInsets.all(8),
+                              ),
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
 
                       // Section 10.2: My College Life
                       Text(
                         'My College Life',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
                           color: stuTheme.textPrimary,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Material(
                         color: stuTheme.surfaceTier1,
                         shape: RoundedRectangleBorder(
@@ -785,18 +801,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
 
                       // Section 10.3: My Calendar
                       Text(
                         'My Schedule',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
                           color: stuTheme.textPrimary,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Material(
                         color: stuTheme.surfaceTier1,
                         shape: RoundedRectangleBorder(
@@ -848,18 +865,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
 
                       // Section 10.4: My App Settings & Guides
                       Text(
                         'My App',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
                           color: stuTheme.textPrimary,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Material(
                         color: stuTheme.surfaceTier1,
                         shape: RoundedRectangleBorder(

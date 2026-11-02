@@ -24,7 +24,12 @@ class AppBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final stuTheme = context.stuTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = mediaQuery.padding.bottom;
+    final screenWidth = mediaQuery.size.width;
+    final horizontalMargin = screenWidth < 360
+        ? 12.0
+        : (screenWidth < 400 ? 16.0 : 20.0);
     final bottomMargin = bottomInset > 0 ? bottomInset : 10.0;
     final totalNavHeight = 64.0 + bottomMargin + 4.0;
 
@@ -32,8 +37,8 @@ class AppBottomNavBar extends StatelessWidget {
       height: totalNavHeight,
       child: Padding(
         padding: EdgeInsets.only(
-          left: 20.0,
-          right: 20.0,
+          left: horizontalMargin,
+          right: horizontalMargin,
           top: 2.0,
           bottom: bottomMargin,
         ),

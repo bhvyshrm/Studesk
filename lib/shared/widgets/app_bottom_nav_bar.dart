@@ -26,7 +26,7 @@ class AppBottomNavBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final bottomMargin = bottomInset > 0 ? bottomInset : 10.0;
-    final totalNavHeight = 60.0 + bottomMargin + 6.0;
+    final totalNavHeight = 64.0 + bottomMargin + 4.0;
 
     return SizedBox(
       height: totalNavHeight,
@@ -34,14 +34,14 @@ class AppBottomNavBar extends StatelessWidget {
         padding: EdgeInsets.only(
           left: 20.0,
           right: 20.0,
-          top: 4.0,
+          top: 2.0,
           bottom: bottomMargin,
         ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Container(
-              height: 56.0,
+              height: 60.0,
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF101010) : const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(AppRadii.pill),
@@ -55,7 +55,7 @@ class AppBottomNavBar extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               child: Row(
                 children: [
                   Expanded(
@@ -121,7 +121,10 @@ class AppBottomNavBar extends StatelessWidget {
     required String tooltip,
   }) {
     final isSelected = currentIndex == index;
-    final stuTheme = context.stuTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final activeColor = isDark ? AppColors.monoWhite : AppColors.monoBlack;
+    final inactiveColor = AppColors.textMuted;
 
     return Semantics(
       label: semanticLabel,
@@ -131,17 +134,26 @@ class AppBottomNavBar extends StatelessWidget {
         message: tooltip,
         child: InkWell(
           onTap: () => onDestinationSelected(index),
-          borderRadius: BorderRadius.circular(AppRadii.lg),
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutCubic,
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeInOutCubic,
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
-              color: isSelected ? stuTheme.surfaceTier2 : Colors.transparent,
-              borderRadius: BorderRadius.circular(AppRadii.md),
+              color: isSelected
+                  ? (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEF0))
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadii.pill),
               border: isSelected
-                  ? Border.all(color: stuTheme.border, width: 0.8)
-                  : null,
+                  ? Border.all(
+                      color: isDark
+                          ? const Color(0xFF2E2E2E)
+                          : const Color(0xFFD4D4D8),
+                      width: 0.8,
+                    )
+                  : Border.all(color: Colors.transparent, width: 0.8),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -150,7 +162,7 @@ class AppBottomNavBar extends StatelessWidget {
                 Icon(
                   isSelected ? selectedIcon : icon,
                   size: 20,
-                  color: isSelected ? stuTheme.textPrimary : stuTheme.textMuted,
+                  color: isSelected ? activeColor : inactiveColor,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -161,9 +173,7 @@ class AppBottomNavBar extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     letterSpacing: -0.1,
-                    color: isSelected
-                        ? stuTheme.textPrimary
-                        : stuTheme.textMuted,
+                    color: isSelected ? activeColor : inactiveColor,
                   ),
                 ),
               ],

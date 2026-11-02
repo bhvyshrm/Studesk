@@ -405,10 +405,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Today\'s Plan',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                               color: stuTheme.textPrimary,
-                              letterSpacing: -0.3,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           TextButton(
@@ -417,8 +417,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               '+ Add',
                               style: TextStyle(
                                 color: stuTheme.textPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.5,
                               ),
                             ),
                           ),
@@ -454,7 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
 
                       // Section 5.6: Coming Up
                       Row(
@@ -463,17 +463,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Coming Up',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
                               color: stuTheme.textPrimary,
-                              letterSpacing: -0.3,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           if (_repo.exams.isNotEmpty)
                             Text(
                               '${_repo.exams.length} exams on radar',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 11.5,
                                 color: stuTheme.textSecondary,
                               ),
                             ),
@@ -502,28 +502,33 @@ class _HomeScreenState extends State<HomeScreen> {
                             .map((ev) => _buildEventTile(ev, stuTheme)),
                       ],
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
 
                       // Section 5.7: Quick Attendance Glance (Counts only - NO percentages!)
                       CustomCard(
-                        padding: const EdgeInsets.all(18),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         child: Row(
                           children: [
                             Container(
-                              width: 44,
-                              height: 44,
+                              width: 38,
+                              height: 38,
                               decoration: BoxDecoration(
                                 color: stuTheme.surfaceTier2,
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadii.sm,
+                                ),
                                 border: Border.all(color: stuTheme.border),
                               ),
                               child: Icon(
                                 Icons.how_to_reg_rounded,
                                 color: stuTheme.textPrimary,
-                                size: 22,
+                                size: 20,
                               ),
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,8 +536,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Text(
                                     _repo.attendanceSummaryHeadline,
                                     style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
                                       color: stuTheme.textPrimary,
                                     ),
                                   ),
@@ -540,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Text(
                                     _repo.attendanceSummaryDetail,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 11.5,
                                       color: stuTheme.textSecondary,
                                     ),
                                   ),
@@ -552,8 +557,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Text(
                                 'View',
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
                                   color: stuTheme.textPrimary,
                                 ),
                               ),
@@ -562,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -673,31 +678,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       decoration: BoxDecoration(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.lg),
         border: Border.all(color: stuTheme.border),
       ),
       child: Column(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: stuTheme.surfaceTier2,
-              shape: BoxShape.circle,
-              border: Border.all(color: stuTheme.border),
-            ),
-            child: Icon(icon, color: stuTheme.textSecondary, size: 22),
-          ),
-          const SizedBox(height: 12),
+          Icon(icon, color: stuTheme.textMuted, size: 28),
+          const SizedBox(height: 10),
           Text(
             title,
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
               color: stuTheme.textPrimary,
+              letterSpacing: -0.2,
             ),
           ),
           const SizedBox(height: 4),
@@ -705,26 +702,26 @@ class _HomeScreenState extends State<HomeScreen> {
             subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 12,
               color: stuTheme.textSecondary,
               height: 1.35,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: stuTheme.accent,
               foregroundColor: stuTheme.onAccent,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
             ),
             onPressed: onAction,
             child: Text(
               actionText,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -736,28 +733,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: stuTheme.surfaceTier1,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           border: Border.all(color: stuTheme.border),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
               decoration: BoxDecoration(
                 color: stuTheme.surfaceTier2,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadii.xs),
                 border: Border.all(color: stuTheme.border),
               ),
               child: Text(
                 'CLASS',
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
                   color: stuTheme.textPrimary,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.4,
                 ),
               ),
             ),
@@ -771,8 +768,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
                       color: stuTheme.textPrimary,
                     ),
                   ),
@@ -780,7 +777,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     '${c.startTime} – ${c.endTime} • Room ${c.room}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11.5,
                       color: stuTheme.textSecondary,
                     ),
                   ),
@@ -788,17 +785,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: stuTheme.surfaceTier2,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadii.xs),
                 border: Border.all(color: stuTheme.border),
               ),
               child: Text(
                 c.courseCode,
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
                   color: stuTheme.textPrimary,
                 ),
               ),
@@ -814,14 +811,14 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           onTap: () => StuDeskForms.showTaskForm(context, existingTask: t),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.md),
               border: Border.all(color: stuTheme.border),
             ),
             child: Row(
@@ -834,7 +831,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: t.isCompleted
                         ? stuTheme.textMuted
                         : stuTheme.textPrimary,
-                    size: 22,
+                    size: 20,
                   ),
                   onPressed: () => _repo.toggleTask(t.id),
                 ),
@@ -847,7 +844,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.w600,
                           decoration: t.isCompleted
                               ? TextDecoration.lineThrough
@@ -876,7 +873,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tooltip: 'Edit Task',
                   icon: Icon(
                     Icons.edit_outlined,
-                    size: 18,
+                    size: 17,
                     color: stuTheme.textMuted,
                   ),
                   onPressed: () =>
@@ -886,7 +883,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tooltip: 'Delete Task',
                   icon: Icon(
                     Icons.delete_outline_rounded,
-                    size: 18,
+                    size: 17,
                     color: stuTheme.textMuted,
                   ),
                   onPressed: () => StuDeskForms.confirmDelete(
@@ -909,35 +906,35 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           onTap: () => StuDeskForms.showExamForm(context, existingExam: e),
           child: Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.md),
               border: Border.all(color: stuTheme.border),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 7,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
                     border: Border.all(color: stuTheme.border),
                   ),
                   child: Text(
                     'EXAM TODAY',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
                       color: stuTheme.textPrimary,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ),
@@ -950,7 +947,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         e.title,
                         style: TextStyle(
                           fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: stuTheme.textPrimary,
                         ),
                       ),
@@ -968,7 +965,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tooltip: 'Delete Exam',
                   icon: Icon(
                     Icons.delete_outline_rounded,
-                    size: 18,
+                    size: 17,
                     color: stuTheme.textMuted,
                   ),
                   onPressed: () => StuDeskForms.confirmDelete(
@@ -992,35 +989,35 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           onTap: () => StuDeskForms.showEventForm(context, existingEvent: ev),
           child: Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.md),
               border: Border.all(color: stuTheme.border),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 7,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
                     border: Border.all(color: stuTheme.border),
                   ),
                   child: Text(
                     'EVENT',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
                       color: stuTheme.textPrimary,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ),
@@ -1032,8 +1029,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         ev.title,
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
                           color: stuTheme.textPrimary,
                         ),
                       ),
@@ -1041,7 +1038,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         DateFormat('EEE, MMM d').format(ev.eventDate) +
                             (ev.location != null ? ' • ${ev.location}' : ''),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           color: stuTheme.textSecondary,
                         ),
                       ),
@@ -1052,7 +1049,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tooltip: 'Delete Event',
                   icon: Icon(
                     Icons.delete_outline_rounded,
-                    size: 18,
+                    size: 17,
                     color: stuTheme.textMuted,
                   ),
                   onPressed: () => StuDeskForms.confirmDelete(
@@ -1076,36 +1073,36 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           onTap: () =>
               StuDeskForms.showReminderForm(context, existingReminder: r),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.md),
               border: Border.all(color: stuTheme.border),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 7,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
                     border: Border.all(color: stuTheme.border),
                   ),
                   child: Text(
                     'REMINDER',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
                       color: stuTheme.textPrimary,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ),
@@ -1114,7 +1111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     r.text,
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: stuTheme.textPrimary,
                     ),
@@ -1124,7 +1121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tooltip: 'Delete Reminder',
                   icon: Icon(
                     Icons.close_rounded,
-                    size: 18,
+                    size: 17,
                     color: stuTheme.textMuted,
                   ),
                   onPressed: () => StuDeskForms.confirmDelete(
@@ -1152,33 +1149,33 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           onTap: () => StuDeskForms.showExamForm(context, existingExam: e),
           child: Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.md),
               border: Border.all(color: stuTheme.border),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                    horizontal: 8,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: stuTheme.surfaceTier2,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
                     border: Border.all(color: stuTheme.border),
                   ),
                   child: Text(
                     countdown.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
                       color: stuTheme.textPrimary,
                       letterSpacing: 0.4,
                     ),
@@ -1194,15 +1191,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
                           color: stuTheme.textPrimary,
                         ),
                       ),
                       Text(
                         '${DateFormat('MMM d').format(e.examDate)} • Room ${e.room}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           color: stuTheme.textSecondary,
                         ),
                       ),
@@ -1213,7 +1210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tooltip: 'Delete Exam',
                   icon: Icon(
                     Icons.delete_outline_rounded,
-                    size: 18,
+                    size: 17,
                     color: stuTheme.textMuted,
                   ),
                   onPressed: () => StuDeskForms.confirmDelete(
@@ -1237,22 +1234,22 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: stuTheme.surfaceTier1,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.md),
           onTap: () => StuDeskForms.showTaskForm(context, existingTask: t),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadii.md),
               border: Border.all(color: stuTheme.border),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.assignment_outlined,
-                  size: 20,
-                  color: stuTheme.textSecondary,
+                  size: 18,
+                  color: stuTheme.textMuted,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1261,7 +1258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: stuTheme.textPrimary,
                     ),

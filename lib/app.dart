@@ -59,14 +59,18 @@ class _StuDeskAppState extends State<StuDeskApp> {
           value: SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            statusBarIconBrightness: isDark
+                ? Brightness.light
+                : Brightness.dark,
             systemNavigationBarColor: Colors.transparent,
             systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness:
-                isDark ? Brightness.light : Brightness.dark,
+            systemNavigationBarIconBrightness: isDark
+                ? Brightness.light
+                : Brightness.dark,
             systemNavigationBarContrastEnforced: false,
           ),
-          child: child ??
+          child:
+              child ??
               const Scaffold(body: Center(child: CircularProgressIndicator())),
         );
       },

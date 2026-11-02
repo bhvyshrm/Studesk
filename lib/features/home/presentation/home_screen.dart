@@ -724,7 +724,10 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: onAction,
             child: Text(
               actionText,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

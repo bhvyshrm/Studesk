@@ -192,4 +192,77 @@ void main() {
       expect(homeSize.height, greaterThan(600.0));
     },
   );
+
+  testWidgets(
+    'Floating bottom nav bar maintains rounded pill container and side margins',
+    (WidgetTester tester) async {
+      configurePhoneDimensions(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(const StuDeskApp());
+      await tester.pumpAndSettle();
+
+      final navFinder = find.byType(AppBottomNavBar);
+      expect(navFinder, findsOneWidget);
+
+      // Verify pill container inside nav bar has side margins
+      final screenWidth =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      expect(screenWidth, 390.0);
+
+      // Find inner pill container
+      final pillFinder = find.descendant(
+        of: navFinder,
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Container &&
+              w.constraints?.hasBoundedHeight == true &&
+              w.constraints?.maxHeight == 60.0,
+        ),
+      );
+      expect(pillFinder, findsOneWidget);
+
+      final pillSize = tester.getSize(pillFinder);
+      expect(pillSize.width, lessThan(screenWidth));
+      expect(pillSize.height, equals(60.0));
+    },
+  );
+
+  testWidgets(
+    'Profile screen renders cleanly without excessive divider lines and maintains functionality',
+    (WidgetTester tester) async {
+      configurePhoneDimensions(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(const StuDeskApp());
+      await tester.pumpAndSettle();
+
+      // Navigate to profile
+      await tester.tap(find.byTooltip('Profile, Attendance & Settings'));
+      await tester.pumpAndSettle();
+
+      // Verify sections are cleanly rendered
+      expect(find.text('My College Life'), findsOneWidget);
+      expect(find.text('My Schedule'), findsOneWidget);
+      expect(find.text('My App'), findsOneWidget);
+
+      // Verify that settings list tiles do not have divider lines between every option
+      expect(find.byType(Divider), findsNothing);
+
+      // Verify edit profile interaction works
+      final editBtn = find.byTooltip('Edit Profile');
+      expect(editBtn, findsOneWidget);
+      await tester.tap(editBtn);
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Student Profile'), findsOneWidget);
+
+      // Save and close modal
+      expect(find.text('Save Changes'), findsOneWidget);
+      await tester.tap(find.text('Save Changes'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Student Profile'), findsNothing);
+    },
+  );
 }
